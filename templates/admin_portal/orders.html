@@ -1,0 +1,78 @@
+{% extends 'admin_portal/base_admin.html' %}
+{% block title %}Orders – Admin Portal{% endblock %}
+{% block breadcrumb %}Orders{% endblock %}
+
+{% block admin_content %}
+<div class="page-header">
+    <h2>🛒 Orders <span class="sub">({{ orders.count }})</span></h2>
+</div>
+
+<form method="get" class="search-row">
+    <select name="status">
+        <option value="">All Statuses</option>
+        <option value="pending"   {% if status == 'pending'   %}selected{% endif %}>Pending</option>
+        <option value="confirmed" {% if status == 'confirmed' %}selected{% endif %}>Confirmed</option>
+        <option value="processing"{% if status == 'processing'%}selected{% endif %}>Processing</option>
+        <option value="shipped"   {% if status == 'shipped'   %}selected{% endif %}>Shipped</option>
+        <option value="delivered" {% if status == 'delivered' %}selected{% endif %}>Delivered</option>
+        <option value="cancelled" {% if status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+    </select>
+    <button type="submit" class="search-btn"><i class="fas fa-filter"></i> Filter</button>
+    {% if status %}<a href="{% url 'admin_portal:orders' %}" style="font-size:.83rem;color:#d42e2e;font-weight:600;">Clear</a>{% endif %}
+</form>
+
+<div class="table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th>Order #</th>
+                <th>Customer</th>
+                <th>Items</th>
+                <th>Total</th>
+                <th>Payment</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Update</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for o in orders %}
+            <tr>
+                <td><strong>{{ o.order_number }}</strong></td>
+                <td>
+                    <div>{{ o.shipping_name }}</div>
+                    <div style="font-size:0.72rem;color:#94a3b8;">{{ o.shipping_city }}</div>
+                </td>
+                <td>{{ o.items.count }}</td>
+                <td>ETB {{ o.total }}</td>
+                <td>{{ o.get_payment_method_display }}</td>
+                <td>
+                    <span class="status {{ o.status }}">{{ o.get_status_display }}</span>
+                </td>
+                <td>{{ o.created_at|date:"Y-m-d" }}</td>
+                <td>
+                    <form method="post" action="{% url 'admin_portal:order_status' o.pk %}">
+                        {% csrf_token %}
+                        <select name="status" onchange="this.form.submit()"
+                                style="padding:4px 8px;border:1px solid #eef2f6;border-radius:8px;
+                                       font-size:0.75rem;outline:none;background:white;cursor:pointer;">
+                            <option value="pending"    {% if o.status == 'pending'    %}selected{% endif %}>Pending</option>
+                            <option value="confirmed"  {% if o.status == 'confirmed'  %}selected{% endif %}>Confirmed</option>
+                            <option value="processing" {% if o.status == 'processing' %}selected{% endif %}>Processing</option>
+                            <option value="shipped"    {% if o.status == 'shipped'    %}selected{% endif %}>Shipped</option>
+                            <option value="delivered"  {% if o.status == 'delivered'  %}selected{% endif %}>Delivered</option>
+                            <option value="cancelled"  {% if o.status == 'cancelled'  %}selected{% endif %}>Cancelled</option>
+                            <option value="refunded"   {% if o.status == 'refunded'   %}selected{% endif %}>Refunded</option>
+                        </select>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" style="text-align:center;padding:32px;color:#94a3b8;">No orders found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

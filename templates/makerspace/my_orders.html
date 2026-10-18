@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}My Makerspace Orders · Qenagebeya{% endblock %}
+
+{% block extra_css %}
+<style>
+.mk-wrap{max-width:1000px;margin:0 auto;padding:28px 32px;}
+.order-card{background:#fff;border-radius:16px;border:1px solid #eef2f6;padding:20px;margin-bottom:14px;display:grid;grid-template-columns:auto 1fr auto auto;gap:16px;align-items:center;transition:.2s;}
+.order-card:hover{box-shadow:0 6px 16px rgba(0,0,0,.06);}
+.svc-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
+.order-num{font-weight:800;font-size:.95rem;color:#0b2b4a;}
+.order-meta{font-size:.78rem;color:#94a3b8;margin-top:3px;}
+.status-badge{padding:4px 14px;border-radius:40px;font-size:.72rem;font-weight:700;white-space:nowrap;}
+.st-quote_pending{background:#fef3f3;color:#b91c1c;}
+.st-quoted{background:#fff4e6;color:#b85a1a;}
+.st-accepted{background:#e6f0fa;color:#1a4b8a;}
+.st-in_production{background:#f0fff4;color:#078930;}
+.st-ready{background:#e8f5e9;color:#1f7b3a;}
+.st-delivered{background:#e6f7e6;color:#1f7b3a;}
+.st-rejected,.st-cancelled{background:#f1f4f9;color:#64748b;}
+.order-price{font-size:1.1rem;font-weight:800;color:#0b2b4a;text-align:right;}
+.view-btn{padding:7px 20px;background:#078930;color:#fff;border:none;border-radius:60px;font-weight:600;font-size:.8rem;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px;}
+.view-btn:hover{background:#0b2b4a;}
+@media(max-width:600px){.order-card{grid-template-columns:1fr 1fr;}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mk-wrap">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:24px;">
+        <div>
+            <h1 style="font-size:1.5rem;font-weight:800;">
+                <i class="fas fa-tools" style="color:#078930;"></i>
+                My Makerspace Orders · ትዕዛዞቼ
+            </h1>
+            <p style="font-size:.85rem;color:#64748b;margin-top:4px;">{{ orders.count }} order{% if orders.count != 1 %}s{% endif %}</p>
+        </div>
+        <a href="{% url 'makerspace:submit_order' %}"
+           style="background:#078930;color:#fff;padding:11px 24px;border-radius:60px;font-weight:700;font-size:.88rem;text-decoration:none;display:inline-flex;align-items:center;gap:8px;">
+            <i class="fas fa-plus"></i> New Order
+        </a>
+    </div>
+
+    {% if orders %}
+        {% for order in orders %}
+        <div class="order-card">
+            <div class="svc-icon
+                {% if order.service_type == '3d_print' %}
+                    " style="background:#e8f5e9;color:#078930;">
+                    <i class="fas fa-cube"></i>
+                {% elif order.service_type == 'laser' %}
+                    " style="background:#e6f0fa;color:#1a4b8a;">
+                    <i class="fas fa-cut"></i>
+                {% elif order.service_type == 'cnc' %}
+                    " style="background:#fef3f3;color:#b91c1c;">
+                    <i class="fas fa-tools"></i>
+                {% elif order.service_type == 'design' %}
+                    " style="background:#fff4e6;color:#b85a1a;">
+                    <i class="fas fa-drafting-compass"></i>
+                {% else %}
+                    " style="background:#f1f4f9;color:#64748b;">
+                    <i class="fas fa-cog"></i>
+                {% endif %}
+            </div>
+            <div>
+                <div class="order-num">{{ order.order_number }}</div>
+                <div class="order-meta">
+                    {{ order.get_service_type_display }} ·
+                    {{ order.get_material_display }} ·
+                    {{ order.vendor.store_name }} ·
+                    {{ order.created_at|date:"M j, Y" }}
+                </div>
+            </div>
+            <span class="status-badge st-{{ order.status }}">{{ order.get_status_display }}</span>
+            <div>
+                <div class="order-price">ETB {{ order.final_price }}</div>
+                <div style="text-align:right;margin-top:6px;">
+                    <a href="{% url 'makerspace:order_detail' order.pk %}" class="view-btn">
+                        <i class="fas fa-eye"></i> View
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div style="text-align:center;padding:60px 20px;">
+            <i class="fas fa-tools" style="font-size:3.5rem;color:#d1d5db;display:block;margin-bottom:14px;"></i>
+            <h3 style="font-size:1.1rem;font-weight:700;margin-bottom:8px;">No orders yet · ምንም ትዕዛዝ የለም</h3>
+            <p style="color:#94a3b8;font-size:.88rem;margin-bottom:20px;">Upload a design file to get started.</p>
+            <a href="{% url 'makerspace:submit_order' %}"
+               style="background:#078930;color:#fff;padding:12px 36px;border-radius:60px;font-weight:700;font-size:.9rem;text-decoration:none;">
+                <i class="fas fa-upload"></i> Submit First Order
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

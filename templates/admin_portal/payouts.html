@@ -1,0 +1,58 @@
+{% extends 'admin_portal/base_admin.html' %}
+{% block title %}Vendor Payouts – Admin Portal{% endblock %}
+{% block breadcrumb %}Payouts{% endblock %}
+
+{% block admin_content %}
+<div class="page-header">
+    <h2>💳 Vendor Payouts · ክፍያዎች <span class="sub">({{ payouts.count }})</span></h2>
+</div>
+
+<div class="table-wrap">
+    <table>
+        <thead>
+            <tr><th>#</th><th>Vendor</th><th>Amount</th><th>Status</th><th>Requested</th><th>Transaction</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+            {% for p in payouts %}
+            <tr>
+                <td><strong>#{{ p.pk }}</strong></td>
+                <td>
+                    <div style="font-weight:600;">{{ p.vendor.store_name }}</div>
+                    <div style="font-size:.72rem;color:#94a3b8;">Balance: ETB {{ p.vendor.balance }}</div>
+                </td>
+                <td><strong>ETB {{ p.amount }}</strong></td>
+                <td>
+                    <span class="status
+                        {% if p.status == 'paid' %}active
+                        {% elif p.status == 'pending' %}pending
+                        {% else %}suspended{% endif %}">
+                        {{ p.get_status_display }}
+                    </span>
+                </td>
+                <td>{{ p.requested_at|date:"M j, Y" }}</td>
+                <td>{{ p.transaction_id|default:"—" }}</td>
+                <td>
+                    {% if p.status == 'pending' %}
+                    <form method="post" action="{% url 'admin_portal:payout_process' p.pk %}" style="display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap;">
+                        {% csrf_token %}
+                        <input type="text" name="transaction_id" placeholder="Transaction ID"
+                               style="padding:4px 10px;border:1px solid #eef2f6;border-radius:8px;font-size:.75rem;width:130px;"/>
+                        <button type="submit" name="action" value="pay" class="act-btn act-btn-approve">
+                            <i class="fas fa-check"></i> Pay
+                        </button>
+                        <button type="submit" name="action" value="reject" class="act-btn act-btn-deactivate">
+                            <i class="fas fa-times"></i> Reject
+                        </button>
+                    </form>
+                    {% else %}
+                    <span style="font-size:.75rem;color:#94a3b8;">{{ p.processed_at|date:"M j, Y"|default:"—" }}</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" style="text-align:center;padding:32px;color:#94a3b8;">No payout requests. 🎉</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

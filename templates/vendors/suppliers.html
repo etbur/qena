@@ -1,0 +1,37 @@
+{% extends 'vendors/base_vendor.html' %}
+{% block title %}Suppliers · {{ vendor.store_name }}{% endblock %}
+{% block breadcrumb %}Inventory / Suppliers{% endblock %}
+{% block vendor_content %}
+<div class="page-header">
+  <h2>🤝 Suppliers</h2>
+  <a href="{% url 'vendors:inventory' %}" class="btn-back"><i class="fas fa-arrow-left"></i> Back</a>
+</div>
+<div class="form-card" style="margin-bottom:20px;">
+  <h3>Add Supplier</h3>
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-grid-2">
+      <div class="form-group"><label>Name *</label><input type="text" name="name" class="form-control" required/></div>
+      <div class="form-group"><label>Contact Person</label><input type="text" name="contact_person" class="form-control"/></div>
+      <div class="form-group"><label>Phone</label><input type="text" name="phone" class="form-control"/></div>
+      <div class="form-group"><label>Email</label><input type="email" name="email" class="form-control"/></div>
+    </div>
+    <div class="form-group"><label>Address</label><input type="text" name="address" class="form-control"/></div>
+    <button type="submit" class="btn-save"><i class="fas fa-save"></i> Save Supplier</button>
+  </form>
+</div>
+<div class="table-wrap">
+  <table><thead><tr><th>Name</th><th>Contact</th><th>Phone</th><th>Email</th><th>Items</th></tr></thead>
+  <tbody>
+  {% for s in suppliers %}
+  <tr>
+    <td><strong>{{ s.name }}</strong></td>
+    <td>{{ s.contact_person|default:"—" }}</td>
+    <td>{{ s.phone|default:"—" }}</td>
+    <td>{{ s.email|default:"—" }}</td>
+    <td>{{ s.items.count }}</td>
+  </tr>
+  {% empty %}<tr><td colspan="5" style="text-align:center;padding:30px;color:#94a3b8;">No suppliers yet.</td></tr>{% endfor %}
+  </tbody></table>
+</div>
+{% endblock %}

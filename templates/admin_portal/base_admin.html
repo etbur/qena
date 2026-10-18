@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>{% block title %}Qenagebeya · Admin Portal{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background: #f1f4f9;
+            color: #1e293b;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            width: 260px;
+            background: #0b1b2b;
+            color: #cbd5e1;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            overflow-y: auto;
+            transition: 0.3s;
+            z-index: 100;
+        }
+        .sidebar::-webkit-scrollbar { width: 4px; }
+        .sidebar::-webkit-scrollbar-thumb { background: #2a3a4e; border-radius: 10px; }
+
+        .sidebar-brand {
+            padding: 24px 24px 20px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid #1e2f40;
+        }
+        .sidebar-brand i {
+            color: #d42e2e;
+            font-size: 1.6rem;
+        }
+
+        .sidebar-menu {
+            padding: 20px 12px;
+            flex: 1;
+        }
+        .sidebar-menu .menu-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #6a7f96;
+            padding: 8px 12px 6px;
+            font-weight: 700;
+        }
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 10px 14px;
+            color: #b0c4db;
+            text-decoration: none;
+            border-radius: 10px;
+            margin: 2px 0;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: 0.15s;
+        }
+        .sidebar-menu a:hover {
+            background: #1a2d40;
+            color: white;
+        }
+        .sidebar-menu a.active {
+            background: #d42e2e;
+            color: white;
+            box-shadow: 0 4px 12px rgba(212, 46, 46, 0.3);
+        }
+        .sidebar-menu a i {
+            width: 20px;
+            text-align: center;
+            font-size: 1rem;
+        }
+        .sidebar-menu .badge {
+            background: #d42e2e;
+            color: white;
+            font-size: 0.6rem;
+            padding: 1px 10px;
+            border-radius: 40px;
+            margin-left: auto;
+        }
+
+        .sidebar-footer {
+            padding: 16px 20px;
+            border-top: 1px solid #1e2f40;
+            font-size: 0.75rem;
+            color: #6a7f96;
+        }
+        .sidebar-footer a {
+            color: #8ba0b8;
+            text-decoration: none;
+            display: block;
+            padding: 4px 0;
+        }
+        .sidebar-footer a:hover { color: white; }
+
+        /* ===== MAIN CONTENT ===== */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ===== NAVBAR ===== */
+        .navbar {
+            background: white;
+            padding: 12px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #eef2f6;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+        .navbar-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .navbar-left .breadcrumb {
+            font-size: 0.85rem;
+            color: #475569;
+        }
+        .navbar-left .breadcrumb span { color: #0b2b4a; font-weight: 600; }
+        .navbar-left .breadcrumb i { color: #94a3b8; margin: 0 6px; font-size: 0.6rem; }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .navbar-right .icon-btn {
+            background: none;
+            border: none;
+            font-size: 1.1rem;
+            color: #475569;
+            cursor: pointer;
+            position: relative;
+        }
+        .navbar-right .icon-btn .dot {
+            position: absolute;
+            top: -2px;
+            right: -4px;
+            width: 8px;
+            height: 8px;
+            background: #d42e2e;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+        .navbar-right .admin-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-left: 16px;
+            border-left: 1px solid #eef2f6;
+        }
+        .navbar-right .admin-profile .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #0b2b4a;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+        .navbar-right .admin-profile .name {
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        .navbar-right .admin-profile .role {
+            font-size: 0.7rem;
+            color: #94a3b8;
+        }
+
+        /* ===== PAGE BODY ===== */
+        .page-body {
+            flex: 1;
+            padding: 24px 32px;
+            overflow-y: auto;
+            background: #f1f4f9;
+        }
+
+        /* stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 18px 20px;
+            border: 1px solid #eef2f6;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+        .stat-card .label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: #94a3b8;
+            font-weight: 600;
+        }
+        .stat-card .value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #0b2b4a;
+            margin: 4px 0 2px;
+        }
+        .stat-card .change {
+            font-size: 0.75rem;
+            color: #22a65e;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .stat-card .change.down { color: #d42e2e; }
+
+        /* section header */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 24px 0 14px;
+        }
+        .section-header h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+        .section-header a {
+            color: #d42e2e;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        /* table */
+        .table-wrap {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #eef2f6;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            width: 100%;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+        .table-wrap table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            min-width: 580px;
+        }
+        .table-wrap th {
+            text-align: left;
+            padding: 14px 20px;
+            background: #f8fafc;
+            font-weight: 600;
+            color: #475569;
+            border-bottom: 1px solid #eef2f6;
+        }
+        .table-wrap td {
+            padding: 12px 20px;
+            border-bottom: 1px solid #f1f4f9;
+            vertical-align: middle;
+        }
+        .table-wrap tr:last-child td { border-bottom: none; }
+
+        .status {
+            display: inline-block;
+            padding: 2px 14px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .status.active    { background: #e6f7e6; color: #1f7b3a; }
+        .status.inactive  { background: #fef3f3; color: #b91c1c; }
+        .status.pending   { background: #fff4e6; color: #b85a1a; }
+        .status.approved  { background: #e6f0fa; color: #1a4b8a; }
+        .status.suspended { background: #fef9e6; color: #8a7a1a; }
+        .status.delivered { background: #e6f7e6; color: #1f7b3a; }
+        .status.shipped   { background: #e6f0fa; color: #1a4b8a; }
+        .status.processing{ background: #fff4e6; color: #b85a1a; }
+        .status.cancelled { background: #f1f4f9; color: #64748b; }
+        .status.open      { background: #fef3f3; color: #b91c1c; }
+        .status.resolved  { background: #e6f7e6; color: #1f7b3a; }
+        .status.closed    { background: #f1f4f9; color: #64748b; }
+
+        /* quick actions */
+        .quick-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 16px 0 8px;
+        }
+        .quick-actions .btn {
+            padding: 10px 24px;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            border: 1px solid #eef2f6;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            color: #1e293b;
+            text-decoration: none;
+            transition: 0.15s;
+        }
+        .quick-actions .btn-primary {
+            background: #0b2b4a;
+            color: white;
+            border-color: #0b2b4a;
+        }
+        .quick-actions .btn-primary i { color: white; }
+        .quick-actions .btn-success {
+            background: #1f7b3a;
+            color: white;
+            border-color: #1f7b3a;
+        }
+        .quick-actions .btn-success i { color: white; }
+        .quick-actions .btn-warning {
+            background: #b85a1a;
+            color: white;
+            border-color: #b85a1a;
+        }
+        .quick-actions .btn-warning i { color: white; }
+        .quick-actions .btn:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+
+        /* admin cards (top vendors panel) */
+        .admin-card {
+            background: white;
+            border-radius: 16px;
+            padding: 16px 20px;
+            border: 1px solid #eef2f6;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 12px;
+            transition: 0.15s;
+        }
+        .admin-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+        .admin-card .avatar-lg {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #d42e2e;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+        .admin-card .info { flex: 1; }
+        .admin-card .info .name { font-weight: 600; font-size: 0.95rem; }
+        .admin-card .info .details { font-size: 0.8rem; color: #94a3b8; margin-top: 2px; }
+        .admin-card .info .details i { margin-right: 4px; }
+        .admin-card .badge-tier {
+            background: #fef9e6;
+            color: #8a7a1a;
+            padding: 4px 14px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .admin-card .badge-tier.super { background: #fef3e6; color: #b85a1a; }
+        .admin-card .badge-tier.admin { background: #e6f0fa; color: #1a4b8a; }
+
+        /* inline action buttons inside table */
+        .act-btn {
+            padding: 4px 14px;
+            border-radius: 8px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            text-decoration: none;
+            transition: 0.15s;
+            margin-right: 4px;
+        }
+        .act-btn-approve  { background: #e6f7e6; color: #1f7b3a; }
+        .act-btn-approve:hover  { background: #1f7b3a; color: white; }
+        .act-btn-suspend  { background: #fef9e6; color: #8a7a1a; }
+        .act-btn-suspend:hover  { background: #b85a1a; color: white; }
+        .act-btn-activate { background: #e6f0fa; color: #1a4b8a; }
+        .act-btn-activate:hover { background: #1a4b8a; color: white; }
+        .act-btn-deactivate{ background: #fef3f3; color: #b91c1c; }
+        .act-btn-deactivate:hover{ background: #d42e2e; color: white; }
+
+        /* search bar inside page */
+        .search-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+        }
+        .search-row input,
+        .search-row select {
+            padding: 9px 14px;
+            border: 1px solid #eef2f6;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            outline: none;
+            background: white;
+            font-family: inherit;
+            transition: 0.2s;
+        }
+        .search-row input:focus,
+        .search-row select:focus { border-color: #d42e2e; }
+        .search-row input { min-width: 240px; }
+        .search-btn {
+            padding: 9px 22px;
+            background: #0b2b4a;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            transition: 0.15s;
+        }
+        .search-btn:hover { background: #d42e2e; }
+
+        /* alert messages */
+        .alert {
+            padding: 12px 18px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .alert-success { background: #e6f7e6; color: #1f7b3a; border: 1px solid #b7e5c1; }
+        .alert-warning { background: #fff4e6; color: #b85a1a; border: 1px solid #f5d7b0; }
+        .alert-error,
+        .alert-danger  { background: #fef3f3; color: #b91c1c; border: 1px solid #f5b8b8; }
+        .alert-info    { background: #e6f0fa; color: #1a4b8a; border: 1px solid #b3cfec; }
+
+        /* page header row */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .page-header h2 {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+        .page-header .sub {
+            font-size: 0.82rem;
+            font-weight: 400;
+            color: #94a3b8;
+            margin-left: 6px;
+        }
+
+        /* ── Accordion submenu ── */
+        .submenu {
+            display: none;
+            flex-direction: column;
+            background: rgba(0,0,0,0.15);
+            border-radius: 8px;
+            margin: 2px 0 4px 0;
+            overflow: hidden;
+        }
+        .submenu.open { display: flex; }
+        .submenu a {
+            padding: 8px 14px 8px 38px !important;
+            font-size: 0.8rem !important;
+            color: #8ba0b8 !important;
+            border-radius: 0 !important;
+            margin: 0 !important;
+        }
+        .submenu a:hover { background: #1a2d40 !important; color: white !important; }
+        .submenu a.active { background: rgba(212,46,46,0.7) !important; color: white !important; box-shadow: none !important; }
+        .submenu a i { font-size: 0.75rem !important; }
+
+        /* Parent toggle link */
+        .menu-toggle {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 10px 14px;
+            color: #b0c4db;
+            text-decoration: none;
+            border-radius: 10px;
+            margin: 2px 0;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: 0.15s;
+            cursor: pointer;
+            user-select: none;
+        }
+        .menu-toggle:hover { background: #1a2d40; color: white; }
+        .menu-toggle.open  { background: #1a2d40; color: white; }
+        .menu-toggle.has-active { background: #1a2d40; color: white; }
+        .menu-toggle i { width: 20px; text-align: center; font-size: 1rem; }
+        .menu-toggle .toggle-arrow {
+            margin-left: auto;
+            font-size: 0.65rem;
+            transition: transform 0.2s;
+            color: #6a7f96;
+        }
+        .menu-toggle.open .toggle-arrow { transform: rotate(90deg); color: #b0c4db; }
+
+        /* responsive */
+        @media (max-width: 768px) {
+            .sidebar { width: 68px; }
+            .sidebar-brand span,
+            .sidebar-menu a span,
+            .menu-toggle span,
+            .submenu,
+            .sidebar-menu .menu-label,
+            .sidebar-footer { display: none; }
+            .sidebar-brand { padding: 16px; justify-content: center; }
+            .sidebar-menu a,
+            .menu-toggle { padding: 12px; justify-content: center; }
+            .sidebar-menu a i,
+            .menu-toggle i { margin: 0; }
+            .toggle-arrow { display: none; }
+            .navbar { padding: 10px 14px; flex-wrap: wrap; gap: 8px; }
+            .page-body { padding: 14px; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .navbar-left .breadcrumb { font-size: 0.7rem; }
+            .admin-profile .name,
+            .admin-profile .role { display: none; }
+        }
+
+        @media (max-width: 480px) {
+            .sidebar { width: 56px; }
+            .sidebar-brand { padding: 12px 8px; font-size: 1.2rem; }
+            .sidebar-menu a, .menu-toggle { padding: 10px 6px; }
+            .page-body { padding: 10px; }
+            .stats-grid { grid-template-columns: 1fr; gap: 10px; }
+            .navbar { padding: 8px 10px; }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <i class="fas fa-store-alt"></i>
+            <span>Qenagebeya</span>
+        </div>
+        <nav class="sidebar-menu">
+
+            <div class="menu-label">Main</div>
+            <a href="{% url 'admin_portal:dashboard' %}"
+               class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                <i class="fas fa-chart-pie"></i><span>Dashboard</span>
+            </a>
+            <a href="{% url 'admin_portal:users' %}"
+               class="{% if request.resolver_match.url_name == 'users' or request.resolver_match.url_name == 'user_toggle' %}active{% endif %}">
+                <i class="fas fa-users"></i><span>Users</span>
+            </a>
+            <a href="{% url 'admin_portal:analytics' %}"
+               class="{% if request.resolver_match.url_name == 'analytics' %}active{% endif %}">
+                <i class="fas fa-chart-bar"></i><span>Analytics</span>
+            </a>
+
+            <!-- ── Vendors accordion ── -->
+            <div class="menu-label" style="margin-top:20px;">Vendors</div>
+            {% with vn=request.resolver_match.url_name %}
+            {% with vendor_open=vn|slice:':6' %}
+            <div class="menu-toggle {% if 'vendor' in vn or 'payout' in vn %}open has-active{% endif %}"
+                 onclick="toggleMenu('vendor-submenu', this)">
+                <i class="fas fa-store"></i>
+                <span>Vendors</span>
+                {% if pending_vendor_count %}
+                    <span class="badge" style="margin-left:auto;margin-right:6px;">{{ pending_vendor_count }}</span>
+                {% endif %}
+                <i class="fas fa-chevron-right toggle-arrow"></i>
+            </div>
+            <div class="submenu {% if 'vendor' in vn or 'payout' in vn %}open{% endif %}" id="vendor-submenu">
+                <a href="{% url 'admin_portal:vendors' %}"
+                   class="{% if vn == 'vendors' %}active{% endif %}">
+                    <i class="fas fa-list"></i><span>All Vendors</span>
+                </a>
+                <a href="{% url 'admin_portal:vendors' %}?status=pending"
+                   class="{% if vn == 'vendors' and request.GET.status == 'pending' %}active{% endif %}">
+                    <i class="fas fa-clock"></i><span>Pending Approval</span>
+                    {% if pending_vendor_count %}<span class="badge" style="background:#b85a1a;">{{ pending_vendor_count }}</span>{% endif %}
+                </a>
+                <a href="{% url 'admin_portal:vendors' %}?status=approved"
+                   class="{% if vn == 'vendors' and request.GET.status == 'approved' %}active{% endif %}">
+                    <i class="fas fa-check-circle"></i><span>Approved</span>
+                </a>
+                <a href="{% url 'admin_portal:vendors' %}?status=suspended"
+                   class="{% if vn == 'vendors' and request.GET.status == 'suspended' %}active{% endif %}">
+                    <i class="fas fa-ban"></i><span>Suspended</span>
+                </a>
+                <a href="{% url 'admin_portal:payouts' %}"
+                   class="{% if 'payout' in vn %}active{% endif %}">
+                    <i class="fas fa-credit-card"></i><span>Payouts</span>
+                    {% if pending_payout_count %}<span class="badge">{{ pending_payout_count }}</span>{% endif %}
+                </a>
+                <a href="{% url 'admin_portal:products' %}"
+                   class="{% if vn == 'products' %}active{% endif %}">
+                    <i class="fas fa-tags"></i><span>Products</span>
+                </a>
+                <a href="{% url 'admin_portal:categories' %}"
+                   class="{% if 'categor' in vn %}active{% endif %}">
+                    <i class="fas fa-th-large"></i><span>Categories</span>
+                </a>
+            </div>
+            {% endwith %}
+
+            <!-- ── Agents accordion ── -->
+            <div class="menu-label" style="margin-top:20px;">Agents</div>
+            <div class="menu-toggle {% if 'agent' in vn or 'commission' in vn %}open has-active{% endif %}"
+                 onclick="toggleMenu('agent-submenu', this)">
+                <i class="fas fa-user-tie"></i>
+                <span>Agents</span>
+                <i class="fas fa-chevron-right toggle-arrow"></i>
+            </div>
+            <div class="submenu {% if 'agent' in vn or 'commission' in vn %}open{% endif %}" id="agent-submenu">
+                <a href="{% url 'admin_portal:agents' %}"
+                   class="{% if vn == 'agents' or vn == 'agent_toggle' %}active{% endif %}">
+                    <i class="fas fa-list"></i><span>All Agents</span>
+                </a>
+                <a href="{% url 'admin_portal:agent_commissions' %}"
+                   class="{% if vn == 'agent_commissions' %}active{% endif %}">
+                    <i class="fas fa-dollar-sign"></i><span>Commissions</span>
+                </a>
+            </div>
+
+            <!-- ── Orders & Disputes ── -->
+            <div class="menu-label" style="margin-top:20px;">Operations</div>
+            <a href="{% url 'admin_portal:orders' %}"
+               class="{% if vn == 'orders' or vn == 'order_status' %}active{% endif %}">
+                <i class="fas fa-shopping-cart"></i><span>Orders</span>
+            </a>
+            <a href="{% url 'admin_portal:disputes' %}"
+               class="{% if vn == 'disputes' %}active{% endif %}">
+                <i class="fas fa-flag"></i><span>Disputes</span>
+                {% if open_dispute_count %}<span class="badge">{{ open_dispute_count }}</span>{% endif %}
+            </a>
+
+            <!-- ── System ── -->
+            <div class="menu-label" style="margin-top:20px;">System</div>
+            <a href="{% url 'admin_portal:settings' %}"
+               class="{% if vn == 'settings' %}active{% endif %}">
+                <i class="fas fa-cog"></i><span>Settings</span>
+            </a>
+            <a href="/admin/" target="_blank">
+                <i class="fas fa-shield-alt"></i><span>Django Admin</span>
+            </a>
+            <a href="{% url 'admin_portal:audit_logs' %}"
+               class="{% if vn == 'audit_logs' %}active{% endif %}">
+                <i class="fas fa-file-alt"></i><span>Audit Logs</span>
+            </a>
+            {% endwith %}
+
+        </nav>
+        <div class="sidebar-footer">
+            <a href="{% url 'accounts:logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            <div style="margin-top: 6px;">v2.4.0 · UAE</div>
+        </div>
+    </aside>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <div class="main-content">
+
+        <!-- ===== NAVBAR ===== -->
+        <header class="navbar">
+            <div class="navbar-left">
+                <i class="fas fa-bars" style="color: #475569; font-size: 1.1rem; cursor: pointer;"
+                   id="sidebar-toggle"></i>
+                <div class="breadcrumb">
+                    <i class="fas fa-home"></i>
+                    <span>Admin Dashboard</span>
+                    <i class="fas fa-chevron-right"></i>
+                    {% block breadcrumb %}Overview{% endblock %}
+                </div>
+            </div>
+            <div class="navbar-right">
+                <button class="icon-btn"><i class="far fa-bell"></i><span class="dot"></span></button>
+                <button class="icon-btn"><i class="far fa-envelope"></i></button>
+                <div class="admin-profile">
+                    <div class="avatar">{{ request.user.username|first|upper }}</div>
+                    <div>
+                        <div class="name">{{ request.user.get_full_name|default:request.user.username }}</div>
+                        <div class="role">Super Admin</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- ===== PAGE BODY ===== -->
+        <div class="page-body">
+
+            {% if messages %}
+                {% for msg in messages %}
+                <div class="alert alert-{{ msg.tags }}">
+                    <i class="fas fa-info-circle"></i> {{ msg }}
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            {% block admin_content %}{% endblock %}
+
+        </div>
+    </div>
+
+    <script>
+        // Sidebar toggle
+        document.getElementById('sidebar-toggle').addEventListener('click', function () {
+            const s = document.querySelector('.sidebar');
+            if (s.style.width === '0px') {
+                s.style.width = '260px';
+                s.style.overflow = '';
+            } else {
+                s.style.width = '0px';
+                s.style.overflow = 'hidden';
+            }
+        });
+
+        // Accordion toggle
+        function toggleMenu(submenuId, toggleEl) {
+            const submenu = document.getElementById(submenuId);
+            if (!submenu) return;
+            const isOpen = submenu.classList.contains('open');
+            // Close all others first
+            document.querySelectorAll('.submenu').forEach(function(el) {
+                el.classList.remove('open');
+            });
+            document.querySelectorAll('.menu-toggle').forEach(function(el) {
+                el.classList.remove('open');
+                if (!el.classList.contains('has-active')) {
+                    // keep has-active styling
+                }
+            });
+            if (!isOpen) {
+                submenu.classList.add('open');
+                toggleEl.classList.add('open');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Qenagebeya · UAE</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background: #f4f6f9;
+            color: #1e293b;
+            line-height: 1.5;
+            padding-top: 0;
+        }
+
+        /* --- full width layout --- */
+        .top-bar {
+            background: #ffffff;
+            border-bottom: 1px solid #eef2f6;
+            padding: 8px 32px;
+            font-size: 0.8rem;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            color: #475569;
+        }
+        .top-bar .left {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+        }
+        .top-bar .left span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .top-bar .left i {
+            color: #d42e2e;
+            font-size: 0.75rem;
+        }
+        .top-bar .right {
+            display: flex;
+            gap: 18px;
+            align-items: center;
+        }
+        .top-bar .right a {
+            color: #1e293b;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.8rem;
+        }
+        .lang-switch {
+            background: #f1f4f9;
+            padding: 4px 10px;
+            border-radius: 30px;
+            display: flex;
+            gap: 4px;
+            font-weight: 600;
+        }
+        .lang-switch span { padding: 0 2px; }
+
+        /* --- main header --- */
+        .main-header {
+            background: white;
+            padding: 14px 32px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            border-bottom: 1px solid #eef2f6;
+        }
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: #0b2b4a;
+            display: flex;
+            align-items: center;
+        }
+        .logo i {
+            color: #d42e2e;
+            margin-right: 6px;
+        }
+        .delivery-area {
+            background: #f1f4f9;
+            padding: 6px 18px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #1e293b;
+            font-weight: 500;
+        }
+        .search-bar {
+            flex: 1 1 320px;
+            display: flex;
+            background: #f1f4f9;
+            border-radius: 60px;
+            padding: 2px 2px 2px 20px;
+            align-items: center;
+            transition: 0.2s;
+            border: 1px solid transparent;
+        }
+        .search-bar:focus-within {
+            background: white;
+            border-color: #d42e2e;
+            box-shadow: 0 0 0 3px rgba(212, 46, 46, 0.1);
+        }
+        .search-bar input {
+            border: none;
+            background: transparent;
+            padding: 11px 0;
+            width: 100%;
+            outline: none;
+            font-size: 0.9rem;
+        }
+        .search-bar button {
+            background: #0b2b4a;
+            border: none;
+            color: white;
+            padding: 9px 24px;
+            border-radius: 60px;
+            font-weight: 600;
+            cursor: default;
+            font-size: 0.85rem;
+        }
+        .header-actions {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        .header-actions a {
+            color: #1e293b;
+            text-decoration: none;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+        }
+        .header-actions a i { font-size: 1rem; color: #475569; }
+        .cart-icon {
+            background: #0b2b4a;
+            color: white !important;
+            padding: 8px 18px;
+            border-radius: 60px;
+            font-weight: 600;
+        }
+        .cart-icon i { color: white !important; }
+
+        /* --- STICKY NAVIGATION --- */
+        .sticky-nav-wrapper {
+            position: sticky;
+            top: 0;
+            z-index: 999;
+            background: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            border-bottom: 1px solid #eef2f6;
+            display: flex;
+            align-items: center;
+        }
+
+        .category-nav {
+            background: white;
+            padding: 0 32px;
+            display: flex;
+            align-items: center;
+            gap: 0;
+            flex-wrap: nowrap;
+            position: relative;
+            overflow-x: auto;
+            width: 100%;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            scroll-behavior: smooth;
+        }
+        .category-nav::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Scroll button styling */
+        .nav-scroll-btn {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 40px;
+            background: linear-gradient(to right, white 60%, rgba(255,255,255,0));
+            border: none;
+            outline: none;
+            cursor: pointer;
+            z-index: 1001;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            color: #475569;
+            font-size: 1rem;
+            transition: 0.2s;
+        }
+        .nav-scroll-btn:hover {
+            color: #d42e2e;
+        }
+        .nav-scroll-btn.left {
+            left: 0;
+            background: linear-gradient(to right, white 70%, rgba(255,255,255,0));
+            padding-right: 10px;
+            justify-content: flex-start;
+            padding-left: 12px;
+        }
+        .nav-scroll-btn.right {
+            right: 0;
+            background: linear-gradient(to left, white 70%, rgba(255,255,255,0));
+            padding-left: 10px;
+            justify-content: flex-end;
+            padding-right: 12px;
+        }
+
+        .nav-item {
+            position: relative;
+            padding: 14px 18px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #1e293b;
+            cursor: default;
+            transition: 0.2s;
+            border-bottom: 3px solid transparent;
+            white-space: nowrap;
+        }
+        .nav-item:hover {
+            color: #d42e2e;
+            border-bottom-color: #d42e2e;
+        }
+        .nav-item i {
+            margin-right: 8px;
+            color: #d42e2e;
+            width: 18px;
+        }
+
+        /* --- dropdown for all nav items --- */
+        .nav-dropdown {
+            position: fixed;
+            min-width: 220px;
+            background: white;
+            border-radius: 0 0 16px 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+            padding: 12px 0;
+            display: none;
+            z-index: 1002;
+            border-top: 1px solid #eef2f6;
+        }
+        .nav-item:hover .nav-dropdown {
+            display: block;
+        }
+        .nav-dropdown a {
+            display: block;
+            padding: 8px 24px;
+            color: #1e293b;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: 0.15s;
+        }
+        .nav-dropdown a:hover {
+            background: #f8fafc;
+            color: #d42e2e;
+            padding-left: 28px;
+        }
+        .nav-dropdown .dropdown-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #94a3b8;
+            padding: 6px 24px 2px;
+            font-weight: 700;
+        }
+        .nav-dropdown .divider {
+            height: 1px;
+            background: #eef2f6;
+            margin: 6px 16px;
+        }
+
+        /* --- All Departments mega dropdown (special) --- */
+        .mega-dropdown {
+            position: fixed;
+            width: 100vw;
+            background: white;
+            border-radius: 0 0 24px 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+            padding: 28px 40px 36px;
+            display: none;
+            grid-template-columns: 240px 1fr 260px;
+            gap: 30px;
+            z-index: 1002;
+            border-top: 1px solid #eef2f6;
+        }
+        .category-nav .nav-item:first-child:hover .mega-dropdown {
+            display: grid;
+        }
+        .mega-dropdown .col h4 {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #94a3b8;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        .mega-dropdown .col a {
+            display: block;
+            color: #1e293b;
+            text-decoration: none;
+            padding: 5px 0;
+            font-size: 0.88rem;
+            font-weight: 500;
+            transition: 0.15s;
+        }
+        .mega-dropdown .col a:hover { color: #d42e2e; padding-left: 4px; }
+        .mega-dropdown .col .badge-new {
+            background: #d42e2e;
+            color: white;
+            font-size: 0.55rem;
+            padding: 1px 10px;
+            border-radius: 40px;
+            margin-left: 6px;
+        }
+        .mega-dropdown .trending-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .mega-dropdown .trending-item {
+            background: #f8fafc;
+            border-radius: 14px;
+            padding: 10px 12px;
+            font-size: 0.78rem;
+            border: 1px solid #edf0f4;
+        }
+        .mega-dropdown .trending-item .title {
+            font-weight: 600;
+            margin-top: 3px;
+            font-size: 0.82rem;
+        }
+        .mega-dropdown .trending-item .price {
+            color: #0b2b4a;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+        .mega-dropdown .sub-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2px 16px;
+        }
+        .mega-dropdown .sub-grid a {
+            font-weight: 400;
+            font-size: 0.85rem;
+            padding: 3px 0;
+        }
+        .mega-dropdown .category-list a i {
+            width: 20px;
+            color: #d42e2e;
+            margin-right: 8px;
+        }
+        .mega-dropdown .view-all-link {
+            color: #d42e2e !important;
+            font-weight: 600 !important;
+            margin-top: 6px;
+        }
+        .mega-dropdown .view-all-link i {
+            color: #d42e2e !important;
+        }
+
+        /* --- page content --- */
+        .container {
+            max-width: 100%;
+            padding: 0 32px;
+        }
+
+        .promo-banner {
+            background: linear-gradient(135deg, #faf3ea, #f5e8da);
+            border-radius: 24px;
+            padding: 18px 28px;
+            margin: 24px 0;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid #eaddd0;
+        }
+        .promo-banner .tag {
+            background: #d42e2e;
+            color: white;
+            padding: 4px 16px;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 0.7rem;
+            letter-spacing: 0.3px;
+            margin-right: 12px;
+        }
+        .promo-banner strong {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1.5px solid #0b2b4a;
+            padding: 8px 28px;
+            border-radius: 60px;
+            font-weight: 600;
+            color: #0b2b4a;
+            transition: 0.2s;
+            cursor: default;
+        }
+        .btn-outline:hover { background: #0b2b4a; color: white; }
+
+        .quick-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px 40px;
+            background: white;
+            padding: 14px 28px;
+            border-radius: 60px;
+            margin: 16px 0 24px;
+            border: 1px solid #eef2f6;
+        }
+        .quick-features span {
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+        .quick-features i {
+            color: #d42e2e;
+            font-size: 1rem;
+        }
+
+        .flash-deals {
+            background: white;
+            border-radius: 28px;
+            padding: 22px 24px;
+            margin: 24px 0;
+            border: 1px solid #eef2f6;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+        }
+        .flash-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .flash-header h3 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .flash-timer {
+            background: #0b2b4a;
+            color: white;
+            padding: 6px 20px;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        .flash-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 18px;
+            margin-top: 18px;
+        }
+        .flash-item {
+            background: #fafbfc;
+            border-radius: 20px;
+            padding: 16px 12px;
+            text-align: center;
+            border: 1px solid #edf0f4;
+            transition: 0.2s;
+        }
+        .flash-item:hover { border-color: #d42e2e; }
+        .flash-item .price {
+            font-weight: 700;
+            color: #0b2b4a;
+            font-size: 1rem;
+        }
+        .flash-item .old {
+            text-decoration: line-through;
+            color: #94a3b8;
+            font-size: 0.75rem;
+            margin-left: 6px;
+        }
+        .badge-discount {
+            background: #d42e2e;
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 12px;
+            border-radius: 40px;
+            display: inline-block;
+            margin-top: 4px;
+        }
+
+        .section-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 36px 0 16px 0;
+        }
+        .section-title h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        .section-title a {
+            color: #d42e2e;
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        .product-card {
+            background: white;
+            border-radius: 24px;
+            padding: 16px 14px;
+            border: 1px solid #eef2f6;
+            transition: 0.2s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+        .product-card:hover {
+            box-shadow: 0 8px 20px rgba(0,0,0,0.04);
+            border-color: #d42e2e20;
+        }
+        .product-card .rating {
+            color: #f59e0b;
+            font-size: 0.8rem;
+        }
+        .product-card .title {
+            font-weight: 600;
+            margin: 8px 0 4px;
+            font-size: 0.9rem;
+        }
+        .product-card .price-row {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .product-card .current {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        .product-card .was {
+            color: #94a3b8;
+            text-decoration: line-through;
+            font-size: 0.8rem;
+        }
+        .badge-low {
+            background: #e6f7e6;
+            color: #1f7b3a;
+            font-size: 0.65rem;
+            padding: 2px 10px;
+            border-radius: 40px;
+            display: inline-block;
+            margin-top: 4px;
+        }
+
+        .store-strip {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            background: white;
+            padding: 14px 24px;
+            border-radius: 60px;
+            border: 1px solid #eef2f6;
+            margin: 28px 0;
+            align-items: center;
+        }
+        .store-strip .store {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            background: #f8fafc;
+            padding: 6px 18px 6px 14px;
+            border-radius: 60px;
+            font-size: 0.8rem;
+            border: 1px solid #edf0f4;
+        }
+        .store-strip .store i { font-size: 1.1rem; }
+
+        .bundle-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 20px;
+            margin: 12px 0;
+        }
+        .bundle-card {
+            background: white;
+            border-radius: 24px;
+            padding: 20px;
+            border: 1px solid #eef2f6;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+        .bundle-card .save {
+            color: #d42e2e;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .express-60 {
+            background: #eef4fa;
+            border-radius: 28px;
+            padding: 18px 28px;
+            margin: 28px 0;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid #dce6f0;
+        }
+        .express-60 .time {
+            background: #0b2b4a;
+            color: white;
+            border-radius: 60px;
+            padding: 6px 24px;
+            font-weight: 600;
+        }
+
+        .footer {
+            background: #0b1b2b;
+            color: #cbd5e1;
+            padding: 48px 32px 24px;
+            margin-top: 48px;
+            border-radius: 32px 32px 0 0;
+        }
+        .footer .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 32px;
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+        .footer a {
+            color: #b0c4db;
+            text-decoration: none;
+            display: block;
+            margin: 6px 0;
+            font-size: 0.85rem;
+        }
+        .footer a:hover { color: white; }
+        .footer .brand {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white;
+            letter-spacing: -0.5px;
+        }
+        .footer .copy {
+            border-top: 1px solid #2a3a4e;
+            padding-top: 24px;
+            margin-top: 32px;
+            font-size: 0.8rem;
+            text-align: center;
+            color: #8ba0b8;
+            max-width: 1280px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        @media (max-width: 768px) {
+            .top-bar, .main-header, .category-nav, .container { padding-left: 16px; padding-right: 16px; }
+            .mega-dropdown { grid-template-columns: 1fr; padding: 20px; }
+            .category-nav .nav-item:first-child:hover .mega-dropdown { display: block; }
+            .main-header { flex-direction: column; align-items: stretch; }
+            .search-bar { flex: 1; }
+            .header-actions { justify-content: flex-end; }
+            .nav-dropdown { position: static; box-shadow: none; border-radius: 0; }
+            .nav-item:hover .nav-dropdown { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- top bar -->
+    <div class="top-bar">
+        <div class="left">
+            <span><i class="fas fa-truck"></i> Free delivery over AED 99</span>
+            <span><i class="fas fa-clock"></i> Express 60 · Dubai Marina</span>
+            <span><i class="fas fa-bolt"></i> Flash Deals 18:00 · 21:00 · 00:00</span>
+            <span><i class="fas fa-flag"></i> UAE National Week</span>
+        </div>
+        <div class="right">
+            <a href="#"><i class="fas fa-store"></i> Sell on Qenagebeya</a>
+            <div class="lang-switch"><span>EN</span><span>·</span><span>ع</span><span>·</span><span>አ</span></div>
+        </div>
+    </div>
+
+    <!-- main header -->
+    <div class="main-header">
+        <div class="logo"><i class="fas fa-store-alt"></i>Qenagebeya</div>
+        <div class="delivery-area"><i class="fas fa-map-pin"></i> Deliver to · Choose area</div>
+        <div class="search-bar">
+            <input placeholder="Search products, rent (house, car...), services, digital, jobs..." />
+            <button><i class="fas fa-search"></i> Search</button>
+        </div>
+        <div class="header-actions">
+            <a href="#"><i class="far fa-user"></i> Account & Orders</a>
+            <a href="#"><i class="far fa-heart"></i> Wishlist</a>
+            <a href="#" class="cart-icon"><i class="fas fa-shopping-cart"></i> Cart</a>
+        </div>
+    </div>
+
+    <!-- STICKY NAVIGATION WRAPPER -->
+    <div class="sticky-nav-wrapper">
+        <button class="nav-scroll-btn left" id="scroll-left-btn"><i class="fas fa-chevron-left"></i></button>
+        <div class="category-nav" id="category-nav-scroll">
+            <!-- All Departments with mega -->
+            <div class="nav-item" style="padding-left:0;">
+                <i class="fas fa-th-large"></i> All Departments
+                <div class="mega-dropdown">
+                    <!-- left col: categories -->
+                    <div class="col category-list">
+                        <a href="#"><i class="fas fa-mobile-alt"></i> Electronics</a>
+                        <a href="#"><i class="fas fa-mobile-alt"></i> Mobiles</a>
+                        <a href="#"><i class="fas fa-crown"></i> Fragrance & Oud</a>
+                        <a href="#"><i class="fas fa-tshirt"></i> Fashion</a>
+                        <a href="#"><i class="fas fa-mug-hot"></i> Coffee & Pantry</a>
+                        <a href="#"><i class="fas fa-couch"></i> Home & Majlis</a>
+                        <a href="#"><i class="fas fa-spa"></i> Beauty</a>
+                        <a href="#"><i class="fas fa-shoe-prints"></i> Sport</a>
+                        <a href="#"><i class="fas fa-apple-alt"></i> Grocery</a>
+                        <a href="#"><i class="fas fa-baby"></i> Toys & Baby</a>
+                        <a href="#"><i class="fas fa-heartbeat"></i> Health</a>
+                        <a href="#"><i class="fas fa-key"></i> Rent</a>
+                        <a href="#"><i class="fas fa-wrench"></i> Maintenance Service</a>
+                        <a href="#"><i class="fas fa-laptop-code"></i> Digital Sales</a>
+                        <a href="#"><i class="fas fa-briefcase"></i> Job</a>
+                        <a href="#" class="view-all-link">View all <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                    <!-- middle col: sub-categories -->
+                    <div class="col">
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px 24px;">
+                            <div>
+                                <h4>Shop by category</h4>
+                                <div class="sub-grid">
+                                    <a href="#">Audio</a>
+                                    <a href="#">Mobiles</a>
+                                    <a href="#">Fragrance & Oud</a>
+                                    <a href="#">Fashion</a>
+                                    <a href="#">Coffee & Pantry</a>
+                                    <a href="#">Home & Majlis</a>
+                                    <a href="#">Beauty</a>
+                                    <a href="#">Sport</a>
+                                    <a href="#">Grocery</a>
+                                    <a href="#">Toys & Baby</a>
+                                    <a href="#">Health</a>
+                                </div>
+                            </div>
+                            <div>
+                                <h4>Sale <span style="color:#d42e2e;">🔥</span></h4>
+                                <a href="#">New in <span class="badge-new">4</span></a>
+                                <h4 style="margin-top:16px;">Audio</h4>
+                                <a href="#">View all <i class="fas fa-arrow-right" style="font-size:0.6rem;"></i></a>
+                                <a href="#">Headphones <span style="color:#94a3b8; font-size:0.75rem;">3</span></a>
+                                <a href="#">Bluetooth Speakers <span style="color:#94a3b8; font-size:0.75rem;">1</span></a>
+                                <h4 style="margin-top:16px;">Computers & Tablets</h4>
+                                <a href="#">View all <i class="fas fa-arrow-right" style="font-size:0.6rem;"></i></a>
+                                <a href="#">Laptops <span style="color:#94a3b8; font-size:0.75rem;">2</span></a>
+                                <h4 style="margin-top:16px;">Gaming</h4>
+                                <a href="#">View all <i class="fas fa-arrow-right" style="font-size:0.6rem;"></i></a>
+                                <a href="#">Consoles <span style="color:#94a3b8; font-size:0.75rem;">2</span></a>
+                                <a href="#">Controllers & Accessories <span style="color:#94a3b8; font-size:0.75rem;">2</span></a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- right col: trending -->
+                    <div class="col">
+                        <h4>Trending now</h4>
+                        <div class="trending-grid">
+                            <div class="trending-item">
+                                <div style="font-size:0.65rem; color:#94a3b8;">Electronics</div>
+                                <div class="title">iPhone 16 Pro Max 256GB</div>
+                                <div class="price">AED4,999</div>
+                            </div>
+                            <div class="trending-item">
+                                <div style="font-size:0.65rem; color:#94a3b8;">Fashion</div>
+                                <div class="title">Embroidered Silk Sheila</div>
+                                <div class="price">AED350</div>
+                            </div>
+                            <div class="trending-item">
+                                <div style="font-size:0.65rem; color:#94a3b8;">Fashion</div>
+                                <div class="title">Mens Dress Shirt, White</div>
+                                <div class="price">AED186.66</div>
+                            </div>
+                            <div class="trending-item">
+                                <div style="font-size:0.65rem; color:#94a3b8;">Fragrance</div>
+                                <div class="title">Tom Ford Tobacco Vanille</div>
+                                <div class="price">AED890</div>
+                            </div>
+                            <div class="trending-item">
+                                <div style="font-size:0.65rem; color:#94a3b8;">Electronics</div>
+                                <div class="title">Tecno Spark 20</div>
+                                <div class="price">AED566.66</div>
+                            </div>
+                            <div class="trending-item">
+                                <div style="font-size:0.65rem; color:#94a3b8;">Handwoven</div>
+                                <div class="title">Habesha Handwoven Scarf</div>
+                                <div class="price">AED149.99</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Electronics -->
+            <div class="nav-item">
+                <i class="fas fa-mobile-alt"></i> Electronics
+                <div class="nav-dropdown">
+                    <div class="dropdown-title">Electronics</div>
+                    <a href="#">Mobiles</a>
+                    <a href="#">Laptops</a>
+                    <a href="#">Tablets</a>
+                    <a href="#">Headphones</a>
+                    <a href="#">Bluetooth Speakers</a>
+                    <a href="#">Smartwatches</a>
+                    <a href="#">Accessories</a>
+                    <div class="divider"></div>
+                    <a href="#" style="color:#d42e2e; font-weight:600;">View all <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+
+            <!-- Fragrance & Oud -->
+            <div class="nav-item">
+                <i class="fas fa-crown"></i> Fragrance & Oud
+                <div class="nav-dropdown">
+                    <div class="dropdown-title">Fragrance & Oud</div>
+                    <a href="#">Designer Perfume</a>
+                    <a href="#">Oud & Bukhoor</a>
+                    <a href="#">Attar & Musk</a>
+                    <a href="#">Gift Sets</a>
+                    <a href="#">Body Spray</a>
+                    <div class="divider"></div>
+                    <a href="#" style="color:#d42e2e; font-weight:600;">View all <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+
+            <!-- Fashion -->
+            <div class="nav-item">
+                <i class="fas fa-tshirt"></i> Fashion
+                <div class="nav-dropdown">
+                    <div class="dropdown-title">Fashion</div>
+                    <a href="#">Men's Clothing</a>
+                    <a href="#">Women's Clothing</a>
+                    <a href="#">Abayas & Modest</a>
+                    <a href="#">Kanduras & Thobes</a>
+                    <a href="#">Handbags</a>
+                    <a href="#">Shoes</a>
+                    <a href="#">Accessories</a>
+                    <div class="divider"></div>
+                    <a href="#" style="color:#d42e2e; font-weight:600;">View all <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+
+            <!-- Coffee & Pantry -->
+            <div class="nav-item">
+                <i class="fas fa-mug-hot"></i> Coffee & Pantry
+                <div class="nav-dropdown">
+                    <div class="dropdown-title">Coffee & Pantry</div>
+                    <a href="#">Coffee Beans</a>
+                    <a href="#">Coffee Ceremony Sets</a>
+                    <a href="#">Tea & Herbal</a>
+                    <a href="#">Dates & Sweets</a>
+                    <a href="#">Honey & Preserves</a>
+                    <a href="#">Spices & Herbs</a>
+                    <div class="divider"></div>
+                    <a href="#" style="color:#d42e2e; font-weight:600;">View all <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+
+            <!-- Home & Majlis -->
+            <div class="nav-item">
+                <i class="fas fa-couch"></i> Home & Majlis
+                <div class="nav-dropdown">
+                    <div class="dropdown-title">Home & Majlis</div>
+                    <a href="#">Majlis Sofas</a>
+                    <a href="#">Coffee Tables</a>
+                    <a href="#">Cups & Serveware</a>
+                    <a href="#">Home Appliances</a>
+                    <a href="#">Decor & Lighting</a>
+                    <a href="#">Carpets & Rugs</a>
+                    <div class="divider"></div>
+                    <a href="#" style="color:#d42e2e; font-weight:600;">View all <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+
+            <!-- Beauty -->
+            <div class="nav-item">
+                <i class="fas fa-spa"></i> Beauty
+                <div class="nav-dropdown">
+                    <div class="dropdown-title">Beauty</div>
+                    <a href="#">Skincare</a>
+                    <a href="#">Makeup</a>
+                    <a href="#">Hair Care</a>
+                    <a href="#">Body Care</a>
+                    <a href="#">Fragrance</a>
+                    <a href="#">Grooming</a>
+                    <div class="divider"></div>
+                    <a href="#" style="color:#d42e2e; font-weight:600;">View all <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+
+            <!-- Sport -->
+            <div class="nav-item">
+                <i class="fas fa-shoe-prints"></i> Sport
+                <div class="nav-dropdown">
+                    <div class="dropdown-title">Sport</div>
+                    <a href="#">Sneakers</a>
+                    <a href="#">Activewear</a>
+                    <a href="#">Fitness Equipment</a>
+                    <a href="#">Outdoor Gear</a>
+                    <a href="#">Sports Accessories</a>
+                    <div class="divider"></div>
+                    <a href="#" style="color:#d42e2e; font-weight:600;">View all <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+
+            <!-- Grocery -->
+            <div class="nav-item">
+                <i class="fas fa-apple-alt"></i> Grocery
+                <div class="nav-dropdown">
+                    <div class="dropdown-title">Grocery</div>
+                    <a href="#">Fresh Produce</a>
+                    <a href="#">Pantry Staples</a>
+                    <a href="#">Beverages</a>
+                    <a href="#">Snacks & Sweets</a>
+                    <a href="#">Dairy & Eggs</a>
+                    <a href="#">Frozen Food</a>
+                    <div class="divider"></div>
+                    <a href="#" style="color:#d42e2e; font-weight:600;">View all <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+
+            <!-- Toys & Baby -->
+            <div class="nav-item">
+                <i class="fas fa-baby"></i> Toys & Baby
+                <div class="nav-dropdown">
+                    <div class="dropdown-title">Toys & Baby</div>
+                    <a href="#">Baby Care</a>
+                    <a href="#">Nursery Furniture</a>
+                    <a href="#">Baby Clothing</a>
+                    <a href="#">Toys & Games</a>
+                    <a href="#">Educational Toys</a>
+                    <div class="divider"></div>
+                    <a href="#" style="color:#d42e2e; font-weight:600;">View all <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+
+            <!-- Health -->
+            <div class="nav-item">
+                <i class="fas fa-heartbeat"></i> Health
+                <div class="nav-dropdown">
+                    <div class="dropdown-title">Health</div>
+                    <a href="#">Vitamins & Supplements</a>
+                    <a href="#">Personal Care</a>
+                    <a href="#">Medical Supplies</a>
+                    <a href="#">Wellness</a>
+                    <a href="#">Essential Oils</a>
+                    <a href="#" style="color:#d42e2e; font-weight:600;">View all <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+
+            <!-- Rent -->
+            <div class="nav-item">
+                <i class="fas fa-key"></i> Rent
+                <div class="nav-dropdown">
+                    <div class="dropdown-title">Rent</div>
+                    <a href="#">House & Villa Rent</a>
+                    <a href="#">Car Rent</a>
+                    <a href="#">Office Space Rent</a>
+                    <a href="#">Equipment Rent</a>
+                    <div class="divider"></div>
+                    <a href="#" style="color:#d42e2e; font-weight:600;">View all <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+
+            <!-- Maintenance Service -->
+            <div class="nav-item">
+                <i class="fas fa-wrench"></i> Maintenance Service
+                <div class="nav-dropdown">
+                    <div class="dropdown-title">Maintenance Service</div>
+                    <a href="#">AC & HVAC Repair</a>
+                    <a href="#">Emergency Plumbing</a>
+                    <a href="#">Electrical Work</a>
+                    <a href="#">Home Cleaning</a>
+                    <a href="#">Handyman Services</a>
+                    <div class="divider"></div>
+                    <a href="#" style="color:#d42e2e; font-weight:600;">View all <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+
+            <!-- Digital Sales -->
+            <div class="nav-item">
+                <i class="fas fa-laptop-code"></i> Digital Sales
+                <div class="nav-dropdown">
+                    <div class="dropdown-title">Digital Sales</div>
+                    <a href="#">Software Keys</a>
+                    <a href="#">E-books & Guides</a>
+                    <a href="#">Online Courses</a>
+                    <a href="#">Digital Art & Templates</a>
+                    <div class="divider"></div>
+                    <a href="#" style="color:#d42e2e; font-weight:600;">View all <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+
+            <!-- Job -->
+            <div class="nav-item">
+                <i class="fas fa-briefcase"></i> Job
+                <div class="nav-dropdown">
+                    <div class="dropdown-title">Job</div>
+                    <a href="#">Tech & Development</a>
+                    <a href="#">Sales & Marketing</a>
+                    <a href="#">Delivery & Logistics</a>
+                    <a href="#">Customer Service</a>
+                    <a href="#">Internships</a>
+                    <div class="divider"></div>
+                    <a href="#" style="color:#d42e2e; font-weight:600;">View all <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+        <button class="nav-scroll-btn right" id="scroll-right-btn"><i class="fas fa-chevron-right"></i></button>
+    </div>
+
+    <div class="container">
+        <!-- promo banner -->
+        <div class="promo-banner">
+            <div><span class="tag">UAE National Week</span> <strong>Seven emirates, one basket</strong> – shop the collection</div>
+            <div><span class="btn-outline">Shop now <i class="fas fa-arrow-right"></i></span></div>
+        </div>
+
+        <!-- quick features -->
+        <div class="quick-features">
+            <span><i class="fas fa-shield-alt"></i> Buyer protection</span>
+            <span><i class="fas fa-undo-alt"></i> 30-day free returns</span>
+            <span><i class="fas fa-check-circle"></i> 100% genuine</span>
+            <span><i class="fas fa-money-bill-wave"></i> Cash on delivery</span>
+        </div>
+
+        <!-- flash deals -->
+        <div class="flash-deals">
+            <div class="flash-header">
+                <h3><i class="fas fa-bolt" style="color:#d42e2e;"></i> Flash Deals tonight</h3>
+                <div class="flash-timer"><i class="far fa-clock"></i> 18:00 · 21:00 · 00:00</div>
+            </div>
+            <div class="flash-grid">
+                <div class="flash-item"><i class="fas fa-headphones" style="font-size: 2.2rem; color:#0b2b4a;"></i><div style="font-weight:600; margin:6px 0;">Sony WH-1000XM6</div><div class="price">AED1,499 <span class="old">1,899</span></div><span class="badge-discount">-21%</span></div>
+                <div class="flash-item"><i class="fas fa-mobile-alt" style="font-size: 2.2rem; color:#0b2b4a;"></i><div style="font-weight:600; margin:6px 0;">iPhone 16 Pro Max</div><div class="price">AED4,999 <span class="old">5,499</span></div><span class="badge-discount">-9%</span></div>
+                <div class="flash-item"><i class="fas fa-couch" style="font-size: 2.2rem; color:#0b2b4a;"></i><div style="font-weight:600; margin:6px 0;">Skincare Set 5pcs</div><div class="price">AED399 <span class="old">549</span></div><span class="badge-discount">-27%</span></div>
+                <div class="flash-item"><i class="fas fa-shoe-prints" style="font-size: 2.2rem; color:#0b2b4a;"></i><div style="font-weight:600; margin:6px 0;">Nike Air Max 2026</div><div class="price">AED699 <span class="old">949</span></div><span class="badge-discount">-26%</span></div>
+            </div>
+        </div>
+
+        <!-- best sellers -->
+        <div class="section-title"><h2>⭐ Best sellers</h2><a href="#">View all <i class="fas fa-arrow-right"></i></a></div>
+        <div class="product-grid">
+            <div class="product-card"><div class="rating"><i class="fas fa-star"></i> 4.9 (7,153)</div><div class="title">iPhone 16 Pro Max 256GB</div><div class="price-row"><span class="current">AED4,999</span><span class="was">5,499</span></div><span class="badge-low">-9%</span></div>
+            <div class="product-card"><div class="rating"><i class="fas fa-star"></i> 4.9 (7,096)</div><div class="title">Embroidered Silk Sheila</div><div class="price-row"><span class="current">AED350</span><span class="was">449</span></div><span class="badge-low">-22%</span></div>
+            <div class="product-card"><div class="rating"><i class="fas fa-star"></i> 4.4 (6,725)</div><div class="title">Mens Dress Shirt, White</div><div class="price-row"><span class="current">AED186.66</span><span class="was">279</span></div><span class="badge-low">-33%</span></div>
+            <div class="product-card"><div class="rating"><i class="fas fa-star"></i> 4.7 (6,681)</div><div class="title">Tom Ford Tobacco Vanille</div><div class="price-row"><span class="current">AED890</span></div></div>
+            <div class="product-card"><div class="rating"><i class="fas fa-star"></i> 4.8 (6,502)</div><div class="title">Tecno Spark 20</div><div class="price-row"><span class="current">AED566.66</span></div></div>
+            <div class="product-card"><div class="rating"><i class="fas fa-star"></i> 4.7 (6,056)</div><div class="title">Habesha Handwoven Scarf</div><div class="price-row"><span class="current">AED149.99</span><span class="was">204</span></div><span class="badge-low">-26%</span></div>
+        </div>
+
+        <!-- official stores -->
+        <div class="store-strip">
+            <span style="font-weight:700; margin-right: 10px; color:#0b2b4a;">Official Stores</span>
+            <span class="store"><i class="fab fa-apple" style="color:#555;"></i> APPLE</span>
+            <span class="store"><i class="fab fa-samsung" style="color:#1428a0;"></i> SAMSUNG</span>
+            <span class="store"><i class="fab fa-sony" style="color:#000;"></i> SONY</span>
+            <span class="store"><i class="fab fa-nike" style="color:#000;"></i> NIKE</span>
+            <span class="store"><i class="fas fa-crown" style="color:#b8860b;"></i> dyson</span>
+            <span class="store"><i class="fas fa-music" style="color:#d42e2e;"></i> JBL</span>
+        </div>
+
+        <!-- bundle & save -->
+        <div class="section-title"><h2>📦 Bundle & save</h2><a href="#">All bundles</a></div>
+        <div class="bundle-grid">
+            <div class="bundle-card"><strong>Tech starter kit</strong> <br>MacBook Air M4 + AirPods Pro 3 + Mi Speaker <br><span class="save">AED5,478.66</span> <span style="text-decoration:line-through; color:#94a3b8;">5,644.66</span> <span class="badge-discount" style="margin-left:6px;">Save AED166</span></div>
+            <div class="bundle-card"><strong>Coffee ceremony, complete</strong> <br>Ceremony set + Yirgacheffe 500g + cups <br><span class="save">AED533.66</span> <span style="text-decoration:line-through; color:#94a3b8;">601.66</span> <span class="badge-discount" style="margin-left:6px;">Save AED68</span></div>
+            <div class="bundle-card"><strong>Occasion style set</strong> <br>Habesha kemis + netela silk wrap + handbag <br><span class="save">AED1,448.66</span> <span style="text-decoration:line-through; color:#94a3b8;">1,566.66</span> <span class="badge-discount" style="margin-left:6px;">Save AED118</span></div>
+        </div>
+
+        <!-- express 60 -->
+        <div class="express-60">
+            <div><i class="fas fa-rocket" style="color:#d42e2e; font-size:1.2rem;"></i> <strong>Express 60</strong> – at your door in 60 min. Dubai Marina covered · Free over AED 99</div>
+            <div class="time">⏱️ Order within 00:39:17</div>
+        </div>
+
+        <!-- trending -->
+        <div class="section-title"><h2>🔥 Trending now</h2><a href="#">View all</a></div>
+        <div class="product-grid">
+            <div class="product-card"><div class="rating"><i class="fas fa-star"></i> 4.9 (8,214)</div><div class="title">Sony WH-1000XM6</div><div class="price-row"><span class="current">AED1,499</span><span class="was">1,899</span></div><span class="badge-low">-21%</span></div>
+            <div class="product-card"><div class="rating"><i class="fas fa-star"></i> 4.4 (506)</div><div class="title">AirPods Pro 3</div><div class="price-row"><span class="current">AED999</span></div><span class="badge-low">Lowest price</span></div>
+            <div class="product-card"><div class="rating"><i class="fas fa-star"></i> 4.4 (1,780)</div><div class="title">Skincare Collection Set</div><div class="price-row"><span class="current">AED399</span><span class="was">549</span></div><span class="badge-low">-27%</span></div>
+            <div class="product-card"><div class="rating"><i class="fas fa-star"></i> 4.9 (2,305)</div><div class="title">Nike Air Max 2026</div><div class="price-row"><span class="current">AED699</span><span class="was">949</span></div><span class="badge-low">-26%</span></div>
+        </div>
+
+        <!-- footer -->
+        <div class="footer">
+            <div class="grid-4">
+                <div><div class="brand"><i class="fas fa-store-alt"></i>Qenagebeya</div><p style="margin-top:8px; color:#94a9c2;">Everything the Gulf shops — delivered fast, guaranteed genuine.</p></div>
+                <div><strong style="color:white;">Departments</strong><a href="#">Electronics</a><a href="#">Fashion</a><a href="#">Beauty & Oud</a><a href="#">Home & Majlis</a></div>
+                <div><strong style="color:white;">Help</strong><a href="#">Track order</a><a href="#">Returns & refunds</a><a href="#">Buyer protection</a><a href="#">Contact 24/7</a></div>
+                <div><strong style="color:white;">Pay your way</strong><a href="#"><i class="fas fa-money-bill-wave"></i> Cash on delivery</a><a href="#">Sell on Qenagebeya</a><a href="#"><i class="fab fa-apple"></i> iOS App</a><a href="#"><i class="fab fa-google-play"></i> Android</a></div>
+            </div>
+            <div class="copy">© 2026 Qenagebeya LLC · Consumer rights — MOIAT · Privacy · EN · العربية · አማርኛ</div>
+        </div>
+    </div>
+
+    <!-- Category Nav Scroll and Dropdown Positioning Script -->
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const navItems = document.querySelectorAll('.category-nav .nav-item');
+        const catNav = document.getElementById('category-nav-scroll');
+        const scrollLeftBtn = document.getElementById('scroll-left-btn');
+        const scrollRightBtn = document.getElementById('scroll-right-btn');
+
+        function positionDropdown(item) {
+            const dropdown = item.querySelector('.nav-dropdown, .mega-dropdown');
+            if (!dropdown) return;
+            
+            const rect = item.getBoundingClientRect();
+            dropdown.style.top = `${rect.bottom}px`;
+            
+            if (dropdown.classList.contains('mega-dropdown')) {
+                dropdown.style.left = '0px';
+                dropdown.style.width = '100vw';
+            } else {
+                let left = rect.left;
+                const dropdownWidth = 220;
+                if (left + dropdownWidth > window.innerWidth) {
+                    left = window.innerWidth - dropdownWidth - 16;
+                }
+                dropdown.style.left = `${left}px`;
+            }
+        }
+
+        navItems.forEach(item => {
+            const dropdown = item.querySelector('.nav-dropdown, .mega-dropdown');
+            if (!dropdown) return;
+
+            item.addEventListener('mouseenter', () => {
+                if (window.innerWidth <= 768) return;
+                positionDropdown(item);
+            });
+        });
+
+        window.addEventListener('scroll', () => {
+            if (window.innerWidth <= 768) return;
+            navItems.forEach(item => {
+                const dropdown = item.querySelector('.nav-dropdown, .mega-dropdown');
+                if (dropdown && window.getComputedStyle(dropdown).display !== 'none') {
+                    positionDropdown(item);
+                }
+            });
+        }, { passive: true });
+
+        if (catNav && scrollLeftBtn && scrollRightBtn) {
+            const updateScrollButtons = () => {
+                const scrollLeft = catNav.scrollLeft;
+                const maxScroll = catNav.scrollWidth - catNav.clientWidth;
+
+                scrollLeftBtn.style.display = scrollLeft > 2 ? 'flex' : 'none';
+                scrollRightBtn.style.display = scrollLeft < maxScroll - 2 ? 'flex' : 'none';
+            };
+
+            scrollLeftBtn.addEventListener('click', () => {
+                catNav.scrollBy({ left: -240, behavior: 'smooth' });
+            });
+
+            scrollRightBtn.addEventListener('click', () => {
+                catNav.scrollBy({ left: 240, behavior: 'smooth' });
+            });
+
+            catNav.addEventListener('scroll', updateScrollButtons);
+            window.addEventListener('resize', updateScrollButtons);
+            
+            setTimeout(updateScrollButtons, 100);
+        }
+    });
+    </script>
+</body>
+</html>

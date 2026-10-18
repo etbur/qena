@@ -1,0 +1,132 @@
+{% extends 'storefront/base.html' %}
+{% block title %}{{ product.name }} · {{ vendor.store_name }}{% endblock %}
+
+{% block content %}
+<div style="display:flex;gap:28px;flex-wrap:wrap;margin-bottom:32px;">
+  <!-- Images -->
+  <div style="flex:1;min-width:280px;max-width:480px;">
+    {% if product.image %}
+    <img src="{{ product.image.url }}" style="width:100%;border-radius:16px;border:1px solid #eef2f6;" alt="{{ product.name }}"/>
+    {% else %}
+    <div style="width:100%;height:380px;background:#f1f4f9;border-radius:16px;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:4rem;"><i class="fas fa-box"></i></div>
+    {% endif %}
+    {% if product.image2 or product.image3 %}
+    <div style="display:flex;gap:8px;margin-top:10px;">
+      {% if product.image2 %}<img src="{{ product.image2.url }}" style="width:80px;height:60px;border-radius:8px;object-fit:cover;border:1px solid #eef2f6;" alt=""/>{% endif %}
+      {% if product.image3 %}<img src="{{ product.image3.url }}" style="width:80px;height:60px;border-radius:8px;object-fit:cover;border:1px solid #eef2f6;" alt=""/>{% endif %}
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Info -->
+  <div style="flex:1;min-width:260px;">
+    {% if product.category %}<div style="font-size:.75rem;color:#94a3b8;margin-bottom:6px;">{{ product.category.name }}</div>{% endif %}
+    <h1 style="font-size:1.5rem;font-weight:800;margin-bottom:10px;">{{ product.name }}</h1>
+    <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:16px;">
+      <span style="font-size:1.8rem;font-weight:800;color:var(--secondary);">ETB {{ product.price }}</span>
+      {% if product.original_price %}
+      <span style="font-size:1rem;color:#94a3b8;text-decoration:line-through;">ETB {{ product.original_price }}</span>
+      {% if product.discount_percent %}<span style="background:var(--secondary);color:#fff;padding:2px 9px;border-radius:40px;font-size:.72rem;font-weight:800;">-{{ product.discount_percent }}%</span>{% endif %}
+      {% endif %}
+    </div>
+
+    {% if product.description %}
+    <p style="font-size:.88rem;color:#475569;line-height:1.7;margin-bottom:18px;">{{ product.description }}</p>
+    {% endif %}
+
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+      <span style="font-size:.8rem;font-weight:600;color:{% if product.stock > 0 %}#1f7b3a{% else %}#d42e2e{% endif %};">
+        {% if product.stock > 0 %}<i class="fas fa-check-circle"></i> In Stock ({{ product.stock }} left){% else %}<i class="fas fa-times-circle"></i> Out of Stock{% endif %}
+      </span>
+    </div>
+
+    {% if product.stock > 0 %}
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;">
+      <a href="/cart/add/{{ product.pk }}/"
+         style="display:inline-flex;align-items:center;gap:8px;background:var(--primary);color:#fff;padding:13px 28px;border-radius:60px;font-weight:700;font-size:.95rem;transition:.2s;text-decoration:none;"
+         onmouseover="this.style.background='var(--secondary)'"
+         onmouseout="this.style.background='var(--primary)'">
+        <i class="fas fa-shopping-cart"></i> Add to Cart
+      </a>
+      {% if vendor.whatsapp %}
+      <a href="https://wa.me/{{ vendor.whatsapp }}?text=Hi, I want to order: {{ product.name }} (ETB {{ product.price }})"
+         target="_blank"
+         style="display:inline-flex;align-items:center;gap:8px;background:#25d366;color:#fff;padding:13px 24px;border-radius:60px;font-weight:700;font-size:.92rem;text-decoration:none;">
+        <i class="fab fa-whatsapp"></i> Order on WhatsApp
+      </a>
+      {% endif %}
+      <button onclick="document.getElementById('sfProductQRModal').style.display='flex'"
+         style="display:inline-flex;align-items:center;gap:6px;background:#f1f5f9;color:var(--primary);border:1px solid #e2e8f0;padding:13px 20px;border-radius:60px;font-weight:700;font-size:.92rem;cursor:pointer;">
+        <i class="fas fa-qrcode"></i> QR Code
+      </button>
+    </div>
+    {% endif %}
+
+    <!-- Standalone Storefront QR Modal -->
+    <div id="sfProductQRModal" style="display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(11, 43, 74, 0.7); backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 16px; transition: all 0.3s ease;">
+        <div style="background: #ffffff; border-radius: 28px; max-width: 440px; width: 100%; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35); text-align: center; position: relative; overflow: hidden; border: 1px solid #e2e8f0; animation: qrPopIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);">
+            
+            <div style="height: 6px; width: 100%; display: flex;">
+                <div style="flex: 1; background: #078930;"></div>
+                <div style="flex: 1; background: #f59e0b;"></div>
+                <div style="flex: 1; background: #d42e2e;"></div>
+            </div>
+
+            <div style="padding: 24px 20px 22px;">
+                <button onclick="document.getElementById('sfProductQRModal').style.display='none'" style="position: absolute; top: 16px; right: 16px; background: #f1f5f9; border: none; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; color: #475569; font-size: 1.1rem; display: flex; align-items: center; justify-content: center;">
+                    &times;
+                </button>
+                <div style="font-size: 0.75rem; font-weight: 800; color: var(--secondary); letter-spacing: 0.5px; text-transform: uppercase;">Scan on Mobile</div>
+                <h3 style="font-size: 1.2rem; font-weight: 800; color: #0f172a; margin: 4px 0 2px;">{{ product.name }}</h3>
+                
+                <div style="font-size: 1.05rem; font-weight: 800; color: var(--secondary); margin-bottom: 12px;">ETB {{ product.price }}</div>
+
+                <div style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 20px; padding: 16px; display: inline-block; margin-bottom: 12px; box-shadow: 0 6px 16px rgba(0,0,0,0.05);">
+                    <img src="{{ product.qr_code_data_uri }}" alt="Product QR" style="width: 180px; height: 180px; max-width: 100%; display: block; border-radius: 10px;"/>
+                </div>
+
+                <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 16px; line-height: 1.4;">
+                    Scan with any smartphone camera to view and order directly.
+                </p>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+                    <a href="{{ product.get_qr_download_url }}" class="btn" style="background: var(--primary); color: #fff; padding: 10px 14px; border-radius: 10px; font-weight: 700; font-size: 0.82rem; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                        <i class="fas fa-download"></i> Save QR
+                    </a>
+                    <a href="{{ product.get_qr_badge_download_url }}" class="btn" style="background: var(--secondary); color: #fff; padding: 10px 14px; border-radius: 10px; font-weight: 700; font-size: 0.82rem; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                        <i class="fas fa-print"></i> Product Flyer
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Store info -->
+    <div style="background:#f8fafc;border-radius:12px;padding:14px 16px;margin-top:18px;display:flex;align-items:center;gap:10px;">
+      {% if vendor.logo %}<img src="{{ vendor.logo.url }}" style="height:38px;border-radius:8px;" alt=""/>
+      {% else %}<div style="width:38px;height:38px;border-radius:8px;background:var(--primary);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;">{{ vendor.store_name|first|upper }}</div>{% endif %}
+      <div>
+        <div style="font-size:.85rem;font-weight:700;">{{ vendor.store_name }}</div>
+        <a href="/" style="font-size:.75rem;color:var(--secondary);">View all products →</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Related -->
+{% if related %}
+<h2 style="font-size:1.1rem;font-weight:800;margin-bottom:14px;">You may also like</h2>
+<div class="sf-grid">
+  {% for p in related %}
+  <a href="/product/{{ p.pk }}/" class="sf-card">
+    {% if p.image %}<img src="{{ p.image.url }}" class="sf-card-img" alt="{{ p.name }}"/>{% else %}<div class="sf-card-img-ph"><i class="fas fa-box"></i></div>{% endif %}
+    <div class="sf-card-body">
+      <div class="sf-card-name">{{ p.name|truncatechars:28 }}</div>
+      <span class="sf-card-price">ETB {{ p.price }}</span>
+    </div>
+    <button class="sf-card-btn">View Product</button>
+  </a>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

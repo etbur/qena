@@ -1,0 +1,124 @@
+{% extends 'vendors/base_vendor.html' %}
+{% block title %}Makerspace Dashboard · Vendor Portal{% endblock %}
+{% block breadcrumb %}Makerspace{% endblock %}
+
+{% block vendor_content %}
+<div class="page-header">
+    <h2>🛠 Makerspace Dashboard · ስራቤት</h2>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <a href="{% url 'makerspace:vendor_orders' %}" class="btn-save" style="font-size:.82rem;padding:8px 20px;">
+            <i class="fas fa-list"></i> All Orders
+        </a>
+        <a href="{% url 'makerspace:vendor_settings' %}" class="btn-back" style="font-size:.82rem;padding:8px 20px;">
+            <i class="fas fa-cog"></i> Pricing Settings
+        </a>
+        {% if not mk_profile.is_active %}
+        <span style="background:#fef3f3;color:#b91c1c;padding:8px 16px;border-radius:60px;font-size:.82rem;font-weight:600;">
+            <i class="fas fa-pause-circle"></i> Makerspace Inactive
+        </span>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="label">Pending Quotes</div>
+        <div class="value" style="color:{% if pending > 0 %}#b91c1c{% else %}#0b2b4a{% endif %};">{{ pending }}</div>
+        <div class="change {% if pending > 0 %}down{% endif %}">
+            <i class="fas fa-clock"></i> Awaiting your review
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="label">In Production</div>
+        <div class="value" style="color:#078930;">{{ in_prod }}</div>
+        <div class="change"><i class="fas fa-print"></i> Currently printing/cutting</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Delivered</div>
+        <div class="value">{{ done }}</div>
+        <div class="change"><i class="fas fa-check-circle"></i> Completed orders</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Total Revenue</div>
+        <div class="value">ETB {{ revenue|floatformat:0 }}</div>
+        <div class="change"><i class="fas fa-arrow-up"></i> From delivered orders</div>
+    </div>
+</div>
+
+<!-- Pricing snapshot -->
+<div style="background:#fff;border-radius:16px;padding:20px 24px;border:1px solid #eef2f6;margin-bottom:24px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <h3 style="font-size:.95rem;font-weight:700;">💰 Your Pricing Rates · የዋጋ መጠን</h3>
+        <a href="{% url 'makerspace:vendor_settings' %}" style="color:#d42e2e;font-size:.82rem;font-weight:600;">Edit rates</a>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:10px;">
+        <span style="background:#e8f5e9;color:#1f7b3a;padding:6px 14px;border-radius:40px;font-size:.78rem;font-weight:700;">PLA ETB {{ mk_profile.price_pla_per_gram }}/g</span>
+        <span style="background:#e8f5e9;color:#1f7b3a;padding:6px 14px;border-radius:40px;font-size:.78rem;font-weight:700;">PETG ETB {{ mk_profile.price_petg_per_gram }}/g</span>
+        <span style="background:#e8f5e9;color:#1f7b3a;padding:6px 14px;border-radius:40px;font-size:.78rem;font-weight:700;">ABS ETB {{ mk_profile.price_abs_per_gram }}/g</span>
+        <span style="background:#e8f5e9;color:#1f7b3a;padding:6px 14px;border-radius:40px;font-size:.78rem;font-weight:700;">Resin ETB {{ mk_profile.price_resin_per_gram }}/g</span>
+        <span style="background:#e6f0fa;color:#1a4b8a;padding:6px 14px;border-radius:40px;font-size:.78rem;font-weight:700;">Laser ETB {{ mk_profile.price_laser_per_cm2 }}/cm²</span>
+        <span style="background:#e6f0fa;color:#1a4b8a;padding:6px 14px;border-radius:40px;font-size:.78rem;font-weight:700;">CNC ETB {{ mk_profile.price_cnc_per_cm2 }}/cm²</span>
+        <span style="background:#fff4e6;color:#b85a1a;padding:6px 14px;border-radius:40px;font-size:.78rem;font-weight:700;">Lead {{ mk_profile.min_lead_time_days }}–{{ mk_profile.max_lead_time_days }} days</span>
+    </div>
+</div>
+
+<!-- Recent orders -->
+<div class="section-header">
+    <h3>📥 Recent Orders</h3>
+    <a href="{% url 'makerspace:vendor_orders' %}">View all <i class="fas fa-arrow-right"></i></a>
+</div>
+<div class="table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th>Order</th>
+                <th>Customer</th>
+                <th>Service</th>
+                <th>File</th>
+                <th>Analysis</th>
+                <th>Price</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td><strong>{{ order.order_number }}</strong><div style="font-size:.72rem;color:#94a3b8;">{{ order.created_at|date:"M j, Y" }}</div></td>
+                <td>{{ order.customer.get_full_name|default:order.customer.username }}</td>
+                <td>
+                    <div style="font-weight:600;font-size:.82rem;">{{ order.get_service_type_display }}</div>
+                    <div style="font-size:.72rem;color:#94a3b8;">{{ order.get_material_display }} · {{ order.infill }}%</div>
+                </td>
+                <td>
+                    <a href="{{ order.design_file.url }}" target="_blank"
+                       style="display:inline-flex;align-items:center;gap:5px;background:#f1f4f9;padding:4px 12px;border-radius:40px;font-size:.75rem;font-weight:600;color:#0b2b4a;text-decoration:none;">
+                        <i class="fas fa-download"></i> {{ order.file_type|upper }}
+                    </a>
+                </td>
+                <td style="font-size:.78rem;color:#475569;">
+                    {% if order.estimated_grams > 0 %}{{ order.estimated_grams }}g{% endif %}
+                    {% if order.estimated_volume_cm3 > 0 %} / {{ order.estimated_volume_cm3|floatformat:1 }}cm³{% endif %}
+                    {% if order.estimated_area_cm2 > 0 %}{{ order.estimated_area_cm2|floatformat:1 }}cm²{% endif %}
+                </td>
+                <td>
+                    <strong>ETB {{ order.final_price }}</strong>
+                    {% if order.vendor_price %}<div style="font-size:.72rem;color:#94a3b8;">Quoted</div>{% else %}<div style="font-size:.72rem;color:#94a3b8;">System est.</div>{% endif %}
+                </td>
+                <td>
+                    <span class="status {{ order.status_color }}">{{ order.get_status_display }}</span>
+                </td>
+                <td>
+                    <a href="{% url 'makerspace:vendor_order_detail' order.pk %}" class="btn-sm-edit">
+                        <i class="fas fa-eye"></i> Review
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="8" style="text-align:center;padding:32px;color:#94a3b8;">No makerspace orders yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

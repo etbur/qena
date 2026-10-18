@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Cancel Order · Makerspace{% endblock %}
+{% block content %}
+<div style="max-width:480px;margin:60px auto;padding:0 16px;text-align:center;">
+    <div style="background:#fff;border-radius:20px;padding:36px;border:1px solid #eef2f6;">
+        <i class="fas fa-exclamation-triangle" style="font-size:2.5rem;color:#d42e2e;display:block;margin-bottom:16px;"></i>
+        <h2 style="font-size:1.2rem;font-weight:800;margin-bottom:8px;">Cancel Order · ትዕዛዝ ሰርዝ</h2>
+        <p style="color:#64748b;font-size:.88rem;margin-bottom:8px;">
+            Are you sure you want to cancel <strong>{{ order.order_number }}</strong>?
+        </p>
+        <p style="color:#64748b;font-size:.82rem;margin-bottom:24px;">
+            Service: {{ order.get_service_type_display }} ·
+            ETB {{ order.final_price }}
+        </p>
+        <form method="post" style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+            {% csrf_token %}
+            <button type="submit"
+                    style="padding:11px 28px;background:#d42e2e;color:#fff;border:none;border-radius:60px;font-weight:700;cursor:pointer;">
+                <i class="fas fa-times"></i> Yes, Cancel
+            </button>
+            <a href="{% url 'makerspace:order_detail' order.pk %}"
+               style="padding:11px 24px;background:#fff;color:#1e293b;border:1px solid #eef2f6;border-radius:60px;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
+                <i class="fas fa-arrow-left"></i> Keep Order
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}

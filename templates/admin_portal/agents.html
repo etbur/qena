@@ -1,0 +1,134 @@
+{% extends 'admin_portal/base_admin.html' %}
+{% block title %}Agents – Admin Portal{% endblock %}
+{% block breadcrumb %}Agents{% endblock %}
+
+{% block admin_content %}
+<div class="page-header">
+    <h2>🤝 Agents <span class="sub">({{ agents.count }})</span></h2>
+</div>
+
+<div class="table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th>Agent</th>
+                <th>Tier</th>
+                <th>Deals</th>
+                <th>Revenue</th>
+                <th>Clients</th>
+                <th>Commission</th>
+                <th>Status</th>
+                <th>QR Card</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for a in agents %}
+            <tr>
+                <td>
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <div style="width:34px;height:34px;border-radius:50%;background:#0b2b4a;
+                                    color:white;display:flex;align-items:center;justify-content:center;
+                                    font-weight:700;font-size:0.8rem;">
+                            {{ a.user.username|first|upper }}
+                        </div>
+                        <div>
+                            <strong>{{ a.user.get_full_name|default:a.user.username }}</strong>
+                            <div style="font-size:0.72rem;color:#94a3b8;">{{ a.user.email }}</div>
+                        </div>
+                    </div>
+                </td>
+                <td>{{ a.get_tier_display }}</td>
+                <td>{{ a.deal_count|default:0 }}</td>
+                <td>ETB {{ a.revenue|default:0|floatformat:0 }}</td>
+                <td>{{ a.clients.count }}</td>
+                <td>{{ a.commission_rate }}%</td>
+                <td>
+                    {% if a.is_active %}
+                        <span class="status active">Active</span>
+                    {% else %}
+                        <span class="status inactive">Inactive</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <button type="button" onclick="showAdminAgentQR('{{ a.user.get_full_name|default:a.user.username|escapejs }}', 'Certified Agent · {{ a.get_tier_display }}', '{{ a.qr_code_data_uri }}', '{{ a.get_card_url }}', '{{ a.get_qr_download_url }}', '{{ a.get_qr_badge_download_url }}')" class="btn" style="padding:4px 9px;font-size:0.75rem;background:#f8fafc;color:#0b2b4a;border:1px solid #cbd5e1;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
+                        <i class="fas fa-qrcode"></i> QR
+                    </button>
+                </td>
+                <td>
+                    <form method="post" action="{% url 'admin_portal:agent_toggle' a.pk %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit"
+                                class="act-btn {% if a.is_active %}act-btn-deactivate{% else %}act-btn-activate{% endif %}">
+                            <i class="fas fa-{% if a.is_active %}ban{% else %}check{% endif %}"></i>
+                            {% if a.is_active %}Deactivate{% else %}Activate{% endif %}
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="9" style="text-align:center;padding:32px;color:#94a3b8;">No agents yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Admin Agent QR Modal -->
+<div id="adminAgentQRModal" style="display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(11, 43, 74, 0.65); backdrop-filter: blur(6px); align-items: center; justify-content: center; padding: 12px; box-sizing: border-box;">
+    <div style="background: #ffffff; border-radius: 24px; max-width: 420px; width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.25); text-align: center; position: relative; overflow: hidden; box-sizing: border-box;">
+        
+        <!-- Ethiopian Flag Accent Ribbon -->
+        <div style="height: 5px; width: 100%; display: flex;">
+            <div style="flex: 1; background: #078930;"></div>
+            <div style="flex: 1; background: #f59e0b;"></div>
+            <div style="flex: 1; background: #d42e2e;"></div>
+        </div>
+
+        <div style="padding: 24px 18px 20px;">
+            <button onclick="document.getElementById('adminAgentQRModal').style.display='none'" style="position: absolute; top: 14px; right: 14px; background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; color: #64748b; font-size: 1rem; display: flex; align-items: center; justify-content: center;">
+                &times;
+            </button>
+            <div id="admAQRSub" style="font-size: 0.72rem; font-weight: 800; color: #0b2b4a; letter-spacing: 0.5px; text-transform: uppercase;">Agent Digital Business Card</div>
+            <h3 id="admAQRTitle" style="font-size: 1.2rem; font-weight: 800; color: #0f172a; margin: 4px 0 10px; word-break: break-word;"></h3>
+            
+            <div style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 18px; padding: 14px; display: inline-block; margin-bottom: 12px;">
+                <img id="admAQRImg" src="" alt="Agent QR" style="width: 160px; height: 160px; max-width: 100%; display: block; border-radius: 8px;"/>
+            </div>
+
+            <p style="font-size: 0.78rem; color: #64748b; margin-bottom: 16px; line-height: 1.4;">
+                Scanning this QR opens the agent's public digital business card and direct lead submission portal.
+            </p>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+                <a id="admAQRRawLink" href="#" class="btn" style="background: #0b2b4a; color: #fff; padding: 10px 8px; border-radius: 10px; font-weight: 700; font-size: 0.8rem; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                    <i class="fas fa-file-image"></i> Save PNG
+                </a>
+                <a id="admAQRBadgeLink" href="#" class="btn" style="background: #d42e2e; color: #fff; padding: 10px 8px; border-radius: 10px; font-weight: 700; font-size: 0.8rem; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                    <i class="fas fa-id-badge"></i> Card Badge
+                </a>
+            </div>
+            <a id="admAQRCardLink" href="#" target="_blank" class="btn" style="background: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1; padding: 8px; border-radius: 10px; font-weight: 700; font-size: 0.78rem; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; box-sizing: border-box;">
+                <i class="fas fa-external-link-alt"></i> View Public Digital Card Page
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+function showAdminAgentQR(name, subtitle, qrDataUri, cardUrl, rawUrl, badgeUrl) {
+    document.getElementById('admAQRTitle').textContent = name;
+    document.getElementById('admAQRSub').textContent = subtitle;
+    document.getElementById('admAQRImg').src = qrDataUri;
+    document.getElementById('admAQRCardLink').href = cardUrl;
+    document.getElementById('admAQRRawLink').href = rawUrl;
+    document.getElementById('admAQRBadgeLink').href = badgeUrl;
+    document.getElementById('adminAgentQRModal').style.display = 'flex';
+}
+window.addEventListener('click', function(e) {
+    var m = document.getElementById('adminAgentQRModal');
+    if (m && e.target === m) m.style.display = 'none';
+});
+</script>
+{% endblock %}

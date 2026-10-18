@@ -1,0 +1,79 @@
+{% extends 'vendors/base_vendor.html' %}
+{% block title %}{{ action }} Inventory Item · {{ vendor.store_name }}{% endblock %}
+{% block breadcrumb %}Inventory / {{ action }} Item{% endblock %}
+
+{% block vendor_content %}
+<div class="page-header">
+  <h2>📦 {{ action }} Inventory Item</h2>
+  <a href="{% url 'vendors:inventory' %}" class="btn-back"><i class="fas fa-arrow-left"></i> Back</a>
+</div>
+
+<div class="form-card" style="max-width:900px;">
+  <h3>Item Details — {{ vendor.store_name }}</h3>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <!-- Basic info -->
+    <div style="background:#f8fafc;border-radius:10px;padding:14px 16px;margin-bottom:16px;">
+      <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;color:#94a3b8;margin-bottom:12px;letter-spacing:.5px;">Basic Information</div>
+      <div class="form-grid-2">
+        <div class="form-group"><label>Item Name *</label>{{ form.item_name }}</div>
+        <div class="form-group"><label>Category</label>{{ form.category }}</div>
+        <div class="form-group"><label>SKU</label>{{ form.sku }}</div>
+        <div class="form-group"><label>Barcode / QR Code</label>{{ form.barcode }}</div>
+        <div class="form-group"><label>Unit of Measure</label>{{ form.unit }}</div>
+        <div class="form-group"><label>Item Image</label>{{ form.image }}</div>
+      </div>
+    </div>
+
+    <!-- Pricing -->
+    <div style="background:#f8fafc;border-radius:10px;padding:14px 16px;margin-bottom:16px;">
+      <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;color:#94a3b8;margin-bottom:12px;letter-spacing:.5px;">Pricing (ETB)</div>
+      <div class="form-grid-2">
+        <div class="form-group"><label>Unit Cost Price *</label>{{ form.unit_cost }}</div>
+        <div class="form-group"><label>Selling Price</label>{{ form.selling_price }}</div>
+      </div>
+    </div>
+
+    <!-- Stock -->
+    <div style="background:#f8fafc;border-radius:10px;padding:14px 16px;margin-bottom:16px;">
+      <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;color:#94a3b8;margin-bottom:12px;letter-spacing:.5px;">Stock & Location</div>
+      <div class="form-grid-2">
+        <div class="form-group"><label>Current Quantity *</label>{{ form.quantity }}</div>
+        <div class="form-group"><label>Reorder Alert Level</label>{{ form.reorder_level }}</div>
+        <div class="form-group"><label>Shelf / Location</label>{{ form.location }}</div>
+        <div class="form-group"><label>Expiry Date</label>{{ form.expiry_date }}</div>
+        <div class="form-group"><label>Warehouse</label>{{ form.warehouse }}</div>
+        <div class="form-group"><label>Supplier</label>{{ form.supplier }}</div>
+      </div>
+    </div>
+
+    <!-- Notes & visibility -->
+    <div style="background:#f8fafc;border-radius:10px;padding:14px 16px;margin-bottom:20px;">
+      <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;color:#94a3b8;margin-bottom:12px;letter-spacing:.5px;">Notes & Visibility</div>
+      <div class="form-group"><label>Internal Notes</label>{{ form.notes }}</div>
+      <div class="form-group" style="margin-top:12px;">
+        <label class="form-check-label">
+          {{ form.is_public }}
+          <span>Show this item publicly on your storefront</span>
+        </label>
+      </div>
+    </div>
+
+    {% if form.errors %}
+    <div class="alert alert-danger">
+      <i class="fas fa-exclamation-circle"></i>
+      Please fix the errors below:
+      {% for field, errors in form.errors.items %}
+        <div style="margin-top:4px;font-size:.8rem;">{{ field }}: {{ errors|join:", " }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div style="display:flex;gap:12px;">
+      <button type="submit" class="btn-save"><i class="fas fa-save"></i> Save Item</button>
+      <a href="{% url 'vendors:inventory' %}" class="btn-back">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

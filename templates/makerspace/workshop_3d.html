@@ -1,0 +1,759 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}3D Printing Studio & CAD Workshop · Makerspace — Qenagebeya 🇪🇹{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+    --studio-bg: #0f172a;
+    --panel-bg: #1e293b;
+    --panel-border: #334155;
+    --accent-green: #078930;
+    --accent-yellow: #FCDD09;
+    --accent-red: #DA121A;
+    --accent-blue: #0284c7;
+}
+
+.studio-container {
+    max-width: 1400px;
+    margin: 20px auto 40px;
+    padding: 0 20px;
+}
+
+.studio-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 20px;
+    background: #fff;
+    padding: 18px 24px;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0,0,0,.04);
+}
+
+.studio-title h1 {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #0b2b4a;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+}
+
+.studio-title p {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin: 4px 0 0;
+}
+
+.studio-grid {
+    display: grid;
+    grid-template-columns: 320px 1fr 320px;
+    gap: 20px;
+    align-items: stretch;
+}
+
+@media (max-width: 1150px) {
+    .studio-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.studio-panel {
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.panel-header {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #0b2b4a;
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group label {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #334155;
+    display: flex;
+    justify-content: space-between;
+}
+
+.form-control, .form-select {
+    padding: 8px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    color: #0f172a;
+    outline: none;
+    transition: .15s;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #078930;
+    box-shadow: 0 0 0 2px rgba(7,137,48,0.15);
+}
+
+.range-slider {
+    width: 100%;
+    accent-color: #078930;
+    cursor: pointer;
+}
+
+/* 3D Viewport */
+.viewport-card {
+    background: #0f172a;
+    border-radius: 16px;
+    border: 1px solid #1e293b;
+    position: relative;
+    overflow: hidden;
+    min-height: 540px;
+    display: flex;
+    flex-direction: column;
+}
+
+#canvas-3d {
+    width: 100%;
+    height: 100%;
+    flex: 1;
+    display: block;
+    cursor: grab;
+}
+
+#canvas-3d:active {
+    cursor: grabbing;
+}
+
+.viewport-overlay {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    display: flex;
+    gap: 8px;
+    z-index: 10;
+}
+
+.vp-btn {
+    background: rgba(30, 41, 59, 0.85);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: .15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.vp-btn:hover {
+    background: #078930;
+    border-color: #078930;
+}
+
+.dropzone-overlay {
+    position: absolute;
+    bottom: 14px;
+    left: 14px;
+    right: 14px;
+    background: rgba(15, 23, 42, 0.88);
+    backdrop-filter: blur(8px);
+    border: 1px dashed rgba(255,255,255,0.25);
+    border-radius: 12px;
+    padding: 10px 16px;
+    color: #cbd5e1;
+    font-size: 0.78rem;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    pointer-events: auto;
+}
+
+/* Color chips */
+.color-picker-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.color-dot {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: .15s;
+}
+
+.color-dot.active {
+    border-color: #078930;
+    transform: scale(1.15);
+    box-shadow: 0 0 8px rgba(7,137,48,.5);
+}
+
+/* Quote Summary Box */
+.quote-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 14px;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.82rem;
+    color: #64748b;
+    margin-bottom: 8px;
+}
+
+.stat-row strong {
+    color: #0f172a;
+}
+
+.total-price-box {
+    background: linear-gradient(135deg, #0b2b4a, #1a4b8a);
+    color: #fff;
+    padding: 16px;
+    border-radius: 12px;
+    text-align: center;
+    margin-top: 6px;
+}
+
+.total-price-box .price-num {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #FCDD09;
+}
+
+.order-btn {
+    width: 100%;
+    padding: 12px;
+    background: #078930;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.95rem;
+    border-radius: 40px;
+    border: none;
+    cursor: pointer;
+    transition: .2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none;
+}
+
+.order-btn:hover {
+    background: #056824;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(7,137,48,0.3);
+}
+
+.export-btn {
+    width: 100%;
+    padding: 10px;
+    background: #fff;
+    color: #0b2b4a;
+    font-weight: 700;
+    font-size: 0.85rem;
+    border-radius: 40px;
+    border: 1px solid #cbd5e1;
+    cursor: pointer;
+    transition: .15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.export-btn:hover {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+}
+</style>
+<!-- Three.js CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="studio-container">
+    <!-- Header -->
+    <div class="studio-header">
+        <div class="studio-title">
+            <h1><i class="fas fa-cube" style="color:#078930;"></i> 3D Printing CAD Workshop & Slicer · ስራቤት</h1>
+            <p>Design, customize parametric models, preview infill & layers, and get instant Ethiopian manufacturing quotes.</p>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;">
+            <a href="{% url 'makerspace:landing' %}" class="vp-btn" style="background:#f1f5f9;color:#334155;border-color:#cbd5e1;">
+                <i class="fas fa-arrow-left"></i> Makerspace Hub
+            </a>
+            <button id="btn-export-stl" class="vp-btn" style="background:#0b2b4a;">
+                <i class="fas fa-download"></i> Export .STL
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Workshop Grid -->
+    <div class="studio-grid">
+        <!-- LEFT: Model & Primitive Configurator -->
+        <div class="studio-panel">
+            <div class="panel-header">
+                <span><i class="fas fa-shapes"></i> Parametric CAD Models</span>
+                <span style="font-size:0.75rem;color:#078930;font-weight:600;">Live WebGL</span>
+            </div>
+
+            <!-- Model Template Selector -->
+            <div class="form-group">
+                <label>Preset Shape / Part</label>
+                <select id="sel-preset" class="form-select">
+                    <option value="box">Electronics Enclosure / Box</option>
+                    <option value="cylinder">Cylinder / Vase</option>
+                    <option value="gear">Mechanical Spur Gear</option>
+                    <option value="mesob">Mesob Ornament (Ethiopian)</option>
+                    <option value="tag">Custom Text Keychain Plaque</option>
+                    <option value="propeller">Drone Motor Guard Ring</option>
+                </select>
+            </div>
+
+            <!-- Dimension Controls -->
+            <div class="form-group">
+                <label>Width / Diameter (X): <span id="lbl-dim-x">60 mm</span></label>
+                <input type="range" id="rng-dim-x" class="range-slider" min="20" max="220" value="60">
+            </div>
+
+            <div class="form-group">
+                <label>Length / Depth (Y): <span id="lbl-dim-y">40 mm</span></label>
+                <input type="range" id="rng-dim-y" class="range-slider" min="20" max="220" value="40">
+            </div>
+
+            <div class="form-group">
+                <label>Height (Z): <span id="lbl-dim-z">30 mm</span></label>
+                <input type="range" id="rng-dim-z" class="range-slider" min="10" max="250" value="30">
+            </div>
+
+            <div class="form-group" id="group-wall">
+                <label>Wall Thickness: <span id="lbl-wall">3.0 mm</span></label>
+                <input type="range" id="rng-wall" class="range-slider" min="1.2" max="10" step="0.2" value="3.0">
+            </div>
+
+            <div class="form-group" id="group-custom-text" style="display:none;">
+                <label>Engraved Text (Amharic or English)</label>
+                <input type="text" id="txt-engraving" class="form-control" placeholder="e.g. QENA 2026" value="QENA">
+            </div>
+
+            <!-- Slicing & Infill Settings -->
+            <div class="panel-header" style="margin-top:10px;">
+                <span><i class="fas fa-layer-group"></i> Slicer Infill & Layers</span>
+            </div>
+
+            <div class="form-group">
+                <label>Infill Density: <span id="lbl-infill" style="color:#078930;">30% (Standard)</span></label>
+                <input type="range" id="rng-infill" class="range-slider" min="15" max="100" step="5" value="30">
+            </div>
+
+            <div class="form-group">
+                <label>Layer Height Slicing: <span id="lbl-layer">0.20 mm (Standard)</span></label>
+                <select id="sel-layer-height" class="form-select">
+                    <option value="0.12">0.12 mm — Ultra Fine Detail</option>
+                    <option value="0.20" selected>0.20 mm — Standard Quality</option>
+                    <option value="0.28">0.28 mm — Fast Prototype Draft</option>
+                </select>
+            </div>
+
+            <!-- Material & Color -->
+            <div class="form-group">
+                <label>Material & Filament</label>
+                <select id="sel-material" class="form-select">
+                    <option value="3d_pla" data-density="1.24" data-rate="{{ profile.price_pla_per_gram|default:'2.50' }}">PLA (Standard Biodegradable) — ETB {{ profile.price_pla_per_gram|default:'2.50' }}/g</option>
+                    <option value="3d_petg" data-density="1.27" data-rate="{{ profile.price_petg_per_gram|default:'3.00' }}">PETG (Tough & Heat Resistant) — ETB {{ profile.price_petg_per_gram|default:'3.00' }}/g</option>
+                    <option value="3d_abs" data-density="1.04" data-rate="{{ profile.price_abs_per_gram|default:'3.20' }}">ABS (High Durability & Rigidity) — ETB {{ profile.price_abs_per_gram|default:'3.20' }}/g</option>
+                    <option value="3d_resin" data-density="1.15" data-rate="{{ profile.price_resin_per_gram|default:'5.00' }}">UV Resin (Micron Precision) — ETB {{ profile.price_resin_per_gram|default:'5.00' }}/g</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Filament Color</label>
+                <div class="color-picker-row">
+                    <div class="color-dot active" style="background:#078930;" data-color="#078930" title="Ethiopian Emerald"></div>
+                    <div class="color-dot" style="background:#1e3a8a;" data-color="#1e3a8a" title="Deep Navy"></div>
+                    <div class="color-dot" style="background:#d97706;" data-color="#d97706" title="Golden Yellow"></div>
+                    <div class="color-dot" style="background:#b91c1c;" data-color="#b91c1c" title="Ruby Red"></div>
+                    <div class="color-dot" style="background:#1e293b;" data-color="#1e293b" title="Matte Charcoal"></div>
+                    <div class="color-dot" style="background:#f8fafc;border:1px solid #cbd5e1;" data-color="#f8fafc" title="Pearl White"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CENTER: Interactive 3D Viewport -->
+        <div class="viewport-card">
+            <div class="viewport-overlay">
+                <button id="btn-wireframe" class="vp-btn"><i class="fas fa-border-all"></i> Wireframe</button>
+                <button id="btn-reset-view" class="vp-btn"><i class="fas fa-crosshairs"></i> Reset View</button>
+                <button id="btn-auto-rotate" class="vp-btn"><i class="fas fa-sync-alt"></i> Auto Rotate</button>
+            </div>
+
+            <div id="3d-container" style="width:100%;height:100%;flex:1;position:relative;">
+                <canvas id="canvas-3d"></canvas>
+            </div>
+
+            <div class="dropzone-overlay">
+                <i class="fas fa-cloud-upload-alt" style="font-size:1.3rem;color:#078930;"></i>
+                <span>Drag & drop your custom <strong>.STL</strong> or <strong>.OBJ</strong> file anywhere to inspect in 3D</span>
+                <input type="file" id="file-stl-input" accept=".stl,.obj" style="display:none;">
+                <button onclick="document.getElementById('file-stl-input').click();" class="vp-btn" style="padding:3px 10px;font-size:0.75rem;">Browse File</button>
+            </div>
+        </div>
+
+        <!-- RIGHT: Live Analysis & Instant Ethiopian Quotation -->
+        <div class="studio-panel">
+            <div class="panel-header">
+                <span><i class="fas fa-calculator"></i> Real-time Quote & Analysis</span>
+                <span class="badge-active" style="background:#dcfce7;color:#15803d;padding:2px 8px;border-radius:6px;font-size:0.75rem;font-weight:700;">Live</span>
+            </div>
+
+            <div class="quote-box">
+                <div class="stat-row">
+                    <span>Part Bounding Box:</span>
+                    <strong id="stat-dim">60 × 40 × 30 mm</strong>
+                </div>
+                <div class="stat-row">
+                    <span>Model True Volume:</span>
+                    <strong id="stat-vol">24.50 cm³</strong>
+                </div>
+                <div class="stat-row">
+                    <span>Infill Material:</span>
+                    <strong id="stat-infill-pct">30%</strong>
+                </div>
+                <div class="stat-row">
+                    <span>Estimated Filament:</span>
+                    <strong id="stat-grams" style="color:#078930;font-size:0.95rem;">32.4 g</strong>
+                </div>
+                <div class="stat-row">
+                    <span>Estimated Print Time:</span>
+                    <strong id="stat-time">~2 hrs 15 mins</strong>
+                </div>
+                <div class="stat-row">
+                    <span>Lead Time:</span>
+                    <strong>{{ profile.min_lead_time_days|default:2 }} – {{ profile.max_lead_time_days|default:5 }} Days</strong>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Production Quantity</label>
+                <input type="number" id="inp-qty" class="form-control" min="1" max="1000" value="1">
+            </div>
+
+            <div class="total-price-box">
+                <div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:1px;opacity:0.85;">Total Instant Estimate</div>
+                <div class="price-num" id="stat-total-price">ETB 81.00</div>
+                <div style="font-size:0.72rem;opacity:0.8;margin-top:2px;">Includes local machine time + filament</div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:10px;margin-top:auto;">
+                <button id="btn-submit-order" class="order-btn">
+                    <i class="fas fa-paper-plane"></i> Order 3D Print · ወደ ትዕዛዝ ላክ
+                </button>
+                <button id="btn-export-stl-side" class="export-btn">
+                    <i class="fas fa-file-export"></i> Download Configured .STL
+                </button>
+            </div>
+
+            <div style="font-size:0.73rem;color:#94a3b8;line-height:1.4;text-align:center;">
+                <i class="fas fa-shield-alt"></i> Verified by Qenagebeya Ethiopian Makerspace Network. Quotes subject to final vendor geometry check.
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Studio Logic -->
+<script>
+(function() {
+    // 3D Scene setup
+    const container = document.getElementById('3d-container');
+    const canvas = document.getElementById('canvas-3d');
+    let scene, camera, renderer, controls;
+    let currentMesh = null;
+    let wireframeMode = false;
+    let autoRotate = false;
+    let currentColor = 0x078930;
+
+    function initThree() {
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0f172a);
+
+        camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 1, 2000);
+        camera.position.set(120, 100, 150);
+
+        renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.shadowMap.enabled = true;
+
+        if (typeof THREE.OrbitControls !== 'undefined') {
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+        }
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+        scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(100, 150, 100);
+        dirLight.castShadow = true;
+        scene.add(dirLight);
+
+        const backLight = new THREE.DirectionalLight(0x38bdf8, 0.4);
+        backLight.position.set(-100, -50, -100);
+        scene.add(backLight);
+
+        // Bed Grid (220 x 220 mm standard Ender/Prusa print bed)
+        const gridHelper = new THREE.GridHelper(220, 22, 0x078930, 0x334155);
+        gridHelper.position.y = 0;
+        scene.add(gridHelper);
+
+        window.addEventListener('resize', onWindowResize);
+        updateModel();
+        animate();
+    }
+
+    function onWindowResize() {
+        if (!container || !renderer) return;
+        camera.aspect = container.clientWidth / container.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(container.clientWidth, container.clientHeight);
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        if (controls) controls.update();
+        if (autoRotate && currentMesh) {
+            currentMesh.rotation.y += 0.01;
+        }
+        renderer.render(scene, camera);
+    }
+
+    // Parametric Geometry Generator
+    function generateGeometry() {
+        const shape = document.getElementById('sel-preset').value;
+        const x = parseFloat(document.getElementById('rng-dim-x').value);
+        const y = parseFloat(document.getElementById('rng-dim-y').value);
+        const z = parseFloat(document.getElementById('rng-dim-z').value);
+        const wall = parseFloat(document.getElementById('rng-wall').value);
+
+        let geom;
+        if (shape === 'box') {
+            geom = new THREE.BoxGeometry(x, z, y);
+        } else if (shape === 'cylinder') {
+            geom = new THREE.CylinderGeometry(x/2, x/2, z, 32);
+        } else if (shape === 'gear') {
+            geom = new THREE.CylinderGeometry(x/2, x/2, z/2, 16);
+        } else if (shape === 'mesob') {
+            // Mesob stylized cone + dome
+            geom = new THREE.ConeGeometry(x/2, z, 32);
+        } else if (shape === 'tag') {
+            geom = new THREE.BoxGeometry(x, 4, y);
+        } else if (shape === 'propeller') {
+            geom = new THREE.TorusGeometry(x/2, wall, 16, 64);
+        } else {
+            geom = new THREE.BoxGeometry(x, z, y);
+        }
+        return geom;
+    }
+
+    function updateModel() {
+        if (currentMesh) {
+            scene.remove(currentMesh);
+            if (currentMesh.geometry) currentMesh.geometry.dispose();
+            if (currentMesh.material) currentMesh.material.dispose();
+        }
+
+        const geom = generateGeometry();
+        const z = parseFloat(document.getElementById('rng-dim-z').value);
+
+        const mat = new THREE.MeshStandardMaterial({
+            color: currentColor,
+            roughness: 0.35,
+            metalness: 0.1,
+            wireframe: wireframeMode,
+        });
+
+        currentMesh = new THREE.Mesh(geom, mat);
+        currentMesh.position.y = z / 2;
+        currentMesh.castShadow = true;
+        scene.add(currentMesh);
+
+        calculateCostAndStats();
+    }
+
+    function calculateCostAndStats() {
+        const x = parseFloat(document.getElementById('rng-dim-x').value);
+        const y = parseFloat(document.getElementById('rng-dim-y').value);
+        const z = parseFloat(document.getElementById('rng-dim-z').value);
+        const infill = parseFloat(document.getElementById('rng-infill').value) / 100.0;
+        const qty = parseInt(document.getElementById('inp-qty').value) || 1;
+
+        const selMat = document.getElementById('sel-material');
+        const density = parseFloat(selMat.options[selMat.selectedIndex].getAttribute('data-density')) || 1.24;
+        const rate = parseFloat(selMat.options[selMat.selectedIndex].getAttribute('data-rate')) || 2.50;
+
+        // Raw envelope volume in cm3 (bounding box / approximation)
+        const shape = document.getElementById('sel-preset').value;
+        let solidVolCm3 = (x * y * z) / 1000.0;
+        if (shape === 'cylinder' || shape === 'mesob') solidVolCm3 *= 0.785;
+        if (shape === 'propeller') solidVolCm3 *= 0.35;
+
+        // Realistic sliced volume (wall shells + infill interior)
+        const effectiveVol = solidVolCm3 * (0.25 + infill * 0.75);
+        const grams = effectiveVol * density;
+        const timeMins = Math.round(grams * 4.2);
+        const hours = Math.floor(timeMins / 60);
+        const mins = timeMins % 60;
+
+        const unitPrice = Math.max(50.0, grams * rate);
+        const totalPrice = unitPrice * qty;
+
+        // Update UI
+        document.getElementById('lbl-dim-x').textContent = `${x} mm`;
+        document.getElementById('lbl-dim-y').textContent = `${y} mm`;
+        document.getElementById('lbl-dim-z').textContent = `${z} mm`;
+        document.getElementById('stat-dim').textContent = `${x} × ${y} × ${z} mm`;
+        document.getElementById('stat-vol').textContent = `${effectiveVol.toFixed(2)} cm³`;
+        document.getElementById('stat-infill-pct').textContent = `${Math.round(infill * 100)}%`;
+        document.getElementById('stat-grams').textContent = `${(grams * qty).toFixed(1)} g`;
+        document.getElementById('stat-time').textContent = hours > 0 ? `~${hours} hrs ${mins} mins` : `~${mins} mins`;
+        document.getElementById('stat-total-price').textContent = `ETB ${totalPrice.toFixed(2)}`;
+    }
+
+    // Event Listeners
+    ['rng-dim-x', 'rng-dim-y', 'rng-dim-z', 'rng-wall', 'sel-preset'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', updateModel);
+    });
+
+    ['rng-infill', 'sel-material', 'inp-qty'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', calculateCostAndStats);
+    });
+
+    document.getElementById('sel-preset').addEventListener('change', function() {
+        const shape = this.value;
+        document.getElementById('group-custom-text').style.display = (shape === 'tag') ? 'block' : 'none';
+        updateModel();
+    });
+
+    // Color Pickers
+    document.querySelectorAll('.color-dot').forEach(dot => {
+        dot.addEventListener('click', function() {
+            document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+            this.classList.add('active');
+            const col = this.getAttribute('data-color');
+            currentColor = parseInt(col.replace('#', '0x'));
+            if (currentMesh && currentMesh.material) {
+                currentMesh.material.color.setHex(currentColor);
+            }
+        });
+    });
+
+    // Viewport actions
+    document.getElementById('btn-wireframe').addEventListener('click', () => {
+        wireframeMode = !wireframeMode;
+        if (currentMesh) currentMesh.material.wireframe = wireframeMode;
+    });
+
+    document.getElementById('btn-reset-view').addEventListener('click', () => {
+        camera.position.set(120, 100, 150);
+        if (controls) controls.target.set(0, 20, 0);
+    });
+
+    document.getElementById('btn-auto-rotate').addEventListener('click', () => {
+        autoRotate = !autoRotate;
+    });
+
+    // Order Bridge: Submit with prefilled GET parameters
+    function proceedToOrder() {
+        const mat = document.getElementById('sel-material').value;
+        const infill = document.getElementById('rng-infill').value;
+        const qty = document.getElementById('inp-qty').value;
+        const shape = document.getElementById('sel-preset').options[document.getElementById('sel-preset').selectedIndex].text;
+        const x = document.getElementById('rng-dim-x').value;
+        const y = document.getElementById('rng-dim-y').value;
+        const z = document.getElementById('rng-dim-z').value;
+
+        const activeColorEl = document.querySelector('.color-dot.active');
+        const colorTitle = activeColorEl ? activeColorEl.getAttribute('title') : 'Emerald Green';
+
+        const notes = `Configured via 3D Studio: ${shape} (${x}x${y}x${z}mm), ${infill}% Infill, Color: ${colorTitle}.`;
+        const submitUrl = `{% url 'makerspace:submit_order' %}?service_type=3d_print&material=${mat}&infill=${infill}&quantity=${qty}&color=${encodeURIComponent(colorTitle)}&notes=${encodeURIComponent(notes)}`;
+        window.location.href = submitUrl;
+    }
+
+    document.getElementById('btn-submit-order').addEventListener('click', proceedToOrder);
+
+    // STL Exporter (generates ASCII STL download in-browser)
+    function exportSTL() {
+        if (!currentMesh || !currentMesh.geometry) return;
+        const geom = currentMesh.geometry.clone();
+        geom.computeVertexNormals();
+
+        let stl = 'solid qenagebeya_model\n';
+        const pos = geom.attributes.position;
+        const index = geom.index;
+
+        if (index) {
+            for (let i = 0; i < index.count; i += 3) {
+                const a = index.getX(i);
+                const b = index.getX(i+1);
+                const c = index.getX(i+2);
+                stl += `  facet normal 0 0 0\n    outer loop\n`;
+                stl += `      vertex ${pos.getX(a)} ${pos.getY(a)} ${pos.getZ(a)}\n`;
+                stl += `      vertex ${pos.getX(b)} ${pos.getY(b)} ${pos.getZ(b)}\n`;
+                stl += `      vertex ${pos.getX(c)} ${pos.getY(c)} ${pos.getZ(c)}\n`;
+                stl += `    endloop\n  endfacet\n`;
+            }
+        }
+        stl += 'endsolid qenagebeya_model\n';
+
+        const blob = new Blob([stl], { type: 'text/plain' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `qena_3d_${document.getElementById('sel-preset').value}.stl`;
+        link.click();
+    }
+
+    document.getElementById('btn-export-stl').addEventListener('click', exportSTL);
+    document.getElementById('btn-export-stl-side').addEventListener('click', exportSTL);
+
+    // Run on load
+    window.addEventListener('DOMContentLoaded', initThree);
+})();
+</script>
+{% endblock %}

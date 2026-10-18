@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}Application Pending – Qenagebeya{% endblock %}
+{% block content %}
+<div style="text-align:center;padding:80px 20px;">
+    <i class="fas fa-clock" style="font-size:4rem;color:#f59e0b;display:block;margin-bottom:20px;"></i>
+    <h2 style="font-size:1.5rem;font-weight:800;margin-bottom:8px;">Application Under Review</h2>
+    <p style="color:#94a3b8;max-width:420px;margin:0 auto 24px;font-size:.9rem;">
+        Thank you for applying to sell on Qenagebeya. Our team reviews all applications within 24–48 hours. We'll notify you by email once approved.
+    </p>
+    <a href="{% url 'store:home' %}" style="background:#0b2b4a;color:#fff;padding:12px 36px;border-radius:60px;font-weight:700;font-size:.9rem;">Back to Home</a>
+</div>
+{% endblock %}

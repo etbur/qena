@@ -1,0 +1,26 @@
+{% extends 'agents/base_agent.html' %}
+{% block title %}{{ action }} Deal – Agent Portal{% endblock %}
+{% block breadcrumb %}Deals / {{ action }}{% endblock %}
+
+{% block agent_content %}
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+    <h2 style="font-size:1.2rem;font-weight:700;">{{ action }} Deal</h2>
+    <a href="{% url 'agents:deals' %}" class="btn"><i class="fas fa-arrow-left"></i> Back</a>
+</div>
+<div class="form-wrap">
+    <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="form-group">
+            <label>{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}<div style="color:#d42e2e;font-size:.78rem;margin-top:4px;">{{ field.errors.0 }}</div>{% endif %}
+        </div>
+        {% endfor %}
+        <div style="display:flex;gap:12px;margin-top:8px;">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Deal</button>
+            <a href="{% url 'agents:deals' %}" class="btn">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

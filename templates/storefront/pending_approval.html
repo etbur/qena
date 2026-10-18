@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{{ vendor.store_name }} · Official Website Verification</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: {{ vendor.brand_primary|default:'#0b2b4a' }};
+      --secondary: {{ vendor.brand_secondary|default:'#d42e2e' }};
+      --bg: #070d18;
+      --card-bg: #0f1a2e;
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      position: relative;
+      overflow-x: hidden;
+    }
+    .ambient-glow {
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(11, 43, 74, 0.5) 0%, rgba(212, 46, 46, 0.15) 60%, transparent 80%);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 0;
+      filter: blur(40px);
+    }
+    .card {
+      position: relative;
+      z-index: 1;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 44px 36px;
+      max-width: 580px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(12px);
+    }
+    .logo-wrap {
+      width: 80px;
+      height: 80px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 20px;
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
+    .logo-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    h1 {
+      font-size: 1.65rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+    .tagline {
+      color: var(--muted);
+      font-size: 0.92rem;
+      margin-bottom: 24px;
+    }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 18px;
+      border-radius: 100px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      margin-bottom: 24px;
+      background: rgba(251, 191, 36, 0.12);
+      color: #fcd34d;
+      border: 1px solid rgba(251, 191, 36, 0.25);
+    }
+    .status-badge.inactive {
+      background: rgba(239, 68, 68, 0.12);
+      color: #fca5a5;
+      border-color: rgba(239, 68, 68, 0.25);
+    }
+    .status-badge i {
+      font-size: 0.9rem;
+    }
+    .info-box {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 14px;
+      padding: 16px 20px;
+      text-align: left;
+      font-size: 0.85rem;
+      color: #cbd5e1;
+      line-height: 1.6;
+      margin-bottom: 28px;
+    }
+    .info-box strong {
+      color: #fff;
+    }
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .btn-marketplace {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: linear-gradient(135deg, #078930, #046322);
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.95rem;
+      padding: 14px 24px;
+      border-radius: 12px;
+      text-decoration: none;
+      box-shadow: 0 8px 20px rgba(7, 137, 48, 0.3);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-marketplace:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px rgba(7, 137, 48, 0.4);
+    }
+    .btn-vendor-login {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      color: #94a3b8;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 11px 18px;
+      border-radius: 10px;
+      text-decoration: none;
+      border: 1px solid var(--border);
+      transition: background 0.15s, color 0.15s;
+    }
+    .btn-vendor-login:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+    .footer-powered {
+      margin-top: 28px;
+      font-size: 0.76rem;
+      color: #64748b;
+    }
+    .footer-powered a {
+      color: #94a3b8;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .footer-powered a:hover {
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient-glow"></div>
+  <div class="card">
+    <div class="logo-wrap">
+      {% if vendor.logo %}
+        <img src="{{ vendor.logo.url }}" alt="{{ vendor.store_name }}"/>
+      {% else %}
+        {{ vendor.store_name|first|upper }}
+      {% endif %}
+    </div>
+
+    <h1>{{ vendor.store_name }}</h1>
+    <div class="tagline">{{ vendor.store_tagline|default:"Official Store" }}</div>
+
+    {% if vendor.storefront_status == 'pending_approval' %}
+      <div class="status-badge">
+        <i class="fas fa-clock"></i> Standalone Domain Pending Admin Approval (10,000 ETB / Year FT)
+      </div>
+      <div class="info-box">
+        <p><strong>🌐 Standalone Domain Setup in Progress</strong></p>
+        <p>This dedicated website is currently awaiting administrator verification for the 10,000 ETB / year Funds Transfer (FT) payment.</p>
+        {% if vendor.storefront_payment_ref %}
+          <p style="margin-top:6px;font-size:0.78rem;color:#94a3b8;">Payment Reference: <code style="color:#78e8a4;">{{ vendor.storefront_payment_ref }}</code></p>
+        {% endif %}
+      </div>
+    {% else %}
+      <div class="status-badge inactive">
+        <i class="fas fa-lock"></i> Standalone Storefront Inactive
+      </div>
+      <div class="info-box">
+        <p><strong>🚀 Standalone Website Subscription</strong></p>
+        <p>This store domain is not yet active. Vendors can activate their dedicated standalone domain for 10,000 ETB / year via Funds Transfer.</p>
+      </div>
+    {% endif %}
+
+    <div class="btn-group">
+      <a href="http://localhost:8000/vendor/store/{{ vendor.slug }}/" class="btn-marketplace">
+        <i class="fas fa-shopping-bag"></i> Browse Products on Qenagebeya Marketplace
+      </a>
+      <a href="http://localhost:8000/vendors/storefront/" class="btn-vendor-login">
+        <i class="fas fa-user-shield"></i> Store Owner / Admin Login
+      </a>
+    </div>
+
+    <div class="footer-powered">
+      Powered by <a href="http://localhost:8000/">Qenagebeya Multi-Vendor Marketplace</a> · Dual Access Platform
+    </div>
+  </div>
+</body>
+</html>

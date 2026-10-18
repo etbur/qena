@@ -1,0 +1,188 @@
+{% extends 'vendors/base_vendor.html' %}
+{% block title %}{{ action }} Live Stream · Vendor Portal{% endblock %}
+{% block breadcrumb %}Live / {{ action }} Stream{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-layout-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 24px;
+  align-items: start;
+}
+.studio-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 28px;
+  border: 1px solid #eef2f6;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.03);
+}
+.sidebar-tips-card {
+  background: linear-gradient(135deg, #0b1b2b 0%, #1a2d40 100%);
+  color: #fff;
+  border-radius: 20px;
+  padding: 24px;
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+.dropzone-preview {
+  border: 2px dashed #cbd5e1;
+  border-radius: 14px;
+  padding: 24px;
+  text-align: center;
+  background: #f8fafc;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+.dropzone-preview:hover {
+  border-color: #d42e2e;
+  background: #fef2f2;
+}
+.thumb-img-preview {
+  max-width: 100%;
+  max-height: 180px;
+  border-radius: 10px;
+  display: none;
+  margin: 0 auto 10px;
+  object-fit: cover;
+}
+@media (max-width: 900px) {
+  .form-layout-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block vendor_content %}
+<div class="page-header">
+    <div>
+        <h2 style="display:flex;align-items:center;gap:10px;">
+            <span style="color:#d42e2e;">🎬</span> {{ action }} Live Stream · ቀጥታ ስርጭት ማዘጋጃ
+        </h2>
+        <p style="color:#64748b;font-size:.85rem;margin-top:4px;">
+            Setup your real-time broadcast to showcase products, answer buyer questions, and drive sales.
+        </p>
+    </div>
+    <a href="{% url 'live:vendor_streams' %}" class="btn-back">
+        <i class="fas fa-arrow-left"></i> Back to Streams
+    </a>
+</div>
+
+<div class="form-layout-grid">
+
+    <!-- Main Stream Form -->
+    <div class="studio-card">
+        <form method="post" enctype="multipart/form-data" id="stream-form">
+            {% csrf_token %}
+
+            <div class="form-group" style="margin-bottom:18px;">
+                <label style="font-weight:700;color:#1e293b;margin-bottom:6px;">
+                    Stream Title · የዝግጅቱ ርዕስ <span style="color:#d42e2e;">*</span>
+                </label>
+                <div style="position:relative;">
+                    <i class="fas fa-heading" style="position:absolute;left:14px;top:13px;color:#94a3b8;"></i>
+                    <input type="text" name="title" class="form-control" required style="padding-left:38px;"
+                           placeholder="e.g. Ethiopian Coffee Ceremony & Roasting Demo"
+                           value="{{ form.title.value|default:'' }}"/>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom:18px;">
+                <label style="font-weight:700;color:#1e293b;margin-bottom:6px;">
+                    Description · መግለጫ
+                </label>
+                <textarea name="description" class="form-control" rows="3"
+                          placeholder="Tell viewers what you'll be showcasing, special offers, and discounts...">{{ form.description.value|default:'' }}</textarea>
+            </div>
+
+            <div class="form-group" style="margin-bottom:18px;">
+                <label style="font-weight:700;color:#1e293b;margin-bottom:6px;">
+                    Thumbnail Cover Image · የሽፋን ምስል
+                </label>
+                <div class="dropzone-preview" onclick="document.getElementById('thumb-input').click();">
+                    <img id="preview-img" class="thumb-img-preview" alt="Thumbnail Preview"/>
+                    <div id="dropzone-text">
+                        <i class="fas fa-cloud-upload-alt" style="font-size:2rem;color:#94a3b8;display:block;margin-bottom:8px;"></i>
+                        <span style="font-weight:700;color:#334155;font-size:.9rem;">Click to upload cover image</span><br/>
+                        <span style="color:#94a3b8;font-size:.78rem;">PNG, JPG or WebP (Recommended 16:9 or 9:16)</span>
+                    </div>
+                    <input type="file" name="thumbnail" id="thumb-input" style="display:none;" accept="image/*" onchange="previewThumbnail(this)"/>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom:24px;">
+                <label style="font-weight:700;color:#1e293b;margin-bottom:6px;">
+                    Scheduled Start Time (Optional) · የጊዜ ቀጠሮ
+                </label>
+                <div style="position:relative;">
+                    <i class="fas fa-calendar-alt" style="position:absolute;left:14px;top:13px;color:#94a3b8;"></i>
+                    <input type="datetime-local" name="scheduled_at" class="form-control" style="padding-left:38px;"
+                           value="{{ form.scheduled_at.value|default:'' }}"/>
+                </div>
+            </div>
+
+            <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+                <button type="submit" class="btn-save" style="background:#d42e2e;padding:12px 32px;font-size:.95rem;">
+                    <i class="fas fa-save"></i> Save Stream · አስቀምጥ
+                </button>
+                <a href="{% url 'live:vendor_streams' %}" class="btn-back" style="padding:12px 24px;">Cancel</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Live Studio Tips & Checklist -->
+    <div style="display:flex;flex-direction:column;gap:18px;">
+        <div class="sidebar-tips-card">
+            <h3 style="font-size:1.1rem;font-weight:800;margin-bottom:14px;display:flex;align-items:center;gap:8px;">
+                <i class="fas fa-lightbulb" style="color:#fcd116;"></i> Live Studio Tips
+            </h3>
+            <div style="display:flex;flex-direction:column;gap:12px;font-size:.84rem;color:rgba(255,255,255,0.85);line-height:1.45;">
+                <div style="display:flex;gap:10px;">
+                    <i class="fas fa-video" style="color:#78e8a4;margin-top:2px;"></i>
+                    <div><strong>Good Lighting:</strong> Ensure your product showcase area is well-lit so colors and details pop.</div>
+                </div>
+                <div style="display:flex;gap:10px;">
+                    <i class="fas fa-thumbtack" style="color:#78e8a4;margin-top:2px;"></i>
+                    <div><strong>Pin Products:</strong> You can pin any item from your catalog during the stream so viewers can 1-click buy!</div>
+                </div>
+                <div style="display:flex;gap:10px;">
+                    <i class="fas fa-pause" style="color:#fcd116;margin-top:2px;"></i>
+                    <div><strong>Pause & Resume:</strong> Need a quick break? Use the ⏸ Pause function anytime to keep viewers waiting smoothly.</div>
+                </div>
+                <div style="display:flex;gap:10px;">
+                    <i class="fas fa-comments" style="color:#78e8a4;margin-top:2px;"></i>
+                    <div><strong>Chat Interactivity:</strong> Viewers can send live reactions, ask questions, and even request to speak!</div>
+                </div>
+            </div>
+        </div>
+
+        <div style="background:#fff;border-radius:20px;padding:22px;border:1px solid #eef2f6;">
+            <div style="font-size:.78rem;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;">
+                Broadcast Pre-flight Checklist
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;font-size:.83rem;color:#475569;">
+                <div><i class="fas fa-check-circle" style="color:#078930;margin-right:8px;"></i> Working webcam or phone camera</div>
+                <div><i class="fas fa-check-circle" style="color:#078930;margin-right:8px;"></i> Clear microphone audio</div>
+                <div><i class="fas fa-check-circle" style="color:#078930;margin-right:8px;"></i> Catalog products active and priced</div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+function previewThumbnail(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = document.getElementById('preview-img');
+      const text = document.getElementById('dropzone-text');
+      img.src = e.target.result;
+      img.style.display = 'block';
+      text.style.display = 'none';
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+</script>
+{% endblock %}

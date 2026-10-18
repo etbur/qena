@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Qenagebeya · Vendor Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background: #f1f4f9;
+            color: #1e293b;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            width: 260px;
+            background: #0b1b2b;
+            color: #cbd5e1;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            overflow-y: auto;
+            transition: 0.3s;
+            z-index: 100;
+        }
+        .sidebar::-webkit-scrollbar { width: 4px; }
+        .sidebar::-webkit-scrollbar-thumb { background: #2a3a4e; border-radius: 10px; }
+
+        .sidebar-brand {
+            padding: 24px 24px 20px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid #1e2f40;
+        }
+        .sidebar-brand i {
+            color: #d42e2e;
+            font-size: 1.6rem;
+        }
+
+        .sidebar-menu {
+            padding: 20px 12px;
+            flex: 1;
+        }
+        .sidebar-menu .menu-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #6a7f96;
+            padding: 8px 12px 6px;
+            font-weight: 700;
+        }
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 10px 14px;
+            color: #b0c4db;
+            text-decoration: none;
+            border-radius: 10px;
+            margin: 2px 0;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: 0.15s;
+        }
+        .sidebar-menu a:hover {
+            background: #1a2d40;
+            color: white;
+        }
+        .sidebar-menu a.active {
+            background: #d42e2e;
+            color: white;
+            box-shadow: 0 4px 12px rgba(212, 46, 46, 0.3);
+        }
+        .sidebar-menu a i {
+            width: 20px;
+            text-align: center;
+            font-size: 1rem;
+        }
+        .sidebar-menu .badge {
+            background: #d42e2e;
+            color: white;
+            font-size: 0.6rem;
+            padding: 1px 10px;
+            border-radius: 40px;
+            margin-left: auto;
+        }
+
+        .sidebar-footer {
+            padding: 16px 20px;
+            border-top: 1px solid #1e2f40;
+            font-size: 0.75rem;
+            color: #6a7f96;
+        }
+        .sidebar-footer a {
+            color: #8ba0b8;
+            text-decoration: none;
+            display: block;
+            padding: 4px 0;
+        }
+        .sidebar-footer a:hover { color: white; }
+
+        /* ===== MAIN CONTENT ===== */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ===== NAVBAR ===== */
+        .navbar {
+            background: white;
+            padding: 12px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #eef2f6;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+        .navbar-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .navbar-left .breadcrumb {
+            font-size: 0.85rem;
+            color: #475569;
+        }
+        .navbar-left .breadcrumb span { color: #0b2b4a; font-weight: 600; }
+        .navbar-left .breadcrumb i { color: #94a3b8; margin: 0 6px; font-size: 0.6rem; }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .navbar-right .icon-btn {
+            background: none;
+            border: none;
+            font-size: 1.1rem;
+            color: #475569;
+            cursor: default;
+            position: relative;
+        }
+        .navbar-right .icon-btn .dot {
+            position: absolute;
+            top: -2px;
+            right: -4px;
+            width: 8px;
+            height: 8px;
+            background: #d42e2e;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+        .navbar-right .vendor-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-left: 16px;
+            border-left: 1px solid #eef2f6;
+        }
+        .navbar-right .vendor-profile .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #d42e2e;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+        .navbar-right .vendor-profile .name {
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        .navbar-right .vendor-profile .role {
+            font-size: 0.7rem;
+            color: #94a3b8;
+        }
+
+        /* ===== PAGE BODY ===== */
+        .page-body {
+            flex: 1;
+            padding: 24px 32px;
+            overflow-y: auto;
+            background: #f1f4f9;
+        }
+
+        /* dashboard stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 18px 20px;
+            border: 1px solid #eef2f6;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+        .stat-card .label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: #94a3b8;
+            font-weight: 600;
+        }
+        .stat-card .value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #0b2b4a;
+            margin: 4px 0 2px;
+        }
+        .stat-card .change {
+            font-size: 0.75rem;
+            color: #22a65e;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .stat-card .change.down { color: #d42e2e; }
+
+        /* section header */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 24px 0 14px;
+        }
+        .section-header h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+        .section-header a {
+            color: #d42e2e;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        /* table */
+        .table-wrap {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #eef2f6;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+        .table-wrap table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        .table-wrap th {
+            text-align: left;
+            padding: 14px 20px;
+            background: #f8fafc;
+            font-weight: 600;
+            color: #475569;
+            border-bottom: 1px solid #eef2f6;
+        }
+        .table-wrap td {
+            padding: 12px 20px;
+            border-bottom: 1px solid #f1f4f9;
+        }
+        .table-wrap tr:last-child td { border-bottom: none; }
+        .status {
+            display: inline-block;
+            padding: 2px 14px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .status.delivered { background: #e6f7e6; color: #1f7b3a; }
+        .status.processing { background: #fff4e6; color: #b85a1a; }
+        .status.shipped { background: #e6f0fa; color: #1a4b8a; }
+        .status.pending { background: #fef3f3; color: #b91c1c; }
+
+        /* quick actions */
+        .quick-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 16px 0 8px;
+        }
+        .quick-actions .btn {
+            padding: 10px 24px;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            border: none;
+            cursor: default;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            border: 1px solid #eef2f6;
+            color: #1e293b;
+            transition: 0.15s;
+        }
+        .quick-actions .btn-primary {
+            background: #0b2b4a;
+            color: white;
+            border-color: #0b2b4a;
+        }
+        .quick-actions .btn-primary i { color: white; }
+        .quick-actions .btn:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.04); }
+
+        /* responsive */
+        @media (max-width: 768px) {
+            .sidebar { width: 72px; }
+            .sidebar-brand span, .sidebar-menu a span, .sidebar-menu .menu-label, .sidebar-footer { display: none; }
+            .sidebar-brand { padding: 16px; justify-content: center; }
+            .sidebar-menu a { padding: 12px; justify-content: center; }
+            .sidebar-menu a i { margin: 0; }
+            .navbar { padding: 10px 16px; flex-wrap: wrap; gap: 8px; }
+            .page-body { padding: 16px; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .navbar-left .breadcrumb { font-size: 0.7rem; }
+            .vendor-profile .name, .vendor-profile .role { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <i class="fas fa-store-alt"></i>
+            <span>Qenagebeya</span>
+        </div>
+        <nav class="sidebar-menu">
+            <div class="menu-label">Main</div>
+            <a href="#" class="active"><i class="fas fa-chart-pie"></i><span>Dashboard</span></a>
+            <a href="#"><i class="fas fa-box"></i><span>Orders</span> <span class="badge">12</span></a>
+            <a href="#"><i class="fas fa-tags"></i><span>Products</span></a>
+            <a href="#"><i class="fas fa-users"></i><span>Customers</span></a>
+
+            <div class="menu-label" style="margin-top:20px;">Management</div>
+            <a href="#"><i class="fas fa-warehouse"></i><span>Inventory</span></a>
+            <a href="#"><i class="fas fa-truck"></i><span>Shipping</span></a>
+            <a href="#"><i class="fas fa-credit-card"></i><span>Payments</span></a>
+            <a href="#"><i class="fas fa-chart-line"></i><span>Analytics</span></a>
+
+            <div class="menu-label" style="margin-top:20px;">Settings</div>
+            <a href="#"><i class="fas fa-cog"></i><span>Store Settings</span></a>
+            <a href="#"><i class="fas fa-user-cog"></i><span>Profile</span></a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="#"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            <div style="margin-top:6px;">v2.4.0 · UAE</div>
+        </div>
+    </aside>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <div class="main-content">
+
+        <!-- ===== NAVBAR ===== -->
+        <header class="navbar">
+            <div class="navbar-left">
+                <i class="fas fa-bars" style="color:#475569; font-size:1.1rem; cursor:default;"></i>
+                <div class="breadcrumb">
+                    <i class="fas fa-home"></i> <span>Vendor Dashboard</span> <i class="fas fa-chevron-right"></i> Overview
+                </div>
+            </div>
+            <div class="navbar-right">
+                <button class="icon-btn"><i class="far fa-bell"></i><span class="dot"></span></button>
+                <button class="icon-btn"><i class="far fa-envelope"></i></button>
+                <div class="vendor-profile">
+                    <div class="avatar">Q</div>
+                    <div>
+                        <div class="name">Qenagebeya Store</div>
+                        <div class="role">Gold Vendor</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- ===== PAGE BODY ===== -->
+        <div class="page-body">
+
+            <!-- stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="label">Total Revenue</div>
+                    <div class="value">AED 48,290</div>
+                    <div class="change"><i class="fas fa-arrow-up"></i> +12.5% this month</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Orders</div>
+                    <div class="value">342</div>
+                    <div class="change"><i class="fas fa-arrow-up"></i> +8.2% this month</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Products Sold</div>
+                    <div class="value">1,284</div>
+                    <div class="change"><i class="fas fa-arrow-up"></i> +18.7% this month</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Pending Orders</div>
+                    <div class="value">23</div>
+                    <div class="change down"><i class="fas fa-arrow-down"></i> -3 this week</div>
+                </div>
+            </div>
+
+            <!-- quick actions -->
+            <div class="quick-actions">
+                <button class="btn btn-primary"><i class="fas fa-plus"></i> Add Product</button>
+                <button class="btn"><i class="fas fa-file-invoice"></i> Create Invoice</button>
+                <button class="btn"><i class="fas fa-print"></i> Print Labels</button>
+                <button class="btn"><i class="fas fa-download"></i> Export Report</button>
+            </div>
+
+            <!-- recent orders -->
+            <div class="section-header">
+                <h3>📦 Recent Orders</h3>
+                <a href="#">View all <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Product</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>#QN-2847</strong></td>
+                            <td>Ahmed Al Maktoum</td>
+                            <td>iPhone 16 Pro Max 256GB</td>
+                            <td>AED 4,999</td>
+                            <td><span class="status delivered">Delivered</span></td>
+                            <td>2026-07-18</td>
+                        </tr>
+                        <tr>
+                            <td><strong>#QN-2846</strong></td>
+                            <td>Fatima Al Qasimi</td>
+                            <td>Embroidered Silk Sheila</td>
+                            <td>AED 350</td>
+                            <td><span class="status shipped">Shipped</span></td>
+                            <td>2026-07-17</td>
+                        </tr>
+                        <tr>
+                            <td><strong>#QN-2845</strong></td>
+                            <td>Khalid Al Suwaidi</td>
+                            <td>Sony WH-1000XM6</td>
+                            <td>AED 1,499</td>
+                            <td><span class="status processing">Processing</span></td>
+                            <td>2026-07-17</td>
+                        </tr>
+                        <tr>
+                            <td><strong>#QN-2844</strong></td>
+                            <td>Mariam Al Hashimi</td>
+                            <td>Premium Arabic Coffee Beans</td>
+                            <td>AED 85</td>
+                            <td><span class="status pending">Pending</span></td>
+                            <td>2026-07-16</td>
+                        </tr>
+                        <tr>
+                            <td><strong>#QN-2843</strong></td>
+                            <td>Mohammed Al Falasi</td>
+                            <td>Tom Ford Tobacco Vanille</td>
+                            <td>AED 890</td>
+                            <td><span class="status delivered">Delivered</span></td>
+                            <td>2026-07-16</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- top products -->
+            <div class="section-header" style="margin-top:32px;">
+                <h3>🏆 Top Selling Products</h3>
+                <a href="#">View all <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Category</th>
+                            <th>Price</th>
+                            <th>Units Sold</th>
+                            <th>Revenue</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>iPhone 16 Pro Max 256GB</strong></td>
+                            <td>Electronics</td>
+                            <td>AED 4,999</td>
+                            <td>47</td>
+                            <td>AED 234,953</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Embroidered Silk Sheila</strong></td>
+                            <td>Fashion</td>
+                            <td>AED 350</td>
+                            <td>132</td>
+                            <td>AED 46,200</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Sony WH-1000XM6</strong></td>
+                            <td>Electronics</td>
+                            <td>AED 1,499</td>
+                            <td>28</td>
+                            <td>AED 41,972</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Tom Ford Tobacco Vanille</strong></td>
+                            <td>Fragrance</td>
+                            <td>AED 890</td>
+                            <td>41</td>
+                            <td>AED 36,490</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>

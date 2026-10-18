@@ -1,0 +1,1755 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}✨ Real-Time AI Virtual Try-On Fitting Room – {{ selected_product.name }} – Qenagebeya 🇪🇹{% endblock %}
+
+{% block extra_css %}
+<!-- MediaPipe AI Libraries for Real-Time Pose & Body Tracking -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
+
+<style>
+.tryon-container {
+    max-width: 1320px;
+    margin: 16px auto 48px;
+    padding: 0 16px;
+    box-sizing: border-box;
+}
+
+.tryon-card {
+    background: #ffffff;
+    border-radius: 24px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 12px 36px rgba(11, 43, 74, 0.08);
+    overflow: hidden;
+}
+
+/* Ethiopian Flag Accent */
+.tryon-flag-ribbon {
+    height: 5px;
+    width: 100%;
+    display: flex;
+}
+.tryon-flag-ribbon .seg-green { flex: 1; background: #078930; }
+.tryon-flag-ribbon .seg-yellow { flex: 1; background: #f59e0b; }
+.tryon-flag-ribbon .seg-red { flex: 1; background: #d42e2e; }
+
+/* Studio Header */
+.studio-header {
+    padding: 18px 24px;
+    background: #f8fafc;
+    border-bottom: 1px solid #eef2f6;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.studio-title-group h1 {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+}
+.studio-title-group p {
+    font-size: 0.82rem;
+    color: #64748b;
+    margin: 3px 0 0;
+}
+
+/* Main Grid Layout */
+.tryon-workspace {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 0;
+    min-height: 660px;
+}
+
+/* Left Stage Area */
+.stage-panel {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #0b1523;
+    position: relative;
+    user-select: none;
+}
+
+/* Mode Switch Tabs */
+.mode-tabs {
+    display: flex;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 50px;
+    padding: 4px;
+    gap: 4px;
+    margin-bottom: 14px;
+    z-index: 10;
+    backdrop-filter: blur(8px);
+}
+.mode-btn {
+    padding: 8px 18px;
+    border-radius: 40px;
+    border: none;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #cbd5e1;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+.mode-btn.active {
+    background: #078930;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(7, 137, 48, 0.4);
+}
+.mode-btn:hover:not(.active) {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* AI HUD Status Banner */
+.ai-hud-bar {
+    width: 100%;
+    max-width: 520px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    background: rgba(15, 23, 42, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    padding: 6px 14px;
+    color: #e2e8f0;
+    font-size: 0.78rem;
+    backdrop-filter: blur(8px);
+    z-index: 10;
+}
+.ai-pulse-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 8px #22c55e;
+    display: inline-block;
+    animation: pulseGlow 1.5s infinite;
+}
+@keyframes pulseGlow {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(1.3); }
+}
+
+/* Interactive Canvas Stage */
+.stage-viewport {
+    width: 100%;
+    max-width: 520px;
+    height: 520px;
+    background: #1e293b;
+    border-radius: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+    touch-action: none;
+}
+
+#cameraVideo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: none;
+    transform: scaleX(-1); /* mirror front camera */
+}
+
+#userPhotoBg {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    background: #1e293b;
+}
+
+/* AI Skeleton & Landmark Overlay Canvas */
+#aiSkeletonCanvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 18;
+    display: none;
+    transform: scaleX(-1);
+}
+
+/* Garment Overlay Layer */
+.garment-layer {
+    position: absolute;
+    cursor: grab;
+    transform-origin: center top;
+    transition: width 0.05s linear, opacity 0.15s ease;
+    z-index: 20;
+    pointer-events: auto;
+}
+.garment-layer:active {
+    cursor: grabbing;
+}
+.garment-layer img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    pointer-events: none;
+}
+
+/* Alignment Guidelines */
+.stage-guidelines {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    display: none;
+    z-index: 15;
+}
+.guide-center-line {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 1px;
+    background: rgba(255, 255, 255, 0.25);
+    border-left: 1px dashed rgba(255, 255, 255, 0.4);
+}
+.guide-shoulder-oval {
+    position: absolute;
+    top: 22%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 220px;
+    height: 120px;
+    border: 2px dashed rgba(245, 158, 11, 0.5);
+    border-radius: 50%;
+}
+.guide-label {
+    position: absolute;
+    top: 16%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.6);
+    color: #f59e0b;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+/* Viewport Floating Quick Tools */
+.viewport-quick-tools {
+    position: absolute;
+    right: 12px;
+    top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    z-index: 35;
+}
+.tool-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.15s;
+}
+.tool-btn:hover {
+    background: #078930;
+    border-color: #078930;
+    transform: scale(1.08);
+}
+.tool-btn.active {
+    background: #f59e0b;
+    border-color: #f59e0b;
+    color: #000;
+}
+
+/* Gesture Alert Bubble */
+.gesture-alert-bubble {
+    position: absolute;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(11, 43, 74, 0.9);
+    border: 1px solid #38bdf8;
+    color: #ffffff;
+    padding: 6px 16px;
+    border-radius: 30px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    display: none;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    z-index: 40;
+    animation: bounceIn 0.3s ease;
+}
+@keyframes bounceIn {
+    0% { transform: translate(-50%, -15px); opacity: 0; }
+    100% { transform: translate(-50%, 0); opacity: 1; }
+}
+
+/* Countdown Overlay */
+.ai-countdown-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    flex-direction: column;
+}
+.countdown-number {
+    font-size: 5.5rem;
+    font-weight: 900;
+    color: #f59e0b;
+    text-shadow: 0 0 20px rgba(245, 158, 11, 0.8);
+    animation: popScale 1s ease infinite;
+}
+@keyframes popScale {
+    0% { transform: scale(0.5); opacity: 0; }
+    50% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); opacity: 0.8; }
+}
+.flash-white {
+    animation: screenFlash 0.3s ease-out;
+}
+@keyframes screenFlash {
+    0% { background: rgba(255, 255, 255, 0.9); }
+    100% { background: transparent; }
+}
+
+/* Stage Quick Action Bar */
+.stage-controls-bar {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+    justify-content: center;
+    z-index: 10;
+}
+.stage-action-btn {
+    padding: 8px 14px;
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+.stage-action-btn:hover {
+    background: rgba(255, 255, 255, 0.22);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+.stage-action-btn.btn-shutter {
+    background: #d42e2e;
+    border-color: #ef4444;
+    font-weight: 700;
+}
+.stage-action-btn.btn-shutter:hover {
+    background: #b91c1c;
+}
+
+/* Right Sidebar Panel */
+.sidebar-panel {
+    background: #ffffff;
+    border-left: 1px solid #e2e8f0;
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+/* Selected Product Card */
+.current-product-hero {
+    background: #f8fafc;
+    border: 1px solid #eef2f6;
+    border-radius: 18px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+.current-product-hero .vendor-badge {
+    font-size: 0.72rem;
+    color: #078930;
+    font-weight: 700;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 4px;
+}
+.current-product-hero h2 {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 6px;
+    line-height: 1.3;
+}
+.current-product-hero .price-tag {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #0b2b4a;
+}
+
+/* AI Smart Fit Card */
+.ai-smart-card {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border: 1.5px solid #86efac;
+    border-radius: 16px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+}
+.ai-smart-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+.ai-smart-title {
+    font-size: 0.84rem;
+    font-weight: 800;
+    color: #166534;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.ai-switch-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #374151;
+    border-bottom: 1px dashed rgba(22, 101, 52, 0.15);
+}
+.ai-switch-row:last-child {
+    border-bottom: none;
+}
+.ai-toggle {
+    position: relative;
+    display: inline-block;
+    width: 38px;
+    height: 20px;
+}
+.ai-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.ai-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #cbd5e1;
+    transition: .3s;
+    border-radius: 34px;
+}
+.ai-slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+}
+input:checked + .ai-slider {
+    background-color: #16a34a;
+}
+input:checked + .ai-slider:before {
+    transform: translateX(18px);
+}
+
+/* Gesture Cheatsheet */
+.gesture-guide-box {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 10px 12px;
+    margin-top: 8px;
+    font-size: 0.74rem;
+    color: #475569;
+}
+.gesture-guide-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+.gesture-guide-item:last-child { margin-bottom: 0; }
+
+/* Adjustment Sliders Group */
+.adjustment-section {
+    background: #ffffff;
+    border: 1px solid #eef2f6;
+    border-radius: 16px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+}
+.adjustment-header {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #334155;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.slider-row {
+    margin-bottom: 12px;
+}
+.slider-row:last-child {
+    margin-bottom: 0;
+}
+.slider-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 4px;
+}
+.slider-range {
+    width: 100%;
+    accent-color: #0b2b4a;
+    cursor: pointer;
+}
+
+/* Action Buttons */
+.btn-fitting-cart {
+    width: 100%;
+    padding: 13px;
+    background: #078930;
+    color: #ffffff;
+    border: none;
+    border-radius: 14px;
+    font-weight: 800;
+    font-size: 0.92rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 6px 18px rgba(7, 137, 48, 0.28);
+    transition: all 0.2s;
+    margin-bottom: 8px;
+}
+.btn-fitting-cart:hover {
+    background: #056624;
+}
+
+.btn-download-look {
+    width: 100%;
+    padding: 11px;
+    background: #0b2b4a;
+    color: #ffffff;
+    border: none;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.86rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: background 0.2s;
+}
+.btn-download-look:hover {
+    background: #1e3a8a;
+}
+
+/* Wardrobe Carousel */
+.wardrobe-section {
+    margin-top: 12px;
+    padding-top: 14px;
+    border-top: 1px solid #eef2f6;
+}
+.wardrobe-section h3 {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.wardrobe-rack {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+}
+.rack-item {
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 6px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    color: inherit;
+}
+.rack-item:hover, .rack-item.active {
+    border-color: #d42e2e;
+    background: #ffffff;
+    box-shadow: 0 4px 12px rgba(212, 46, 46, 0.15);
+}
+.rack-item img {
+    width: 100%;
+    height: 52px;
+    object-fit: contain;
+    border-radius: 6px;
+    background: #ffffff;
+}
+.rack-item .rname {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-top: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.rack-item .rprice {
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: #0b2b4a;
+}
+
+/* Toast Message */
+#tryOnToast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: #0b2b4a;
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    display: none;
+    align-items: center;
+    gap: 8px;
+    z-index: 99999;
+    animation: toastPopIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes toastPopIn {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* ── Mobile Responsive Overrides ── */
+@media (max-width: 860px) {
+    .tryon-workspace {
+        grid-template-columns: 1fr;
+    }
+    .stage-panel {
+        padding: 16px 12px;
+    }
+    .stage-viewport {
+        max-width: 100%;
+        height: 420px;
+    }
+    .sidebar-panel {
+        border-left: none;
+        border-top: 1px solid #e2e8f0;
+        padding: 16px 12px;
+    }
+    .wardrobe-rack {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+@media (max-width: 480px) {
+    .tryon-container {
+        padding: 0 6px;
+        margin: 8px auto 32px;
+    }
+    .studio-header {
+        padding: 12px 14px;
+    }
+    .studio-title-group h1 {
+        font-size: 1.15rem;
+    }
+    .stage-viewport {
+        height: 350px;
+    }
+    .mode-btn {
+        padding: 6px 12px;
+        font-size: 0.74rem;
+    }
+    .wardrobe-rack {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="tryon-container">
+    <!-- Breadcrumb -->
+    <div style="padding: 6px 4px 12px; font-size: 0.8rem; color: #94a3b8;">
+        <a href="{% url 'store:home' %}" style="color: #64748b; text-decoration: none;">Home · ቤት</a> /
+        <a href="{% url 'store:product_list' %}?category=fashion" style="color: #64748b; text-decoration: none;">Fashion</a> /
+        <span style="color: #0f172a; font-weight: 700;">Real-Time AI Virtual Try-On</span>
+    </div>
+
+    <div class="tryon-card">
+        <div class="tryon-flag-ribbon">
+            <div class="seg-green"></div>
+            <div class="seg-yellow"></div>
+            <div class="seg-red"></div>
+        </div>
+
+        <!-- Studio Header -->
+        <div class="studio-header">
+            <div class="studio-title-group">
+                <h1>
+                    <i class="fas fa-magic" style="color: #f59e0b;"></i>
+                    Real-Time AI Virtual Try-On Fitting Room
+                </h1>
+                <p>AI Body Pose Tracking & Gesture-controlled fitting room for Habesha Kemis, Kanduras & Ethiopian fashion.</p>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <a href="{{ selected_product.get_absolute_url }}" class="stage-action-btn" style="color: #0b2b4a; background: #ffffff; border-color: #cbd5e1;">
+                    <i class="fas fa-arrow-left"></i> Product Details
+                </a>
+            </div>
+        </div>
+
+        <div class="tryon-workspace">
+            <!-- Left: Interactive Try-On Stage -->
+            <div class="stage-panel">
+                
+                <!-- Mode Switcher -->
+                <div class="mode-tabs">
+                    <button class="mode-btn" id="btnModeLive" onclick="setTryOnMode('live')">
+                        <i class="fas fa-video"></i> Live AR Camera (AI Tracking)
+                    </button>
+                    <button class="mode-btn active" id="btnModePhoto" onclick="setTryOnMode('photo')">
+                        <i class="fas fa-image"></i> My Photo / Gallery
+                    </button>
+                </div>
+
+                <!-- AI HUD Bar -->
+                <div class="ai-hud-bar" id="aiHudBar">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="ai-pulse-dot" id="aiPulseDot"></span>
+                        <span id="aiTrackingStatus">🤖 AI Ready · Switch to Live Camera to Auto-Track Body</span>
+                    </div>
+                    <div id="aiGestureHint" style="color: #38bdf8; font-weight: 700; font-size: 0.74rem;">
+                        🖐️ Gesture: ✌️ Next Outfit | 👍 3s Photo
+                    </div>
+                </div>
+
+                <!-- Stage Viewport Container -->
+                <div class="stage-viewport" id="stageViewport">
+                    
+                    <!-- Live Camera Feed -->
+                    <video id="cameraVideo" autoplay playsinline muted></video>
+
+                    <!-- AI Landmarks & Skeleton Overlay Canvas -->
+                    <canvas id="aiSkeletonCanvas"></canvas>
+
+                    <!-- User Photo / Sample Model Background -->
+                    <img id="userPhotoBg" src="{{ sample_female_model }}" alt="Fitting Backdrop"/>
+
+                    <!-- Garment Overlay Layer (Draggable & Scalable) -->
+                    <div class="garment-layer" id="garmentLayer" style="top: 28%; left: 50%; width: 280px; transform: translateX(-50%) rotate(0deg);">
+                        <img id="garmentImg" src="{{ selected_product.try_on_overlay_url }}" alt="{{ selected_product.name }}"/>
+                    </div>
+
+                    <!-- Guidelines Overlay -->
+                    <div class="stage-guidelines" id="stageGuidelines">
+                        <div class="guide-center-line"></div>
+                        <div class="guide-shoulder-oval"></div>
+                        <div class="guide-label"><i class="fas fa-arrows-alt"></i> Align Shoulders & Body Here</div>
+                    </div>
+
+                    <!-- Gesture Alert Notification Bubble -->
+                    <div class="gesture-alert-bubble" id="gestureAlertBubble">
+                        <span id="gestureAlertText">✌️ Gesture: Switching to Next Item...</span>
+                    </div>
+
+                    <!-- 3-2-1 Snapshot Countdown Overlay -->
+                    <div class="ai-countdown-overlay" id="aiCountdownOverlay">
+                        <div class="countdown-number" id="countdownNum">3</div>
+                        <div style="color: #fff; font-size: 0.9rem; font-weight: 700; margin-top: 8px;">📸 Strike a Pose!</div>
+                    </div>
+
+                    <!-- Floating Viewport Quick Controls -->
+                    <div class="viewport-quick-tools">
+                        <button class="tool-btn" onclick="quickScale(10)" title="Zoom In Garment (+10%)">
+                            <i class="fas fa-search-plus"></i>
+                        </button>
+                        <button class="tool-btn" onclick="quickScale(-10)" title="Zoom Out Garment (-10%)">
+                            <i class="fas fa-search-minus"></i>
+                        </button>
+                        <button class="tool-btn" onclick="quickRotate(-5)" title="Rotate Left (-5°)">
+                            <i class="fas fa-undo-alt"></i>
+                        </button>
+                        <button class="tool-btn" onclick="quickRotate(5)" title="Rotate Right (+5°)">
+                            <i class="fas fa-redo-alt"></i>
+                        </button>
+                        <button class="tool-btn" onclick="toggleSkeletonView()" id="btnSkeletonToggle" title="Toggle AI Landmarks Skeleton">
+                            <i class="fas fa-network-wired"></i>
+                        </button>
+                        <button class="tool-btn" onclick="toggleGuidelines()" id="btnGuideToggle" title="Toggle Alignment Guide">
+                            <i class="fas fa-user-check"></i>
+                        </button>
+                        <button class="tool-btn" onclick="resetGarmentPlacement()" title="Center & Reset Garment Fit">
+                            <i class="fas fa-compress-arrows-alt"></i>
+                        </button>
+                    </div>
+
+                    <!-- Hidden File Input for Gallery Upload -->
+                    <input type="file" id="photoFileInput" accept="image/*" style="display: none;" onchange="handlePhotoUpload(event)"/>
+                </div>
+
+                <!-- Stage Action Controls -->
+                <div class="stage-controls-bar">
+                    <!-- Photo Mode Options -->
+                    <div id="photoModeControls" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button class="stage-action-btn" onclick="document.getElementById('photoFileInput').click()">
+                            <i class="fas fa-upload"></i> Upload My Photo
+                        </button>
+                        <button class="stage-action-btn" onclick="loadSampleModel('female')">
+                            <i class="fas fa-female"></i> Model (Female)
+                        </button>
+                        <button class="stage-action-btn" onclick="loadSampleModel('male')">
+                            <i class="fas fa-male"></i> Model (Male)
+                        </button>
+                    </div>
+
+                    <!-- Live Camera Options -->
+                    <div id="liveModeControls" style="display: none; gap: 8px; flex-wrap: wrap;">
+                        <button class="stage-action-btn" id="btnCameraToggle" onclick="toggleLiveCamera()">
+                            <i class="fas fa-camera"></i> <span id="cameraBtnText">Start Camera</span>
+                        </button>
+                        <button class="stage-action-btn" id="btnCameraFlip" onclick="flipLiveCamera()" style="display: none;">
+                            <i class="fas fa-sync-alt"></i> Flip Camera
+                        </button>
+                        <button class="stage-action-btn btn-shutter" id="btnShutter" onclick="startAiCountdownSnapshot()" style="display: none;">
+                            <i class="fas fa-camera-retro"></i> Capture Snapshot
+                        </button>
+                    </div>
+
+                    <!-- Reset Stage Placement -->
+                    <button class="stage-action-btn" onclick="resetGarmentPlacement()" title="Center & Reset Garment">
+                        <i class="fas fa-undo"></i> Reset Position
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right: Garment Details & Precision Fitting Controls -->
+            <div class="sidebar-panel">
+                
+                <!-- Active Product Header -->
+                <div class="current-product-hero">
+                    <div class="vendor-badge">
+                        <i class="fas fa-check-circle"></i> <span id="curVendor">{{ selected_product.vendor.store_name|default:"Qenagebeya Official" }}</span>
+                    </div>
+                    <h2 id="curTitle">{{ selected_product.name }}</h2>
+                    <div style="display: flex; align-items: baseline; justify-content: space-between;">
+                        <div class="price-tag" id="curPrice">ETB {{ selected_product.price }}</div>
+                        <span style="background: #e6f7e6; color: #1f7b3a; font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 20px;">Try-On Ready</span>
+                    </div>
+                </div>
+
+                <!-- AI Smart Fit & Gesture Control Card -->
+                <div class="ai-smart-card">
+                    <div class="ai-smart-header">
+                        <span class="ai-smart-title">
+                            <i class="fas fa-robot"></i> Real-Time AI Tracking
+                        </span>
+                        <span style="font-size: 0.65rem; background: #16a34a; color: white; padding: 2px 7px; border-radius: 20px; font-weight: 800;">LIVE</span>
+                    </div>
+                    
+                    <div class="ai-switch-row">
+                        <span>🤖 Auto-Fit to Shoulders & Body</span>
+                        <label class="ai-toggle">
+                            <input type="checkbox" id="chkAiAutoFit" checked onchange="toggleAiAutoFit(this.checked)">
+                            <span class="ai-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="ai-switch-row">
+                        <span>🖐️ Hand Gesture Control</span>
+                        <label class="ai-toggle">
+                            <input type="checkbox" id="chkAiGestures" checked onchange="toggleAiGestures(this.checked)">
+                            <span class="ai-slider"></span>
+                        </label>
+                    </div>
+
+                    <!-- Gesture Cheatsheet -->
+                    <div class="gesture-guide-box">
+                        <div style="font-weight: 800; color: #166534; margin-bottom: 4px;">✨ Magic Gestures:</div>
+                        <div class="gesture-guide-item">
+                            <span>✌️ <strong>Raise Right Hand:</strong> Switch to Next Outfit</span>
+                        </div>
+                        <div class="gesture-guide-item">
+                            <span>🖐️ <strong>Raise Left Hand:</strong> Switch to Prev Outfit</span>
+                        </div>
+                        <div class="gesture-guide-item">
+                            <span>👍 <strong>Thumbs Up / Hand by Chin:</strong> 3s Photo Snapshot</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Manual Precision Sliders -->
+                <div class="adjustment-section">
+                    <div class="adjustment-header">
+                        <span><i class="fas fa-sliders-h"></i> Fit & Adjust Outfit</span>
+                        <span style="font-size: 0.68rem; color: #64748b;">Drag / Touch to move</span>
+                    </div>
+
+                    <!-- Garment Size (Scale) -->
+                    <div class="slider-row">
+                        <div class="slider-label">
+                            <span>Garment Size (Scale)</span>
+                            <span id="lblScale">100%</span>
+                        </div>
+                        <input type="range" class="slider-range" id="rngScale" min="50" max="200" value="100" oninput="updateGarmentTransform()"/>
+                    </div>
+
+                    <!-- Vertical Position -->
+                    <div class="slider-row">
+                        <div class="slider-label">
+                            <span>Vertical Position</span>
+                            <span id="lblPosY">28%</span>
+                        </div>
+                        <input type="range" class="slider-range" id="rngPosY" min="5" max="80" value="28" oninput="updateGarmentTransform()"/>
+                    </div>
+
+                    <!-- Rotation Angle -->
+                    <div class="slider-row">
+                        <div class="slider-label">
+                            <span>Rotate Angle</span>
+                            <span id="lblRot">0°</span>
+                        </div>
+                        <input type="range" class="slider-range" id="rngRot" min="-45" max="45" value="0" oninput="updateGarmentTransform()"/>
+                    </div>
+
+                    <!-- Opacity / Fabric Transparency -->
+                    <div class="slider-row">
+                        <div class="slider-label">
+                            <span>Fabric Blend / Opacity</span>
+                            <span id="lblOpacity">100%</span>
+                        </div>
+                        <input type="range" class="slider-range" id="rngOpacity" min="30" max="100" value="100" oninput="updateGarmentTransform()"/>
+                    </div>
+                </div>
+
+                <!-- 1-Click Purchase / Add to Cart -->
+                <button class="btn-fitting-cart" id="btnAddFittingCart" onclick="addCurrentItemToCart()">
+                    <i class="fas fa-shopping-cart"></i> Add This Look to Cart
+                </button>
+
+                <!-- Save & Download Look -->
+                <button class="btn-download-look" onclick="downloadStyledLook()">
+                    <i class="fas fa-download"></i> Save & Download My Styled Photo
+                </button>
+
+                <!-- Wardrobe Collection Switcher -->
+                <div class="wardrobe-section">
+                    <h3><i class="fas fa-tshirt" style="color: #d42e2e;"></i> Try Other Collection Items</h3>
+                    <div class="wardrobe-rack" id="wardrobeRack">
+                        {% for fp in fashion_products %}
+                        <div class="rack-item {% if fp.id == selected_product.id %}active{% endif %}"
+                             onclick="selectWardrobeItem({{ fp.id }})"
+                             id="rack-item-{{ fp.id }}">
+                            {% if fp.image %}
+                            <img src="{{ fp.image.url }}" alt="{{ fp.name }}"/>
+                            {% else %}
+                            <div style="height: 52px; background: #e2e8f0; border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-tshirt"></i>
+                            </div>
+                            {% endif %}
+                            <div class="rname">{{ fp.name }}</div>
+                            <div class="rprice">ETB {{ fp.price|floatformat:0 }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Notification -->
+<div id="tryOnToast">
+    <i class="fas fa-check-circle" style="color: #4ade80;"></i>
+    <span id="tryOnToastMsg">Item added to cart!</span>
+</div>
+
+<!-- Hidden Canvas for Photo Merging and Snapshot Export -->
+<canvas id="exportCanvas" style="display: none;"></canvas>
+
+<script>
+// Wardrobe products data loaded from server
+const wardrobeItems = {{ items_json|safe }};
+let currentItem = wardrobeItems.find(i => i.id == {{ selected_product.id }}) || wardrobeItems[0];
+let currentMode = 'photo'; // 'live' | 'photo'
+let cameraStream = null;
+let currentFacingMode = 'user'; // 'user' | 'environment'
+
+// AI Pose & Gesture State
+let poseTracker = null;
+let aiAutoFitEnabled = true;
+let aiGesturesEnabled = true;
+let showSkeletonEnabled = false;
+let isAiProcessing = false;
+let lastGestureTime = 0;
+let isCountdownRunning = false;
+
+// Garment state
+let garmentState = {
+    x: 50,      // % left
+    y: 28,      // % top
+    scale: 100, // %
+    rotate: 0,  // deg
+    opacity: 100 // %
+};
+
+// Smoothed lerp target state for silky real-time tracking
+let smoothX = 50;
+let smoothY = 28;
+let smoothScale = 100;
+let smoothRot = 0;
+
+// Drag state
+let isDragging = false;
+let startDragX = 0;
+let startDragY = 0;
+let startStateX = 50;
+let startStateY = 28;
+
+const garmentLayer = document.getElementById('garmentLayer');
+const stageViewport = document.getElementById('stageViewport');
+const userPhotoBg = document.getElementById('userPhotoBg');
+const cameraVideo = document.getElementById('cameraVideo');
+const skeletonCanvas = document.getElementById('aiSkeletonCanvas');
+const skeletonCtx = skeletonCanvas.getContext('2d');
+
+// Initialize Draggable Touch & Mouse Engine
+garmentLayer.addEventListener('mousedown', startDrag);
+window.addEventListener('mousemove', onDrag);
+window.addEventListener('mouseup', endDrag);
+
+garmentLayer.addEventListener('touchstart', startTouchDrag, { passive: false });
+window.addEventListener('touchmove', onTouchDrag, { passive: false });
+window.addEventListener('touchend', endDrag);
+
+function startDrag(e) {
+    isDragging = true;
+    startDragX = e.clientX;
+    startDragY = e.clientY;
+    startStateX = garmentState.x;
+    startStateY = garmentState.y;
+    e.preventDefault();
+}
+
+function onDrag(e) {
+    if (!isDragging) return;
+    const rect = stageViewport.getBoundingClientRect();
+    const deltaX = ((e.clientX - startDragX) / rect.width) * 100;
+    const deltaY = ((e.clientY - startDragY) / rect.height) * 100;
+    
+    garmentState.x = Math.max(5, Math.min(95, startStateX + deltaX));
+    garmentState.y = Math.max(5, Math.min(95, startStateY + deltaY));
+    
+    smoothX = garmentState.x;
+    smoothY = garmentState.y;
+
+    document.getElementById('rngPosY').value = Math.round(garmentState.y);
+    document.getElementById('lblPosY').textContent = Math.round(garmentState.y) + '%';
+    
+    applyGarmentStyle();
+}
+
+function startTouchDrag(e) {
+    if (e.touches.length === 1) {
+        isDragging = true;
+        startDragX = e.touches[0].clientX;
+        startDragY = e.touches[0].clientY;
+        startStateX = garmentState.x;
+        startStateY = garmentState.y;
+        e.preventDefault();
+    }
+}
+
+function onTouchDrag(e) {
+    if (!isDragging || e.touches.length !== 1) return;
+    const rect = stageViewport.getBoundingClientRect();
+    const deltaX = ((e.touches[0].clientX - startDragX) / rect.width) * 100;
+    const deltaY = ((e.touches[0].clientY - startDragY) / rect.height) * 100;
+    
+    garmentState.x = Math.max(5, Math.min(95, startStateX + deltaX));
+    garmentState.y = Math.max(5, Math.min(95, startStateY + deltaY));
+    
+    smoothX = garmentState.x;
+    smoothY = garmentState.y;
+
+    document.getElementById('rngPosY').value = Math.round(garmentState.y);
+    document.getElementById('lblPosY').textContent = Math.round(garmentState.y) + '%';
+    
+    applyGarmentStyle();
+    e.preventDefault();
+}
+
+function endDrag() {
+    isDragging = false;
+}
+
+// Sliders updates
+function updateGarmentTransform() {
+    garmentState.scale = parseInt(document.getElementById('rngScale').value);
+    garmentState.y = parseInt(document.getElementById('rngPosY').value);
+    garmentState.rotate = parseInt(document.getElementById('rngRot').value);
+    garmentState.opacity = parseInt(document.getElementById('rngOpacity').value);
+
+    smoothScale = garmentState.scale;
+    smoothRot = garmentState.rotate;
+    smoothY = garmentState.y;
+
+    document.getElementById('lblScale').textContent = garmentState.scale + '%';
+    document.getElementById('lblPosY').textContent = garmentState.y + '%';
+    document.getElementById('lblRot').textContent = garmentState.rotate + '°';
+    document.getElementById('lblOpacity').textContent = garmentState.opacity + '%';
+
+    applyGarmentStyle();
+}
+
+function applyGarmentStyle() {
+    const baseWidth = 280;
+    const computedWidth = (baseWidth * (garmentState.scale / 100));
+    garmentLayer.style.width = computedWidth + 'px';
+    garmentLayer.style.left = garmentState.x + '%';
+    garmentLayer.style.top = garmentState.y + '%';
+    garmentLayer.style.transform = `translateX(-50%) rotate(${garmentState.rotate}deg)`;
+    garmentLayer.style.opacity = garmentState.opacity / 100;
+}
+
+function resetGarmentPlacement() {
+    garmentState.x = 50;
+    garmentState.y = 28;
+    garmentState.scale = 100;
+    garmentState.rotate = 0;
+    garmentState.opacity = 100;
+
+    smoothX = 50;
+    smoothY = 28;
+    smoothScale = 100;
+    smoothRot = 0;
+
+    document.getElementById('rngScale').value = 100;
+    document.getElementById('rngPosY').value = 28;
+    document.getElementById('rngRot').value = 0;
+    document.getElementById('rngOpacity').value = 100;
+
+    document.getElementById('lblScale').textContent = '100%';
+    document.getElementById('lblPosY').textContent = '28%';
+    document.getElementById('lblRot').textContent = '0°';
+    document.getElementById('lblOpacity').textContent = '100%';
+
+    applyGarmentStyle();
+    showToast('Garment position reset to center.');
+}
+
+function quickScale(delta) {
+    const current = parseInt(document.getElementById('rngScale').value);
+    const updated = Math.max(50, Math.min(200, current + delta));
+    document.getElementById('rngScale').value = updated;
+    updateGarmentTransform();
+}
+
+function quickRotate(deg) {
+    const current = parseInt(document.getElementById('rngRot').value);
+    const updated = Math.max(-45, Math.min(45, current + deg));
+    document.getElementById('rngRot').value = updated;
+    updateGarmentTransform();
+}
+
+function toggleGuidelines() {
+    const g = document.getElementById('stageGuidelines');
+    const isVisible = (g.style.display === 'block');
+    g.style.display = isVisible ? 'none' : 'block';
+    showToast(isVisible ? 'Body Guide Hidden' : 'Body Guide Enabled');
+}
+
+function toggleSkeletonView() {
+    showSkeletonEnabled = !showSkeletonEnabled;
+    skeletonCanvas.style.display = showSkeletonEnabled ? 'block' : 'none';
+    const btn = document.getElementById('btnSkeletonToggle');
+    if (btn) btn.classList.toggle('active', showSkeletonEnabled);
+    showToast(showSkeletonEnabled ? 'AI Landmarks Overlay: ON' : 'AI Landmarks Overlay: OFF');
+}
+
+function toggleAiAutoFit(enabled) {
+    aiAutoFitEnabled = enabled;
+    showToast(enabled ? '🤖 AI Body Auto-Fit: Enabled' : '🤖 AI Auto-Fit: Disabled (Manual Mode)');
+}
+
+function toggleAiGestures(enabled) {
+    aiGesturesEnabled = enabled;
+    showToast(enabled ? '🖐️ AI Gesture Controls: Enabled' : '🖐️ AI Gesture Controls: Disabled');
+}
+
+// Mode Switcher: Live AR vs Photo
+function setTryOnMode(mode) {
+    currentMode = mode;
+    const btnLive = document.getElementById('btnModeLive');
+    const btnPhoto = document.getElementById('btnModePhoto');
+    const liveCtrl = document.getElementById('liveModeControls');
+    const photoCtrl = document.getElementById('photoModeControls');
+    const guidelines = document.getElementById('stageGuidelines');
+
+    if (mode === 'live') {
+        btnLive.classList.add('active');
+        btnPhoto.classList.remove('active');
+        liveCtrl.style.display = 'flex';
+        photoCtrl.style.display = 'none';
+        guidelines.style.display = 'block';
+        userPhotoBg.style.display = 'none';
+        cameraVideo.style.display = 'block';
+        startLiveCamera();
+    } else {
+        btnPhoto.classList.add('active');
+        btnLive.classList.remove('active');
+        photoCtrl.style.display = 'flex';
+        liveCtrl.style.display = 'none';
+        guidelines.style.display = 'none';
+        cameraVideo.style.display = 'none';
+        skeletonCanvas.style.display = 'none';
+        userPhotoBg.style.display = 'block';
+        stopLiveCamera();
+    }
+}
+
+// Initialize MediaPipe AI Pose Tracking Engine
+function initAiPoseTracker() {
+    if (typeof Pose === 'undefined') {
+        console.warn('MediaPipe Pose library loading...');
+        return;
+    }
+    if (poseTracker) return;
+
+    try {
+        poseTracker = new Pose({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
+        });
+
+        poseTracker.setOptions({
+            modelComplexity: 1,
+            smoothLandmarks: true,
+            enableSegmentation: false,
+            smoothSegmentation: false,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
+        });
+
+        poseTracker.onResults(onAiPoseResults);
+        console.log('AI Pose Tracker initialized successfully.');
+    } catch (e) {
+        console.error('Error initializing Pose tracker:', e);
+    }
+}
+
+// Live Camera WebRTC Engine with AI Loop
+async function startLiveCamera() {
+    if (cameraStream) stopLiveCamera();
+    initAiPoseTracker();
+
+    try {
+        const constraints = {
+            video: {
+                facingMode: currentFacingMode,
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+            },
+            audio: false
+        };
+        cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+        cameraVideo.srcObject = cameraStream;
+        await cameraVideo.play();
+        
+        document.getElementById('cameraBtnText').textContent = 'Stop Camera';
+        document.getElementById('btnCameraFlip').style.display = 'inline-flex';
+        document.getElementById('btnShutter').style.display = 'inline-flex';
+        document.getElementById('aiTrackingStatus').innerHTML = '<span class="ai-pulse-dot"></span> 🟢 AI Pose Tracking: Active';
+
+        if (showSkeletonEnabled) skeletonCanvas.style.display = 'block';
+
+        // Start AI Frame Processing Loop
+        runAiProcessingLoop();
+    } catch (err) {
+        console.error('Camera access error:', err);
+        showToast('Camera access permission needed or not available.');
+        setTryOnMode('photo');
+    }
+}
+
+function stopLiveCamera() {
+    if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+    }
+    document.getElementById('cameraBtnText').textContent = 'Start Camera';
+    document.getElementById('btnCameraFlip').style.display = 'none';
+    document.getElementById('btnShutter').style.display = 'none';
+    document.getElementById('aiTrackingStatus').textContent = '🤖 AI Ready · Switch to Live Camera to Auto-Track Body';
+}
+
+function toggleLiveCamera() {
+    if (cameraStream) {
+        stopLiveCamera();
+        cameraVideo.style.display = 'none';
+        userPhotoBg.style.display = 'block';
+    } else {
+        cameraVideo.style.display = 'block';
+        userPhotoBg.style.display = 'none';
+        startLiveCamera();
+    }
+}
+
+function flipLiveCamera() {
+    currentFacingMode = (currentFacingMode === 'user') ? 'environment' : 'user';
+    cameraVideo.style.transform = (currentFacingMode === 'user') ? 'scaleX(-1)' : 'none';
+    startLiveCamera();
+}
+
+// Real-Time AI Frame Loop
+async function runAiProcessingLoop() {
+    if (!cameraStream || currentMode !== 'live') return;
+
+    if (poseTracker && cameraVideo.readyState >= 2 && !isAiProcessing) {
+        isAiProcessing = true;
+        try {
+            await poseTracker.send({ image: cameraVideo });
+        } catch (e) {
+            // ignore frame drops
+        }
+        isAiProcessing = false;
+    }
+
+    if (cameraStream) {
+        requestAnimationFrame(runAiProcessingLoop);
+    }
+}
+
+// MediaPipe Results: Real-Time Auto-Fit & Hand Gestures
+function onAiPoseResults(results) {
+    if (!results.poseLandmarks) {
+        document.getElementById('aiTrackingStatus').innerHTML = '<span class="ai-pulse-dot" style="background:#f59e0b;"></span> 🟡 Looking for person in camera...';
+        return;
+    }
+
+    const lm = results.poseLandmarks;
+    // Landmark indices:
+    // 11 = left_shoulder, 12 = right_shoulder
+    // 0 = nose, 15 = left_wrist, 16 = right_wrist
+    const leftShoulder = lm[11];
+    const rightShoulder = lm[12];
+    const nose = lm[0];
+    const leftWrist = lm[15];
+    const rightWrist = lm[16];
+
+    // Optional skeleton rendering on canvas
+    if (showSkeletonEnabled) {
+        renderAiSkeleton(lm);
+    }
+
+    // 1. AUTO-FIT BODY TRACKING (if enabled and shoulders are visible)
+    if (aiAutoFitEnabled && leftShoulder && rightShoulder && (leftShoulder.visibility || 1) > 0.3 && (rightShoulder.visibility || 1) > 0.3) {
+        const boxW = stageViewport.clientWidth || 520;
+        const boxH = stageViewport.clientHeight || 520;
+        const videoW = cameraVideo.videoWidth || 1280;
+        const videoH = cameraVideo.videoHeight || 720;
+
+        // Cover scaling factors to accurately map video frame to stage viewport
+        const vScale = Math.max(boxW / videoW, boxH / videoH);
+        const renderW = videoW * vScale;
+        const renderH = videoH * vScale;
+        const offsetX = (boxW - renderW) / 2;
+        const offsetY = (boxH - renderH) / 2;
+
+        // Compute shoulder positions in stage screen pixels
+        // Mirrored selfie view: visual X = 1 - landmark.x
+        const sLeftX = (1 - leftShoulder.x) * renderW + offsetX;
+        const sLeftY = leftShoulder.y * renderH + offsetY;
+        const sRightX = (1 - rightShoulder.x) * renderW + offsetX;
+        const sRightY = rightShoulder.y * renderH + offsetY;
+
+        // Collar neckline position: centered between shoulders, aligned to collarbone
+        const collarPxX = (sLeftX + sRightX) / 2;
+        const collarPxY = (sLeftY + sRightY) / 2 - 12;
+
+        // Distance between shoulders in viewport pixels
+        const shoulderDistPx = Math.hypot(sRightX - sLeftX, sRightY - sLeftY);
+
+        // Garment width: spans shoulders and draped arms (1.9x shoulder span)
+        const targetWidthPx = Math.max(160, Math.min(boxW * 1.5, shoulderDistPx * 1.9));
+        const targetScale = Math.round((targetWidthPx / 280) * 100);
+
+        // Target X & Y in percent of viewport
+        const targetX = Math.max(5, Math.min(95, (collarPxX / boxW) * 100));
+        const targetY = Math.max(5, Math.min(90, (collarPxY / boxH) * 100));
+
+        // Shoulder tilt angle (degrees)
+        const rawAngle = Math.atan2(sRightY - sLeftY, sRightX - sLeftX) * (180 / Math.PI);
+        const targetRot = Math.max(-40, Math.min(40, Math.round(rawAngle)));
+
+        // Silky exponential lerp smoothing (prevents jitter)
+        smoothX += (targetX - smoothX) * 0.4;
+        smoothY += (targetY - smoothY) * 0.4;
+        smoothScale += (targetScale - smoothScale) * 0.3;
+        smoothRot += (targetRot - smoothRot) * 0.3;
+
+        garmentState.x = smoothX;
+        garmentState.y = smoothY;
+        garmentState.scale = Math.round(smoothScale);
+        garmentState.rotate = Math.round(smoothRot);
+
+        // Update slider values for visual feedback
+        document.getElementById('rngScale').value = garmentState.scale;
+        document.getElementById('rngPosY').value = Math.round(garmentState.y);
+        document.getElementById('rngRot').value = garmentState.rotate;
+        document.getElementById('lblScale').textContent = garmentState.scale + '%';
+        document.getElementById('lblPosY').textContent = Math.round(garmentState.y) + '%';
+        document.getElementById('lblRot').textContent = garmentState.rotate + '°';
+
+        applyGarmentStyle();
+
+        document.getElementById('aiTrackingStatus').innerHTML = '<span class="ai-pulse-dot"></span> 🟢 AI Body Locked · Collar & Torso Tracked';
+    }
+
+    // 2. REAL-TIME AI HAND GESTURE RECOGNITION
+    if (aiGesturesEnabled && !isCountdownRunning) {
+        processAiGestures(lm);
+    }
+}
+
+// Hand Gesture Recognition Engine
+function processAiGestures(lm) {
+    const now = Date.now();
+    if (now - lastGestureTime < 1800) return; // 1.8s cooldown
+
+    const nose = lm[0];
+    const leftShoulder = lm[11];
+    const rightShoulder = lm[12];
+    const leftWrist = lm[15];
+    const rightWrist = lm[16];
+
+    // In mirrored selfie video:
+    // rightWrist on screen is visually on the LEFT side (user's right hand)
+    // leftWrist on screen is visually on the RIGHT side (user's left hand)
+
+    // Gesture 1: Raise Right Hand High (Wrist above nose/head level) -> Next Outfit
+    if (rightWrist && nose && rightWrist.y < nose.y - 0.05 && rightWrist.visibility > 0.6) {
+        lastGestureTime = now;
+        triggerGestureAlert('✌️ Gesture: Swiping to Next Outfit ⏭️');
+        selectNextWardrobeItem();
+        return;
+    }
+
+    // Gesture 2: Raise Left Hand High -> Previous Outfit
+    if (leftWrist && nose && leftWrist.y < nose.y - 0.05 && leftWrist.visibility > 0.6) {
+        lastGestureTime = now;
+        triggerGestureAlert('🖐️ Gesture: Swiping to Previous Outfit ⏮️');
+        selectPrevWardrobeItem();
+        return;
+    }
+
+    // Gesture 3: Hand by Chin / Thumbs Up (Wrist close to chin level within 0.1 dist) -> 3s Snapshot Countdown
+    if ((rightWrist && nose && Math.abs(rightWrist.y - nose.y) < 0.12 && Math.abs(rightWrist.x - nose.x) < 0.15) ||
+        (leftWrist && nose && Math.abs(leftWrist.y - nose.y) < 0.12 && Math.abs(leftWrist.x - nose.x) < 0.15)) {
+        lastGestureTime = now;
+        triggerGestureAlert('👍 Gesture: 3s Photo Countdown! 📸');
+        startAiCountdownSnapshot();
+        return;
+    }
+}
+
+function triggerGestureAlert(msg) {
+    const bubble = document.getElementById('gestureAlertBubble');
+    const text = document.getElementById('gestureAlertText');
+    text.textContent = msg;
+    bubble.style.display = 'flex';
+    setTimeout(() => {
+        bubble.style.display = 'none';
+    }, 2200);
+}
+
+// Wardrobe Next & Prev Navigation
+function selectNextWardrobeItem() {
+    const currentIndex = wardrobeItems.findIndex(i => i.id === currentItem.id);
+    const nextIndex = (currentIndex + 1) % wardrobeItems.length;
+    selectWardrobeItem(wardrobeItems[nextIndex].id);
+}
+
+function selectPrevWardrobeItem() {
+    const currentIndex = wardrobeItems.findIndex(i => i.id === currentItem.id);
+    const prevIndex = (currentIndex - 1 + wardrobeItems.length) % wardrobeItems.length;
+    selectWardrobeItem(wardrobeItems[prevIndex].id);
+}
+
+// 3-2-1 Animated Snapshot Countdown
+function startAiCountdownSnapshot() {
+    if (isCountdownRunning || !cameraStream) return;
+    isCountdownRunning = true;
+
+    const overlay = document.getElementById('aiCountdownOverlay');
+    const numEl = document.getElementById('countdownNum');
+    overlay.style.display = 'flex';
+    
+    let count = 3;
+    numEl.textContent = count;
+
+    const timer = setInterval(() => {
+        count--;
+        if (count > 0) {
+            numEl.textContent = count;
+        } else {
+            clearInterval(timer);
+            // Flash screen and capture snapshot
+            stageViewport.classList.add('flash-white');
+            captureTryOnSnapshot();
+            setTimeout(() => {
+                stageViewport.classList.remove('flash-white');
+                overlay.style.display = 'none';
+                isCountdownRunning = false;
+            }, 300);
+        }
+    }, 900);
+}
+
+// AI Landmarks Skeleton Overlay Renderer
+function renderAiSkeleton(lm) {
+    skeletonCanvas.width = stageViewport.clientWidth;
+    skeletonCanvas.height = stageViewport.clientHeight;
+    skeletonCtx.clearRect(0, 0, skeletonCanvas.width, skeletonCanvas.height);
+
+    const w = skeletonCanvas.width;
+    const h = skeletonCanvas.height;
+
+    // Key points to draw: Nose (0), Shoulders (11, 12), Elbows (13, 14), Wrists (15, 16)
+    const points = [0, 11, 12, 13, 14, 15, 16];
+    
+    // Draw Shoulder connecting bar
+    if (lm[11] && lm[12]) {
+        skeletonCtx.strokeStyle = 'rgba(34, 197, 94, 0.8)';
+        skeletonCtx.lineWidth = 3;
+        skeletonCtx.beginPath();
+        skeletonCtx.moveTo(lm[11].x * w, lm[11].y * h);
+        skeletonCtx.lineTo(lm[12].x * w, lm[12].y * h);
+        skeletonCtx.stroke();
+    }
+
+    // Draw glowing landmark dots
+    points.forEach(idx => {
+        const pt = lm[idx];
+        if (pt && pt.visibility > 0.4) {
+            skeletonCtx.fillStyle = '#22c55e';
+            skeletonCtx.beginPath();
+            skeletonCtx.arc(pt.x * w, pt.y * h, 6, 0, Math.PI * 2);
+            skeletonCtx.fill();
+            skeletonCtx.strokeStyle = '#ffffff';
+            skeletonCtx.lineWidth = 2;
+            skeletonCtx.stroke();
+        }
+    });
+}
+
+// Gallery Photo Upload Handler
+function handlePhotoUpload(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            userPhotoBg.src = e.target.result;
+            showToast('Your photo was loaded into the Fitting Room!');
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function loadSampleModel(gender) {
+    if (gender === 'male') {
+        userPhotoBg.src = '{{ sample_male_model }}';
+        showToast('Loaded Male Model silhouette.');
+    } else {
+        userPhotoBg.src = '{{ sample_female_model }}';
+        showToast('Loaded Female Model silhouette.');
+    }
+}
+
+// Wardrobe Item Selection
+function selectWardrobeItem(itemId) {
+    const item = wardrobeItems.find(i => i.id === itemId);
+    if (!item) return;
+    currentItem = item;
+
+    // Update active highlight in rack
+    document.querySelectorAll('.rack-item').forEach(el => el.classList.remove('active'));
+    const activeRackEl = document.getElementById('rack-item-' + itemId);
+    if (activeRackEl) activeRackEl.classList.add('active');
+
+    // Update sidebar info
+    document.getElementById('curTitle').textContent = item.name;
+    document.getElementById('curPrice').textContent = 'ETB ' + item.price.toFixed(2);
+    document.getElementById('curVendor').textContent = item.vendor_name;
+    
+    // Update garment overlay image
+    const garmentImg = document.getElementById('garmentImg');
+    garmentImg.src = item.overlay_url || item.image_url;
+
+    // Reset fit to natural center
+    resetGarmentPlacement();
+
+    showToast('Wearing: ' + item.name);
+}
+
+// 1-Click Cart Addition
+function addCurrentItemToCart() {
+    if (!currentItem) return;
+    const btn = document.getElementById('btnAddFittingCart');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding to Cart...';
+
+    fetch(currentItem.cart_url, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(resp => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-check"></i> Added to Cart! ✓';
+        showToast(`✨ ${currentItem.name} added to your Cart!`);
+        setTimeout(() => {
+            btn.innerHTML = '<i class="fas fa-shopping-cart"></i> Add This Look to Cart';
+        }, 2500);
+    })
+    .catch(err => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-shopping-cart"></i> Add This Look to Cart';
+        showToast('Added item to cart!');
+    });
+}
+
+// Snapshot & Download Styled Look Compositor
+function captureTryOnSnapshot() {
+    if (!cameraStream) return;
+    const canvas = document.getElementById('exportCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    canvas.width = cameraVideo.videoWidth || 640;
+    canvas.height = cameraVideo.videoHeight || 480;
+
+    // Draw video frame mirrored if front camera
+    if (currentFacingMode === 'user') {
+        ctx.translate(canvas.width, 0);
+        ctx.scale(-1, 1);
+    }
+    ctx.drawImage(cameraVideo, 0, 0, canvas.width, canvas.height);
+    
+    // Switch to frozen frame in photo mode
+    const dataUrl = canvas.toDataURL('image/png');
+    userPhotoBg.src = dataUrl;
+    setTryOnMode('photo');
+    showToast('📸 Snapshot captured! You can now adjust & save your photo.');
+}
+
+function downloadStyledLook() {
+    const canvas = document.getElementById('exportCanvas');
+    const ctx = canvas.getContext('2d');
+    const viewportRect = stageViewport.getBoundingClientRect();
+
+    canvas.width = 720;
+    canvas.height = 720;
+
+    const bgImg = new Image();
+    bgImg.crossOrigin = 'anonymous';
+    bgImg.onload = function() {
+        // Draw background
+        ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+
+        // Draw garment overlay positioned proportionally
+        const overlayImg = new Image();
+        overlayImg.crossOrigin = 'anonymous';
+        overlayImg.onload = function() {
+            ctx.save();
+            const posX = (garmentState.x / 100) * canvas.width;
+            const posY = (garmentState.y / 100) * canvas.height;
+            const width = (280 * (garmentState.scale / 100) / viewportRect.width) * canvas.width;
+            const height = (width / overlayImg.width) * overlayImg.height;
+
+            ctx.translate(posX, posY);
+            ctx.rotate((garmentState.rotate * Math.PI) / 180);
+            ctx.globalAlpha = garmentState.opacity / 100;
+            ctx.drawImage(overlayImg, -width / 2, 0, width, height);
+            ctx.restore();
+
+            // Draw Ethiopian watermark badge
+            ctx.fillStyle = 'rgba(11, 43, 74, 0.85)';
+            ctx.fillRect(16, canvas.height - 46, 260, 32);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 13px Inter, sans-serif';
+            ctx.fillText('Styled on Qenagebeya 🇪🇹', 28, canvas.height - 25);
+
+            // Trigger download
+            const link = document.createElement('a');
+            link.download = `qenagebeya-tryon-${currentItem.slug}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            showToast('✨ Look photo downloaded successfully!');
+        };
+        overlayImg.src = document.getElementById('garmentImg').src;
+    };
+    bgImg.src = userPhotoBg.src;
+}
+
+function showToast(msg) {
+    const toast = document.getElementById('tryOnToast');
+    const msgEl = document.getElementById('tryOnToastMsg');
+    msgEl.textContent = msg;
+    toast.style.display = 'flex';
+    setTimeout(() => {
+        toast.style.display = 'none';
+    }, 3000);
+}
+</script>
+{% endblock %}

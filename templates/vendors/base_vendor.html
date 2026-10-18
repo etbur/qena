@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>{% block title %}Qenagebeya · Vendor Portal{% endblock %}</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
+
+/* ── Variables ── */
+:root{
+  --sb-w:260px;
+  --sb-bg:#0b1b2b;
+  --accent:#d42e2e;
+  --nav-h:60px;
+}
+
+/* ── Layout ── */
+body{background:#f1f4f9;color:#1e293b;min-height:100vh;}
+
+/* Overlay (mobile) */
+#sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:199;}
+#sb-overlay.show{display:block;}
+
+/* ── Sidebar ── */
+.sidebar{
+  position:fixed;top:0;left:0;
+  width:var(--sb-w);height:100vh;
+  background:var(--sb-bg);color:#cbd5e1;
+  display:flex;flex-direction:column;
+  z-index:200;
+  transition:transform .25s ease;
+  overflow-y:auto;overflow-x:hidden;
+}
+.sidebar::-webkit-scrollbar{width:4px;}
+.sidebar::-webkit-scrollbar-thumb{background:#2a3a4e;border-radius:10px;}
+
+.sidebar-brand{
+  padding:20px 20px 18px;
+  font-size:1.3rem;font-weight:700;color:#fff;
+  display:flex;align-items:center;gap:10px;
+  border-bottom:1px solid #1e2f40;flex-shrink:0;
+  text-decoration:none;
+}
+.sidebar-brand i{color:var(--accent);font-size:1.5rem;}
+
+.sidebar-menu{padding:16px 10px;flex:1;}
+.menu-label{font-size:.62rem;text-transform:uppercase;letter-spacing:.8px;color:#6a7f96;padding:10px 12px 4px;font-weight:700;}
+
+.sidebar-menu a,.v-toggle{
+  display:flex;align-items:center;gap:12px;
+  padding:9px 12px;color:#b0c4db;text-decoration:none;
+  border-radius:9px;margin:2px 0;font-size:.83rem;font-weight:500;
+  transition:.15s;cursor:pointer;user-select:none;
+}
+.sidebar-menu a:hover,.v-toggle:hover,.v-toggle.open,.v-toggle.has-active{background:#1a2d40;color:#fff;}
+.sidebar-menu a.active{background:var(--accent);color:#fff;box-shadow:0 4px 12px rgba(212,46,46,.3);}
+.sidebar-menu a i,.v-toggle i{width:18px;text-align:center;font-size:.95rem;flex-shrink:0;}
+.sidebar-menu .badge{background:var(--accent);color:#fff;font-size:.58rem;padding:1px 8px;border-radius:40px;margin-left:auto;}
+.v-arrow{margin-left:auto;font-size:.62rem;transition:transform .2s;color:#6a7f96;}
+.v-toggle.open .v-arrow{transform:rotate(90deg);color:#b0c4db;}
+
+.v-submenu{display:none;flex-direction:column;background:rgba(0,0,0,.15);border-radius:8px;margin:1px 0 3px;overflow:hidden;}
+.v-submenu.open{display:flex;}
+.v-submenu a{padding:7px 12px 7px 36px !important;font-size:.78rem !important;color:#8ba0b8 !important;border-radius:0 !important;margin:0 !important;}
+.v-submenu a:hover{background:#1a2d40 !important;color:#fff !important;}
+.v-submenu a.active{background:rgba(212,46,46,.65) !important;color:#fff !important;box-shadow:none !important;}
+
+.sidebar-footer{padding:14px 16px;border-top:1px solid #1e2f40;font-size:.73rem;color:#6a7f96;flex-shrink:0;}
+.sidebar-footer a{color:#8ba0b8;text-decoration:none;display:flex;align-items:center;gap:8px;padding:4px 0;}
+.sidebar-footer a:hover{color:#fff;}
+
+/* ── Main wrapper ── */
+.main-wrapper{margin-left:var(--sb-w);min-height:100vh;display:flex;flex-direction:column;transition:margin-left .25s;}
+
+/* ── Topnav ── */
+.topnav{
+  position:sticky;top:0;z-index:100;
+  background:#fff;padding:0 24px;
+  height:var(--nav-h);
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid #eef2f6;
+  box-shadow:0 2px 8px rgba(0,0,0,.03);
+  flex-shrink:0;
+}
+.topnav-left{display:flex;align-items:center;gap:14px;}
+#menu-btn{background:none;border:none;font-size:1.1rem;color:#475569;cursor:pointer;padding:6px;border-radius:8px;line-height:1;}
+#menu-btn:hover{background:#f1f4f9;}
+.breadcrumb{font-size:.82rem;color:#475569;display:flex;align-items:center;gap:4px;flex-wrap:wrap;}
+.breadcrumb span{color:#0b2b4a;font-weight:600;}
+.breadcrumb i{color:#94a3b8;font-size:.58rem;}
+
+.topnav-right{display:flex;align-items:center;gap:14px;}
+.icon-btn{background:none;border:none;font-size:1.05rem;color:#475569;cursor:pointer;position:relative;padding:6px;border-radius:8px;}
+.icon-btn:hover{background:#f1f4f9;}
+.icon-btn .dot{position:absolute;top:4px;right:4px;width:7px;height:7px;background:var(--accent);border-radius:50%;border:2px solid #fff;}
+.vendor-pill{display:flex;align-items:center;gap:9px;padding-left:14px;border-left:1px solid #eef2f6;}
+.vendor-pill .av{width:34px;height:34px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.88rem;flex-shrink:0;overflow:hidden;}
+.vendor-pill .av img{width:100%;height:100%;object-fit:cover;}
+.vendor-pill .vname{font-weight:600;font-size:.83rem;line-height:1.2;}
+.vendor-pill .vrole{font-size:.68rem;color:#94a3b8;}
+
+/* ── Page body ── */
+.page-body{flex:1;padding:24px;background:#f1f4f9;min-height:calc(100vh - var(--nav-h));}
+
+/* ── Common components ── */
+.page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;flex-wrap:wrap;gap:10px;}
+.page-header h2{font-size:1.15rem;font-weight:700;}
+.page-header .sub{font-size:.8rem;font-weight:400;color:#94a3b8;margin-left:6px;}
+
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:24px;}
+.stat-card{background:#fff;border-radius:14px;padding:16px 18px;border:1px solid #eef2f6;box-shadow:0 2px 6px rgba(0,0,0,.02);}
+.stat-card .label{font-size:.72rem;text-transform:uppercase;letter-spacing:.4px;color:#94a3b8;font-weight:600;}
+.stat-card .value{font-size:1.5rem;font-weight:700;color:#0b2b4a;margin:3px 0 2px;}
+.stat-card .change{font-size:.72rem;color:#22a65e;display:flex;align-items:center;gap:4px;}
+.stat-card .change.down{color:var(--accent);}
+
+.section-header{display:flex;justify-content:space-between;align-items:center;margin:22px 0 12px;flex-wrap:wrap;gap:8px;}
+.section-header h3{font-size:1.05rem;font-weight:700;}
+.section-header a{color:var(--accent);text-decoration:none;font-weight:600;font-size:.83rem;}
+
+.table-wrap{background:#fff;border-radius:14px;border:1px solid #eef2f6;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.02);overflow-x:auto;}
+.table-wrap table{width:100%;border-collapse:collapse;font-size:.83rem;min-width:480px;}
+.table-wrap th{text-align:left;padding:12px 18px;background:#f8fafc;font-weight:600;color:#475569;border-bottom:1px solid #eef2f6;white-space:nowrap;}
+.table-wrap td{padding:11px 18px;border-bottom:1px solid #f1f4f9;vertical-align:middle;}
+.table-wrap tr:last-child td{border-bottom:none;}
+.table-wrap tr:hover td{background:#fafbfc;}
+
+.status{display:inline-block;padding:2px 12px;border-radius:40px;font-size:.68rem;font-weight:600;}
+.status.delivered,.status.active,.status.approved{background:#e6f7e6;color:#1f7b3a;}
+.status.processing,.status.pending{background:#fff4e6;color:#b85a1a;}
+.status.shipped,.status.confirmed{background:#e6f0fa;color:#1a4b8a;}
+.status.cancelled,.status.inactive,.status.rejected{background:#f1f4f9;color:#64748b;}
+.status.suspended{background:#fef3f3;color:#b91c1c;}
+
+.quick-actions{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0;}
+.btn{padding:9px 22px;border-radius:60px;font-weight:600;font-size:.83rem;border:1px solid #eef2f6;cursor:pointer;display:inline-flex;align-items:center;gap:7px;background:#fff;color:#1e293b;text-decoration:none;transition:.15s;}
+.btn:hover{box-shadow:0 4px 12px rgba(0,0,0,.08);}
+.btn-primary{background:#0b2b4a;color:#fff;border-color:#0b2b4a;}
+.btn-primary:hover{background:var(--accent);border-color:var(--accent);}
+.btn-danger{background:var(--accent);color:#fff;border-color:var(--accent);}
+.btn-danger:hover{background:#b91c1c;border-color:#b91c1c;}
+.btn-save{padding:9px 28px;background:#0b2b4a;color:#fff;border:none;border-radius:60px;font-weight:700;font-size:.86rem;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:.2s;text-decoration:none;}
+.btn-save:hover{background:var(--accent);}
+.btn-back{padding:9px 22px;background:#fff;color:#1e293b;border:1px solid #eef2f6;border-radius:60px;font-weight:600;font-size:.83rem;cursor:pointer;display:inline-flex;align-items:center;gap:7px;text-decoration:none;transition:.15s;}
+.btn-back:hover{box-shadow:0 4px 12px rgba(0,0,0,.06);}
+.btn-sm-edit{padding:4px 12px;background:#fff;color:#1e293b;border:1px solid #eef2f6;border-radius:7px;font-size:.72rem;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:4px;text-decoration:none;transition:.15s;}
+.btn-sm-edit:hover{border-color:#0b2b4a;color:#0b2b4a;}
+.btn-sm-danger{padding:4px 12px;background:#fef3f3;color:#b91c1c;border:1px solid #fecaca;border-radius:7px;font-size:.72rem;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:4px;text-decoration:none;transition:.15s;}
+.btn-sm-danger:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+.alert{padding:11px 16px;border-radius:9px;margin-bottom:14px;font-size:.83rem;display:flex;align-items:center;gap:9px;}
+.alert-success{background:#e6f7e6;color:#1f7b3a;border:1px solid #b7e5c1;}
+.alert-warning{background:#fff4e6;color:#b85a1a;border:1px solid #f5d7b0;}
+.alert-error,.alert-danger{background:#fef3f3;color:#b91c1c;border:1px solid #f5b8b8;}
+.alert-info{background:#e6f0fa;color:#1a4b8a;border:1px solid #b3cfec;}
+
+.form-card{background:#fff;border-radius:14px;padding:24px;border:1px solid #eef2f6;box-shadow:0 2px 6px rgba(0,0,0,.02);max-width:760px;}
+.form-card h3{font-size:.98rem;font-weight:700;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid #eef2f6;}
+.form-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.form-group{margin-bottom:14px;}
+.form-group label{display:block;font-size:.8rem;font-weight:600;color:#475569;margin-bottom:5px;}
+.form-group .form-control{width:100%;padding:9px 12px;border:1px solid #eef2f6;border-radius:9px;font-size:.85rem;outline:none;transition:.2s;font-family:inherit;background:#fff;}
+.form-group .form-control:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(212,46,46,.08);}
+.form-check-label{display:flex;align-items:center;gap:7px;font-size:.83rem;font-weight:500;cursor:pointer;}
+.form-check-label input{accent-color:#0b2b4a;}
+
+.tbl-thumb{width:44px;height:44px;border-radius:9px;object-fit:cover;background:#f1f4f9;}
+.tbl-thumb-placeholder{width:44px;height:44px;border-radius:9px;background:#f1f4f9;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:1rem;}
+.badge-pill{font-size:.63rem;padding:2px 9px;border-radius:40px;font-weight:600;display:inline-block;}
+.pill-featured{background:#fef9e6;color:#8a7a1a;}
+.pill-flash{background:#fef3f3;color:#b91c1c;}
+
+/* ── Mobile & Tablet Responsive ── */
+@media(max-width:1024px){
+  :root{--sb-w:220px;}
+  .page-body{padding:20px;}
+}
+
+@media(max-width:768px){
+  /* Sidebar: hidden off-screen on mobile */
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.mobile-open{transform:translateX(0);}
+  .main-wrapper{margin-left:0 !important;}
+
+  /* Topnav */
+  .topnav{padding:0 14px;}
+  .vendor-pill .vname,.vendor-pill .vrole{display:none;}
+  .breadcrumb{display:none;}
+
+  /* Page body */
+  .page-body{padding:14px;}
+
+  /* Stats */
+  .stats-grid{grid-template-columns:1fr 1fr;gap:10px;}
+  .stat-card .value{font-size:1.25rem;}
+
+  /* Tables: horizontal scroll */
+  .table-wrap{border-radius:10px;}
+  .table-wrap table{min-width:520px;}
+
+  /* Forms */
+  .form-grid-2{grid-template-columns:1fr;}
+  .form-card{padding:16px;}
+
+  /* Buttons */
+  .quick-actions{gap:8px;}
+  .btn{padding:8px 16px;font-size:.8rem;}
+  .btn-save,.btn-back{padding:8px 18px;}
+
+  /* Page header */
+  .page-header{margin-bottom:16px;}
+  .page-header h2{font-size:1.05rem;}
+}
+
+@media(max-width:480px){
+  .stats-grid{grid-template-columns:1fr;}
+  .topnav-right .icon-btn:not(:last-child){display:none;}
+  .table-wrap table{min-width:400px;font-size:.78rem;}
+  .table-wrap th,.table-wrap td{padding:9px 12px;}
+}
+</style>
+{% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- Mobile overlay -->
+<div id="sb-overlay" onclick="closeSidebar()"></div>
+
+<!-- ===== SIDEBAR ===== -->
+<aside class="sidebar" id="sidebar">
+  <a href="{% url 'store:home' %}" class="sidebar-brand">
+    <i class="fas fa-store-alt"></i>
+    <span>Qenagebeya</span>
+  </a>
+  <nav class="sidebar-menu">
+    {% with vn=request.resolver_match.url_name %}
+
+    <div class="menu-label">Main</div>
+    <a href="{% url 'vendors:dashboard' %}" class="{% if vn == 'dashboard' %}active{% endif %}">
+      <i class="fas fa-chart-pie"></i><span>Dashboard</span>
+    </a>
+    <a href="{% url 'vendors:orders' %}" class="{% if vn == 'orders' or vn == 'order_fulfill' %}active{% endif %}">
+      <i class="fas fa-box"></i><span>Orders</span>
+      {% if vendor_pending_orders_count > 0 %}
+        <span class="badge">{{ vendor_pending_orders_count }}</span>
+      {% endif %}
+    </a>
+
+    <div class="menu-label" style="margin-top:16px;">Catalog</div>
+    <div class="v-toggle {% if vn == 'products' or vn == 'product_add' or vn == 'product_edit' or vn == 'product_delete' or vn == 'inventory' or vn == 'inventory_add' or vn == 'inventory_edit' or vn == 'inventory_delete' or vn == 'inventory_adjust' or vn == 'warehouses' or vn == 'suppliers' or vn == 'purchase_orders' or vn == 'stock_movements' %}open has-active{% endif %}" onclick="vToggle('v-product',this)">
+      <i class="fas fa-tags"></i><span>Products</span><i class="fas fa-chevron-right v-arrow"></i>
+    </div>
+    <div class="v-submenu {% if vn == 'products' or vn == 'product_add' or vn == 'product_edit' or vn == 'product_delete' or vn == 'inventory' or vn == 'inventory_add' or vn == 'inventory_edit' or vn == 'inventory_delete' or vn == 'inventory_adjust' or vn == 'warehouses' or vn == 'suppliers' or vn == 'purchase_orders' or vn == 'stock_movements' %}open{% endif %}" id="v-product">
+      <a href="{% url 'vendors:products' %}"        class="{% if vn == 'products' or vn == 'product_edit' or vn == 'product_delete' %}active{% endif %}"><i class="fas fa-list"></i><span>All Products</span></a>
+      <a href="{% url 'vendors:product_add' %}"     class="{% if vn == 'product_add' %}active{% endif %}"><i class="fas fa-plus"></i><span>Add Product</span></a>
+      <a href="{% url 'vendors:inventory' %}"       class="{% if vn == 'inventory' or vn == 'inventory_add' or vn == 'inventory_edit' or vn == 'inventory_delete' or vn == 'inventory_adjust' %}active{% endif %}"><i class="fas fa-warehouse"></i><span>Inventory</span></a>
+      <a href="{% url 'vendors:stock_movements' %}" class="{% if vn == 'stock_movements' %}active{% endif %}"><i class="fas fa-exchange-alt"></i><span>Movements</span></a>
+      <a href="{% url 'vendors:warehouses' %}"      class="{% if vn == 'warehouses' %}active{% endif %}"><i class="fas fa-building"></i><span>Warehouses</span></a>
+      <a href="{% url 'vendors:suppliers' %}"       class="{% if vn == 'suppliers' %}active{% endif %}"><i class="fas fa-truck"></i><span>Suppliers</span></a>
+      <a href="{% url 'vendors:purchase_orders' %}" class="{% if vn == 'purchase_orders' %}active{% endif %}"><i class="fas fa-file-invoice"></i><span>Purchase Orders</span></a>
+    </div>
+
+    <div class="menu-label" style="margin-top:16px;">Finance</div>
+    <div class="v-toggle {% if vn == 'payouts' or vn == 'analytics' %}open has-active{% endif %}" onclick="vToggle('v-finance',this)">
+      <i class="fas fa-credit-card"></i><span>Finance</span><i class="fas fa-chevron-right v-arrow"></i>
+    </div>
+    <div class="v-submenu {% if vn == 'payouts' or vn == 'analytics' %}open{% endif %}" id="v-finance">
+      <a href="{% url 'vendors:payouts' %}"   class="{% if vn == 'payouts' %}active{% endif %}"><i class="fas fa-money-bill-wave"></i><span>Payouts</span></a>
+      <a href="{% url 'vendors:analytics' %}" class="{% if vn == 'analytics' %}active{% endif %}"><i class="fas fa-chart-line"></i><span>Analytics</span></a>
+    </div>
+
+    <div class="menu-label" style="margin-top:16px;">Store</div>
+    <div class="v-toggle {% if vn == 'customers' or vn == 'settings' or vn == 'storefront_settings' %}open has-active{% endif %}" onclick="vToggle('v-store',this)">
+      <i class="fas fa-store"></i><span>Store</span><i class="fas fa-chevron-right v-arrow"></i>
+    </div>
+    <div class="v-submenu {% if vn == 'customers' or vn == 'settings' or vn == 'storefront_settings' %}open{% endif %}" id="v-store">
+      <a href="{% url 'vendors:customers' %}" class="{% if vn == 'customers' %}active{% endif %}"><i class="fas fa-users"></i><span>Customers</span></a>
+      <a href="{% url 'vendors:settings' %}"  class="{% if vn == 'settings' %}active{% endif %}"><i class="fas fa-cog"></i><span>Store Settings</span></a>
+      <a href="{% url 'vendors:storefront_settings' %}" class="{% if vn == 'storefront_settings' %}active{% endif %}"><i class="fas fa-globe" style="color:#078930;"></i><span>My Storefront 🌐</span></a>
+    </div>
+
+    <div class="menu-label" style="margin-top:16px;">Live · ቀጥታ</div>
+    <div class="v-toggle {% if vn == 'vendor_streams' or vn == 'stream_create' or vn == 'go_live' or vn == 'stream_end' or vn == 'watch' %}open has-active{% endif %}" onclick="vToggle('v-live',this)">
+      <i class="fas fa-video" style="color:#d42e2e;"></i><span>Live Streams</span><i class="fas fa-chevron-right v-arrow"></i>
+    </div>
+    <div class="v-submenu {% if vn == 'vendor_streams' or vn == 'stream_create' or vn == 'go_live' or vn == 'stream_end' or vn == 'watch' %}open{% endif %}" id="v-live">
+      <a href="{% url 'live:vendor_streams' %}" class="{% if vn == 'vendor_streams' %}active{% endif %}"><i class="fas fa-list"></i><span>My Streams</span></a>
+      <a href="{% url 'live:stream_create' %}"  class="{% if vn == 'stream_create' %}active{% endif %}"><i class="fas fa-plus"></i><span>Create Stream</span></a>
+      <a href="{% url 'live:home' %}" target="_blank"><i class="fas fa-globe"></i><span>Browse Live</span></a>
+    </div>
+
+    <div class="menu-label" style="margin-top:16px;">Makerspace · ስራቤት</div>
+    <div class="v-toggle {% if vn == 'vendor_dashboard' or vn == 'vendor_orders' or vn == 'vendor_order_detail' or vn == 'vendor_settings' %}open has-active{% endif %}" onclick="vToggle('v-mk',this)">
+      <i class="fas fa-tools" style="color:#078930;"></i><span>Makerspace</span><i class="fas fa-chevron-right v-arrow"></i>
+    </div>
+    <div class="v-submenu {% if vn == 'vendor_dashboard' or vn == 'vendor_orders' or vn == 'vendor_order_detail' or vn == 'vendor_settings' %}open{% endif %}" id="v-mk">
+      <a href="{% url 'makerspace:vendor_dashboard' %}" class="{% if vn == 'vendor_dashboard' %}active{% endif %}"><i class="fas fa-chart-pie"></i><span>Dashboard</span></a>
+      <a href="{% url 'makerspace:vendor_orders' %}"    class="{% if vn == 'vendor_orders' or vn == 'vendor_order_detail' %}active{% endif %}"><i class="fas fa-inbox"></i><span>Orders</span></a>
+      <a href="{% url 'makerspace:vendor_settings' %}"  class="{% if vn == 'vendor_settings' %}active{% endif %}"><i class="fas fa-sliders-h"></i><span>Pricing</span></a>
+    </div>
+
+    <div class="menu-label" style="margin-top:16px;">Account</div>
+    <a href="{% url 'accounts:profile' %}"><i class="fas fa-user-cog"></i><span>Profile</span></a>
+    <a href="{% url 'store:home' %}"><i class="fas fa-arrow-left"></i><span>Back to Store</span></a>
+
+    {% endwith %}
+  </nav>
+  <div class="sidebar-footer">
+    <a href="{% url 'accounts:logout' %}"><i class="fas fa-sign-out-alt"></i><span>Logout</span></a>
+    <div style="margin-top:6px;padding-left:2px;">v2.4 · Qenagebeya 🇪🇹</div>
+  </div>
+</aside>
+
+<!-- ===== MAIN ===== -->
+<div class="main-wrapper" id="main-wrapper">
+
+  <!-- Topnav -->
+  <header class="topnav">
+    <div class="topnav-left">
+      <button id="menu-btn" onclick="toggleSidebar()" aria-label="Menu">
+        <i class="fas fa-bars"></i>
+      </button>
+      <div class="breadcrumb">
+        <i class="fas fa-home"></i>&nbsp;
+        <span>Vendor</span>
+        <i class="fas fa-chevron-right"></i>
+        {% block breadcrumb %}Overview{% endblock %}
+      </div>
+    </div>
+    <div class="topnav-right">
+      <button class="icon-btn"><i class="far fa-bell"></i><span class="dot"></span></button>
+      <button class="icon-btn"><i class="far fa-envelope"></i></button>
+      <div class="vendor-pill">
+        <div class="av">
+          {% if request.user.vendor_profile.logo %}
+            <img src="{{ request.user.vendor_profile.logo.url }}" alt="logo"/>
+          {% else %}
+            {{ request.user.vendor_profile.store_name|first|upper }}
+          {% endif %}
+        </div>
+        <div>
+          <div class="vname">{{ request.user.vendor_profile.store_name|truncatechars:20 }}</div>
+          <div class="vrole">{{ request.user.vendor_profile.get_tier_display }} Vendor</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Page body -->
+  <div class="page-body">
+    {% if messages %}
+      {% for msg in messages %}
+      <div class="alert alert-{{ msg.tags }}"><i class="fas fa-info-circle"></i> {{ msg }}</div>
+      {% endfor %}
+    {% endif %}
+    {% block vendor_content %}{% endblock %}
+  </div>
+
+</div><!-- /main-wrapper -->
+
+<script>
+// ── Sidebar toggle ──────────────────────────────────────────────────────
+const sidebar   = document.getElementById('sidebar');
+const overlay   = document.getElementById('sb-overlay');
+const mainWrap  = document.getElementById('main-wrapper');
+const SB_W      = '260px';
+
+function isDesktop(){ return window.innerWidth > 768; }
+
+function toggleSidebar(){
+  if(isDesktop()){
+    // Desktop: collapse/expand inline
+    const collapsed = sidebar.dataset.collapsed === 'true';
+    if(collapsed){
+      sidebar.style.width = SB_W;
+      sidebar.dataset.collapsed = 'false';
+      mainWrap.style.marginLeft = SB_W;
+    } else {
+      sidebar.style.width = '0';
+      sidebar.style.overflow = 'hidden';
+      sidebar.dataset.collapsed = 'true';
+      mainWrap.style.marginLeft = '0';
+    }
+  } else {
+    // Mobile: slide over
+    openSidebar();
+  }
+}
+
+function openSidebar(){
+  sidebar.classList.add('mobile-open');
+  overlay.classList.add('show');
+}
+function closeSidebar(){
+  sidebar.classList.remove('mobile-open');
+  overlay.classList.remove('show');
+}
+
+// On resize — restore sidebar if desktop
+window.addEventListener('resize', ()=>{
+  if(isDesktop()){
+    sidebar.classList.remove('mobile-open');
+    overlay.classList.remove('show');
+    if(sidebar.dataset.collapsed !== 'true'){
+      sidebar.style.width = '';
+      sidebar.style.overflow = '';
+      mainWrap.style.marginLeft = '';
+    }
+  }
+});
+
+// ── Accordion ──────────────────────────────────────────────────────────
+function vToggle(id, el){
+  const menu = document.getElementById(id);
+  if(!menu) return;
+  const wasOpen = menu.classList.contains('open');
+  document.querySelectorAll('.v-submenu').forEach(m=>m.classList.remove('open'));
+  document.querySelectorAll('.v-toggle').forEach(t=>{
+    if(!t.classList.contains('has-active')) t.classList.remove('open');
+  });
+  if(!wasOpen){ menu.classList.add('open'); el.classList.add('open'); }
+}
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

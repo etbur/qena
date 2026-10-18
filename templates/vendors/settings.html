@@ -1,0 +1,44 @@
+{% extends 'vendors/base_vendor.html' %}
+{% block title %}Store Settings – Vendor Portal{% endblock %}
+{% block breadcrumb %}Store Settings{% endblock %}
+
+{% block vendor_content %}
+<h2 style="font-size:1.2rem;font-weight:700;margin-bottom:20px;">⚙️ Store Settings</h2>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:900px;">
+        <div style="grid-column:1/-1;">
+            <div class="form-wrap" style="max-width:100%;">
+                <h3 style="font-size:.95rem;font-weight:700;margin-bottom:16px;">Store Information</h3>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                    <div class="form-group" style="grid-column:1/-1;"><label>Store Name</label>{{ form.store_name }}</div>
+                    <div class="form-group" style="grid-column:1/-1;"><label>Description</label>{{ form.description }}</div>
+                    <div class="form-group"><label>Phone</label>{{ form.phone }}</div>
+                    <div class="form-group"><label>Email</label>{{ form.email }}</div>
+                    <div class="form-group" style="grid-column:1/-1;"><label>Address</label>{{ form.address }}</div>
+                    <div class="form-group"><label>City</label>{{ form.city }}</div>
+                    <div class="form-group"><label>Country</label>{{ form.country }}</div>
+                    <div class="form-group"><label>Logo</label>{{ form.logo }}</div>
+                    <div class="form-group"><label>Banner</label>{{ form.banner }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div style="grid-column:1/-1;">
+            <div class="form-wrap" style="max-width:100%;">
+                <h3 style="font-size:.95rem;font-weight:700;margin-bottom:16px;">Bank Account</h3>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                    <div class="form-group"><label>Bank Name</label>{{ bank_form.bank_name }}</div>
+                    <div class="form-group"><label>Account Holder</label>{{ bank_form.account_holder }}</div>
+                    <div class="form-group"><label>Account Number</label>{{ bank_form.account_number }}</div>
+                    <div class="form-group"><label>IBAN</label>{{ bank_form.iban }}</div>
+                    <div class="form-group"><label>SWIFT / BIC</label>{{ bank_form.swift_code }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div style="margin-top:16px;">
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Settings</button>
+    </div>
+</form>
+{% endblock %}

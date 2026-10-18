@@ -1,0 +1,255 @@
+# Oromiffa (Afaan Oromoo) translations for Qenagebeya
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: om\n"
+
+msgid "English"
+msgstr "English"
+
+msgid "Amharic"
+msgstr "Amaariffaa"
+
+msgid "Oromiffa"
+msgstr "Afaan Oromoo"
+
+msgid "Search"
+msgstr "Barbaadi"
+
+msgid "Search products, rent (house, car...), services, digital, jobs..."
+msgstr "Meeshaalee, kireessaa (manneen, konkolaataa...), tajaajila, dijitaalaa, hojii..."
+
+msgid "Deliver to · Choose area"
+msgstr "Geessi · Naannoo filadhu"
+
+msgid "Free delivery over"
+msgstr "Geessaa kaffaltii irraa bilisa"
+
+msgid "Express 60 · Addis Ababa"
+msgstr "Ekspireessi 60 · Finfinnee"
+
+msgid "Flash Deals"
+msgstr "Gatii Ariifannoo"
+
+msgid "Sell on Qenagebeya"
+msgstr "Qenagebeya irratti gurguradhu"
+
+msgid "All Departments"
+msgstr "Kutaalee Hunda"
+
+msgid "Account & Orders"
+msgstr "Herrega fi Ajajaalee"
+
+msgid "Wishlist"
+msgstr "Barbaachisaa"
+
+msgid "Cart"
+msgstr "Kaadhimaa"
+
+msgid "Login"
+msgstr "Seeni"
+
+msgid "Register"
+msgstr "Galmaa'i"
+
+msgid "Logout"
+msgstr "Baqi"
+
+msgid "My Store"
+msgstr "Suuqii Kooti"
+
+msgid "Agent"
+msgstr "Gorsaa"
+
+msgid "Admin"
+msgstr "Bulchaa"
+
+msgid "My Orders"
+msgstr "Ajajaalee Koo"
+
+msgid "Best sellers"
+msgstr "Gurguramtoota Gaarii"
+
+msgid "Flash Deals tonight"
+msgstr "Galgala Kana Gatii Ariifannoo"
+
+msgid "Trending now"
+msgstr "Amma Beekamaa"
+
+msgid "Bundle & save"
+msgstr "Walitti qabii qusadhu"
+
+msgid "View all"
+msgstr "Hunda ilaali"
+
+msgid "Add to Cart"
+msgstr "Kaadhimaatti Ida'i"
+
+msgid "Shop now"
+msgstr "Amma bitadhu"
+
+msgid "Buyer protection"
+msgstr "Eegumsa Bittoo"
+
+msgid "30-day free returns"
+msgstr "Guyyaa 30 deebi'uu bilisaa"
+
+msgid "100% genuine"
+msgstr "100% dhugaa"
+
+msgid "Cash on delivery"
+msgstr "Geessitu kadhadhu"
+
+msgid "Official Stores"
+msgstr "Suuqiileen Mirkanaawaan"
+
+msgid "Express 60"
+msgstr "Ekspireessi 60"
+
+msgid "Order within"
+msgstr "Keessatti ajaji"
+
+msgid "Products"
+msgstr "Meeshaalee"
+
+msgid "Dashboard"
+msgstr "Daashboordii"
+
+msgid "Orders"
+msgstr "Ajajaalee"
+
+msgid "Customers"
+msgstr "Maamiltoota"
+
+msgid "Analytics"
+msgstr "Xiinxala"
+
+msgid "Settings"
+msgstr "Qindaa'ina"
+
+msgid "Profile"
+msgstr "Ibsa Dhuunfaa"
+
+msgid "Store Settings"
+msgstr "Qindaa'ina Suuqii"
+
+msgid "Clients"
+msgstr "Maamiltoota"
+
+msgid "Deals"
+msgstr "Waliigalteelee"
+
+msgid "Inquiries"
+msgstr "Gaaffiilee"
+
+msgid "Performance"
+msgstr "Raawwii"
+
+msgid "Add Product"
+msgstr "Meeshaa Ida'i"
+
+msgid "Save"
+msgstr "Kuusi"
+
+msgid "Cancel"
+msgstr "Haqi"
+
+msgid "Submit"
+msgstr "Ergi"
+
+msgid "Welcome back"
+msgstr "Baga deebittan"
+
+msgid "Welcome to Qenagebeya"
+msgstr "Baga Qenagebeya dhuftani"
+
+msgid "Checkout"
+msgstr "Kaffalti"
+
+msgid "Place Order"
+msgstr "Ajaja Ergi"
+
+msgid "Order placed successfully"
+msgstr "Ajajni milkaa'inaan ergame"
+
+msgid "Out of Stock"
+msgstr "Dhume"
+
+msgid "In Stock"
+msgstr "Jira"
+
+msgid "Price"
+msgstr "Gatii"
+
+msgid "Category"
+msgstr "Gosa"
+
+msgid "Shipping"
+msgstr "Geessuu"
+
+msgid "Total"
+msgstr "Walii Gala"
+
+msgid "Free"
+msgstr "Bilisaa"
+
+msgid "Payment Method"
+msgstr "Mala Kaffalti"
+
+msgid "Delivery Information"
+msgstr "Odeeffannoo Geessuu"
+
+msgid "Write a Review"
+msgstr "Yaada Barreessi"
+
+msgid "Submit Review"
+msgstr "Yaada Ergi"
+
+msgid "You May Also Like"
+msgstr "Kana Illee Jaalattuu Dandeessa"
+
+msgid "Shop by Category"
+msgstr "Gosaan Bitadhu"
+
+msgid "Your cart is empty"
+msgstr "Kaadhimaan kee duwwaa dha"
+
+msgid "Start Shopping"
+msgstr "Bittaa Jalqabi"
+
+msgid "Proceed to Checkout"
+msgstr "Gara Kaffaltiitti Itti Fufi"
+
+msgid "Continue Shopping"
+msgstr "Bittaa Itti Fufi"
+
+msgid "No reviews yet"
+msgstr "Ammaaf yaadni hin jiru"
+
+msgid "Be the first"
+msgstr "Jalqabaa ta'i"
+
+msgid "Register here"
+msgstr "Asitti galmaa'i"
+
+msgid "Sign in"
+msgstr "Seeni"
+
+msgid "Create Account"
+msgstr "Herrega Uumi"
+
+msgid "I want to join as"
+msgstr "Akka kanatti makamuu barbaada"
+
+msgid "Customer"
+msgstr "Maamiltuu"
+
+msgid "Vendor"
+msgstr "Gurgurtoo"
+
+msgid "Edit Profile"
+msgstr "Ibsa Dhuunfaa Gulaali"
+
+msgid "Save Changes"
+msgstr "Jijjiirama Kuusi"

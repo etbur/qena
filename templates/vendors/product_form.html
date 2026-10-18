@@ -1,0 +1,75 @@
+{% extends 'vendors/base_vendor.html' %}
+{% block title %}{{ action }} Product – Vendor Portal{% endblock %}
+{% block breadcrumb %}Products / {{ action }}{% endblock %}
+
+{% block vendor_content %}
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+    <h2 style="font-size:1.2rem;font-weight:700;">{{ action }} Product</h2>
+    <a href="{% url 'vendors:products' %}" class="btn"><i class="fas fa-arrow-left"></i> Back</a>
+</div>
+
+<div class="form-wrap" style="max-width:800px;">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div class="form-group" style="grid-column:1/-1;">
+                <label>Product Name *</label>
+                {{ form.name }}
+                {% if form.name.errors %}<div style="color:#d42e2e;font-size:.78rem;margin-top:4px;">{{ form.name.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="form-group">
+                <label>Category *</label>
+                {{ form.category }}
+            </div>
+            <div class="form-group">
+                <label>Price (AED) *</label>
+                {{ form.price }}
+            </div>
+            <div class="form-group">
+                <label>Original Price (AED) <span style="color:#94a3b8;font-size:.78rem;">for discount display</span></label>
+                {{ form.original_price }}
+            </div>
+            <div class="form-group">
+                <label>Stock Quantity *</label>
+                {{ form.stock }}
+            </div>
+            <div class="form-group" style="grid-column:1/-1;">
+                <label>Description</label>
+                {{ form.description }}
+            </div>
+            <div class="form-group">
+                <label>Main Image</label>
+                {{ form.image }}
+                {% if product and product.image %}<div style="margin-top:6px;"><img src="{{ product.image.url }}" style="height:60px;border-radius:8px;"/></div>{% endif %}
+            </div>
+            <div class="form-group">
+                <label>Image 2</label>
+                {{ form.image2 }}
+            </div>
+            <div class="form-group">
+                <label>Image 3</label>
+                {{ form.image3 }}
+            </div>
+            <div class="form-group">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                    {{ form.is_active }} Active (visible in store)
+                </label>
+            </div>
+            <div class="form-group">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                    {{ form.is_featured }} Featured product
+                </label>
+            </div>
+            <div class="form-group">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                    {{ form.is_flash_deal }} Include in Flash Deals
+                </label>
+            </div>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:8px;">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Product</button>
+            <a href="{% url 'vendors:products' %}" class="btn">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

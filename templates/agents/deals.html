@@ -1,0 +1,29 @@
+{% extends 'agents/base_agent.html' %}
+{% block title %}Deals – Agent Portal{% endblock %}
+{% block breadcrumb %}Deals{% endblock %}
+
+{% block agent_content %}
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+    <h2 style="font-size:1.2rem;font-weight:700;">My Deals <span style="font-size:.85rem;font-weight:400;color:#94a3b8;">({{ deals.count }})</span></h2>
+    <a href="{% url 'agents:deal_add' %}" class="btn btn-primary"><i class="fas fa-plus"></i> New Deal</a>
+</div>
+<div class="table-wrap">
+    <table>
+        <thead><tr><th>Deal</th><th>Client</th><th>Value</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
+        <tbody>
+            {% for d in deals %}
+            <tr>
+                <td><strong>{{ d.title|truncatechars:35 }}</strong></td>
+                <td>{{ d.client.full_name }}</td>
+                <td>ETB {{ d.value }}</td>
+                <td><span class="status {{ d.status }}">{{ d.get_status_display }}</span></td>
+                <td>{{ d.created_at|date:"M j, Y" }}</td>
+                <td><a href="{% url 'agents:deal_edit' d.pk %}" class="btn" style="padding:5px 12px;font-size:.75rem;"><i class="fas fa-edit"></i></a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" style="text-align:center;padding:32px;color:#94a3b8;">No deals yet. <a href="{% url 'agents:deal_add' %}" style="color:#d42e2e;">Create your first deal</a>.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

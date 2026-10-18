@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "Checkout" %} · ክፈሉ – Qenagebeya{% endblock %}
+
+{% block extra_css %}
+<style>
+.checkout-wrap{padding:28px 32px;display:grid;grid-template-columns:1fr 360px;gap:28px;max-width:1100px;margin:0 auto}
+.checkout-form{background:#fff;border-radius:20px;padding:28px;border:1px solid #eef2f6}
+.checkout-form h3{font-size:1rem;font-weight:700;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid #f1f4f9;display:flex;align-items:center;gap:8px;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-group{margin-bottom:0}
+.form-group label{display:block;font-size:.82rem;font-weight:600;color:#475569;margin-bottom:6px}
+.form-control{width:100%;padding:10px 14px;border:1px solid #eef2f6;border-radius:10px;font-size:.88rem;outline:none;transition:.2s;font-family:inherit}
+.form-control:focus{border-color:#078930;box-shadow:0 0 0 3px rgba(7,137,48,.08)}
+.form-select{width:100%;padding:10px 14px;border:1px solid #eef2f6;border-radius:10px;font-size:.88rem;outline:none;background:#fff;font-family:inherit}
+.order-summary{background:#fff;border-radius:20px;padding:24px;border:1px solid #eef2f6;height:fit-content;position:sticky;top:80px}
+.order-summary h3{font-size:1rem;font-weight:700;margin-bottom:16px}
+.order-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f1f4f9}
+.order-item:last-child{border-bottom:none}
+.item-img{width:44px;height:44px;border-radius:8px;object-fit:cover;background:#f1f4f9;flex-shrink:0}
+.item-name{font-size:.82rem;font-weight:600;flex:1}
+.item-price{font-size:.82rem;font-weight:700;color:#0b2b4a}
+.summary-row{display:flex;justify-content:space-between;padding:7px 0;font-size:.88rem;border-bottom:1px solid #f1f4f9}
+.summary-total{display:flex;justify-content:space-between;padding:12px 0 0;font-size:1.1rem;font-weight:700;border-top:2px solid #eef2f6;margin-top:6px}
+.place-order-btn{width:100%;padding:13px;background:#078930;color:#fff;border:none;border-radius:60px;font-weight:700;font-size:.95rem;cursor:pointer;margin-top:16px;transition:.2s}
+.place-order-btn:hover{background:#0b2b4a}
+.payment-options{display:flex;flex-direction:column;gap:10px;margin-top:8px}
+.payment-opt{background:#f8fafc;border:2px solid #eef2f6;border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:.2s;font-size:.85rem;font-weight:500}
+.payment-opt input{accent-color:#078930}
+.payment-opt:hover{border-color:#078930}
+@media(max-width:768px){.checkout-wrap{grid-template-columns:1fr;padding:16px}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="padding:14px 32px;font-size:.82rem;color:#94a3b8;">
+    <a href="{% url 'store:home' %}" style="color:#475569;">Home</a> /
+    <a href="{% url 'store:cart' %}" style="color:#475569;">{% trans "Cart" %}</a> /
+    <span style="color:#1e293b;font-weight:600;">{% trans "Checkout" %} · ክፈሉ · Kaffalti</span>
+</div>
+
+<div class="checkout-wrap">
+    <form method="post" id="checkout-form">
+        {% csrf_token %}
+        <!-- Delivery info -->
+        <div class="checkout-form">
+            <h3>
+                <i class="fas fa-map-marker-alt" style="color:#078930;"></i>
+                {% trans "Delivery Information" %} · የዴሊቨሪ መረጃ
+            </h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Full Name · ሙሉ ስም *</label>{{ form.shipping_name }}
+                </div>
+                <div class="form-group">
+                    <label>Phone · ስልክ *</label>{{ form.shipping_phone }}
+                </div>
+                <div class="form-group" style="grid-column:1/-1;">
+                    <label>Address · አድራሻ *</label>{{ form.shipping_address }}
+                </div>
+                <div class="form-group">
+                    <label>City · ከተማ</label>{{ form.shipping_city }}
+                </div>
+                <div class="form-group">
+                    <label>Region / Country</label>{{ form.shipping_country }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment -->
+        <div class="checkout-form" style="margin-top:16px;">
+            <h3>
+                <i class="fas fa-credit-card" style="color:#078930;"></i>
+                {% trans "Payment Method" %} · የክፍያ ዘዴ
+            </h3>
+            <div class="payment-options">
+                <label class="payment-opt">
+                    <input type="radio" name="payment_method" value="cod" checked/>
+                    <i class="fas fa-money-bill-wave" style="color:#078930;font-size:1.2rem;"></i>
+                    <div>
+                        <div style="font-weight:600;">{% trans "Cash on delivery" %} · ሲደርስ ክፈሉ</div>
+                        <div style="font-size:.75rem;color:#94a3b8;">Pay when your order arrives · ሲደርስ ይክፈሉ</div>
+                    </div>
+                </label>
+                <label class="payment-opt">
+                    <input type="radio" name="payment_method" value="card"/>
+                    <i class="fas fa-credit-card" style="color:#1a4b8a;font-size:1.2rem;"></i>
+                    <div>
+                        <div style="font-weight:600;">Telebirr / CBE Birr / Credit Card</div>
+                        <div style="font-size:.75rem;color:#94a3b8;">Ethiopian mobile banking & cards</div>
+                    </div>
+                </label>
+                <label class="payment-opt">
+                    <input type="radio" name="payment_method" value="wallet"/>
+                    <i class="fas fa-wallet" style="color:#b85a1a;font-size:1.2rem;"></i>
+                    <div>
+                        <div style="font-weight:600;">Amole · HelloCash · M-Pesa</div>
+                        <div style="font-size:.75rem;color:#94a3b8;">Ethiopian digital wallets · ዲጂታል ክፍያ</div>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="checkout-form" style="margin-top:16px;">
+            <h3><i class="fas fa-comment" style="color:#078930;"></i> Order Notes · ማሳሰቢያ</h3>
+            {{ form.notes }}
+        </div>
+    </form>
+
+    <!-- Order Summary -->
+    <div class="order-summary">
+        <h3>Order Summary · ማጠቃለያ</h3>
+        <div style="margin-bottom:16px;">
+            {% for item in cart.items.all %}
+            <div class="order-item">
+                {% if item.product.image %}
+                    <img src="{{ item.product.image.url }}" class="item-img" alt="{{ item.product.name }}"/>
+                {% else %}
+                    <div class="item-img" style="display:flex;align-items:center;justify-content:center;color:#94a3b8;"><i class="fas fa-box"></i></div>
+                {% endif %}
+                <span class="item-name">{{ item.product.name|truncatechars:28 }} ×{{ item.quantity }}</span>
+                <span class="item-price">ETB {{ item.subtotal }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="summary-row"><span>Subtotal · ንዑስ ድምር</span><span>ETB {{ cart.total }}</span></div>
+        <div class="summary-row">
+            <span>{% trans "Shipping" %} · ማጓጓዣ</span>
+            <span>{% if cart.total >= 500 %}<span style="color:#078930;font-weight:600;">FREE · ነጻ</span>{% else %}ETB {{ shipping_fee }}{% endif %}</span>
+        </div>
+        <div class="summary-total">
+            <span>Total · ድምር</span>
+            <span>ETB {% if cart.total >= 500 %}{{ cart.total }}{% else %}{{ cart.total|floatformat:2 }}{% endif %}</span>
+        </div>
+        <button type="submit" form="checkout-form" class="place-order-btn">
+            <i class="fas fa-lock"></i> {% trans "Place Order" %} · ትዕዛዝ ላክ
+        </button>
+        <p style="text-align:center;font-size:.72rem;color:#94a3b8;margin-top:10px;">
+            <i class="fas fa-shield-alt" style="color:#078930;"></i>
+            Secured · Protected by Qenagebeya Buyer Protection 🇪🇹
+        </p>
+    </div>
+</div>
+{% endblock %}

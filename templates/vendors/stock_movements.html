@@ -1,0 +1,28 @@
+{% extends 'vendors/base_vendor.html' %}
+{% block title %}Stock Movements · {{ vendor.store_name }}{% endblock %}
+{% block breadcrumb %}Inventory / Stock Movements{% endblock %}
+{% block vendor_content %}
+<div class="page-header">
+  <h2>🔄 Stock Movements</h2>
+  <a href="{% url 'vendors:inventory' %}" class="btn-back"><i class="fas fa-arrow-left"></i> Back</a>
+</div>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Item</th><th>Type</th><th>Qty</th><th>Before</th><th>After</th><th>Reference</th><th>Note</th><th>Date</th></tr></thead>
+    <tbody>
+    {% for mv in movements %}
+    <tr>
+      <td><strong>{{ mv.item.item_name|truncatechars:28 }}</strong></td>
+      <td><span class="status {% if mv.move_type == 'in' or mv.move_type == 'return' %}delivered{% elif mv.move_type == 'out' %}cancelled{% else %}confirmed{% endif %}">{{ mv.get_move_type_display }}</span></td>
+      <td style="font-weight:700;{% if mv.quantity > 0 %}color:#1f7b3a;{% else %}color:#d42e2e;{% endif %}">{% if mv.quantity > 0 %}+{% endif %}{{ mv.quantity }}</td>
+      <td style="color:#94a3b8;">{{ mv.before_qty }}</td>
+      <td style="font-weight:600;">{{ mv.after_qty }}</td>
+      <td style="font-size:.75rem;color:#64748b;">{{ mv.reference|default:"—" }}</td>
+      <td style="font-size:.75rem;color:#64748b;">{{ mv.note|default:"—"|truncatechars:30 }}</td>
+      <td style="font-size:.75rem;color:#94a3b8;white-space:nowrap;">{{ mv.created_at|date:"M d, Y H:i" }}</td>
+    </tr>
+    {% empty %}<tr><td colspan="8" style="text-align:center;padding:30px;color:#94a3b8;">No stock movements recorded.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

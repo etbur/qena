@@ -1,0 +1,83 @@
+{% extends 'vendors/base_vendor.html' %}
+{% block title %}Payouts – Vendor Portal{% endblock %}
+{% block breadcrumb %}Payouts{% endblock %}
+
+{% block vendor_content %}
+<div class="page-header">
+    <h2>💳 Payouts · ክፍያ ጥያቄዎች</h2>
+</div>
+
+<!-- Balance card -->
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:24px;">
+    <div class="stat-card">
+        <div class="label">Available Balance</div>
+        <div class="value">ETB {{ vendor.balance|floatformat:0 }}</div>
+        <div class="change"><i class="fas fa-wallet"></i> Ready to withdraw</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Total Sales</div>
+        <div class="value">ETB {{ vendor.total_sales|floatformat:0 }}</div>
+        <div class="change"><i class="fas fa-arrow-up"></i> All time</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Pending Payouts</div>
+        <div class="value">{{ payouts|length }}</div>
+        <div class="change"><i class="fas fa-clock"></i> Awaiting processing</div>
+    </div>
+</div>
+
+<!-- Request payout form -->
+<div style="background:white;border-radius:16px;padding:24px;border:1px solid #eef2f6;margin-bottom:24px;max-width:480px;">
+    <h3 style="font-size:.95rem;font-weight:700;margin-bottom:16px;">Request Payout · ክፍያ ጠይቅ</h3>
+    <form method="post">
+        {% csrf_token %}
+        <div style="display:flex;gap:12px;align-items:flex-end;">
+            <div style="flex:1;">
+                <label style="display:block;font-size:.82rem;font-weight:600;color:#475569;margin-bottom:6px;">
+                    Amount (ETB) · መጠን
+                </label>
+                <input type="number" name="amount" step="0.01" min="1"
+                       max="{{ vendor.balance }}" placeholder="e.g. 5000"
+                       class="form-control" required
+                       style="width:100%;padding:10px 14px;border:1px solid #eef2f6;border-radius:10px;font-size:.88rem;outline:none;"/>
+            </div>
+            <button type="submit" class="btn-save">
+                <i class="fas fa-paper-plane"></i> Request
+            </button>
+        </div>
+        <p style="font-size:.75rem;color:#94a3b8;margin-top:8px;">
+            Max: ETB {{ vendor.balance }} · Processed within 3-5 business days
+        </p>
+    </form>
+</div>
+
+<!-- Payout history -->
+<div class="table-wrap">
+    <table>
+        <thead>
+            <tr><th>ID</th><th>Amount</th><th>Status</th><th>Requested</th><th>Processed</th><th>Transaction ID</th></tr>
+        </thead>
+        <tbody>
+            {% for p in payouts %}
+            <tr>
+                <td><strong>#{{ p.pk }}</strong></td>
+                <td>ETB {{ p.amount }}</td>
+                <td>
+                    <span class="status
+                        {% if p.status == 'paid' %}delivered
+                        {% elif p.status == 'pending' %}processing
+                        {% else %}pending{% endif %}">
+                        {{ p.get_status_display }}
+                    </span>
+                </td>
+                <td>{{ p.requested_at|date:"M j, Y" }}</td>
+                <td>{{ p.processed_at|date:"M j, Y"|default:"—" }}</td>
+                <td>{{ p.transaction_id|default:"—" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" style="text-align:center;padding:28px;color:#94a3b8;">No payout requests yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

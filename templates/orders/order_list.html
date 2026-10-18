@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "My Orders" %} – Qenagebeya 🇪🇹{% endblock %}
+
+{% block extra_css %}
+<style>
+.ol-wrap{padding:28px 32px;max-width:1000px;margin:0 auto}
+.order-card{background:#fff;border-radius:16px;border:1px solid #eef2f6;padding:20px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;transition:.2s}
+.order-card:hover{box-shadow:0 6px 16px rgba(0,0,0,.06)}
+.order-num{font-weight:800;font-size:1rem;color:#0b2b4a}
+.order-date{font-size:.78rem;color:#94a3b8;margin-top:3px}
+.status{display:inline-block;padding:4px 16px;border-radius:40px;font-size:.75rem;font-weight:600}
+.status-pending{background:#fef3f3;color:#b91c1c}
+.status-confirmed{background:#e6f0fa;color:#1a4b8a}
+.status-processing{background:#fff4e6;color:#b85a1a}
+.status-shipped{background:#e6f0fa;color:#1a4b8a}
+.status-delivered{background:#e6f7e6;color:#1f7b3a}
+.status-cancelled{background:#f1f4f9;color:#64748b}
+.order-total{font-size:1.1rem;font-weight:800;color:#0b2b4a}
+.view-btn{padding:8px 22px;background:#078930;color:#fff;border:none;border-radius:60px;font-weight:600;font-size:.82rem;cursor:pointer;text-decoration:none;display:inline-block}
+.view-btn:hover{background:#0b2b4a}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ol-wrap">
+    <h2 style="font-size:1.3rem;font-weight:800;margin-bottom:20px;">
+        📦 {% trans "My Orders" %} · ትዕዛዞቼ · Ajajaalee Koo
+        <span style="font-size:.88rem;font-weight:400;color:#94a3b8;margin-left:8px;">({{ orders.count }})</span>
+    </h2>
+
+    {% if orders %}
+        {% for order in orders %}
+        <div class="order-card">
+            <div>
+                <div class="order-num"># {{ order.order_number }}</div>
+                <div class="order-date">{{ order.created_at|date:"F j, Y" }}</div>
+                <div style="font-size:.82rem;color:#475569;margin-top:2px;">
+                    {{ order.items.count }} item(s) · {{ order.get_payment_method_display }}
+                </div>
+            </div>
+            <div style="text-align:center;">
+                <span class="status status-{{ order.status }}">{{ order.get_status_display }}</span>
+            </div>
+            <div class="order-total">ETB {{ order.total }}</div>
+            <a href="{% url 'orders:order_detail' order.pk %}" class="view-btn">
+                <i class="fas fa-eye"></i> View · ይመልከቱ
+            </a>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div style="text-align:center;padding:60px 20px;">
+            <i class="fas fa-box-open" style="font-size:4rem;color:#d1d5db;display:block;margin-bottom:14px;"></i>
+            <h3 style="font-size:1.1rem;font-weight:700;margin-bottom:8px;">
+                No orders yet · ምንም ትዕዛዝ የለም · Ajajni hin jiru
+            </h3>
+            <p style="color:#94a3b8;font-size:.88rem;margin-bottom:20px;">
+                You haven't placed any orders. · ገና ትዕዛዝ አልሰጡም።
+            </p>
+            <a href="{% url 'store:product_list' %}"
+               style="background:#078930;color:#fff;padding:12px 36px;border-radius:60px;font-weight:700;font-size:.9rem;text-decoration:none;">
+                {% trans "Start Shopping" %} · ግዢ ጀምር
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

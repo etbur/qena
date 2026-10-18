@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}Submit Makerspace Order · Qenagebeya{% endblock %}
+
+{% block extra_css %}
+<style>
+.mk-wrap{max-width:900px;margin:0 auto;padding:28px 32px;}
+.mk-card{background:#fff;border-radius:20px;border:1px solid #eef2f6;padding:28px;box-shadow:0 2px 8px rgba(0,0,0,.03);}
+.mk-card h3{font-size:1rem;font-weight:700;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid #eef2f6;display:flex;align-items:center;gap:8px;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.form-group{margin-bottom:0;}
+.form-group label{display:block;font-size:.82rem;font-weight:600;color:#475569;margin-bottom:6px;}
+.form-control,.form-select{width:100%;padding:10px 14px;border:1px solid #eef2f6;border-radius:10px;font-size:.88rem;outline:none;transition:.2s;font-family:inherit;background:#fff;}
+.form-control:focus,.form-select:focus{border-color:#078930;box-shadow:0 0 0 3px rgba(7,137,48,.1);}
+/* File drop zone */
+.file-zone{border:2px dashed #c8e6c9;border-radius:16px;padding:32px;text-align:center;cursor:pointer;transition:.2s;background:#f0fff4;position:relative;}
+.file-zone:hover,.file-zone.drag-over{border-color:#078930;background:#e8f5e9;}
+.file-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.file-zone i{font-size:2.5rem;color:#078930;display:block;margin-bottom:10px;}
+.file-zone .fz-title{font-weight:700;font-size:1rem;color:#0b2b4a;}
+.file-zone .fz-sub{font-size:.8rem;color:#64748b;margin-top:4px;}
+.file-zone .fz-formats{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:12px;}
+.fz-fmt{background:#fff;border:1px solid #b7e5c1;padding:3px 12px;border-radius:40px;font-size:.72rem;font-weight:700;color:#078930;}
+/* Price preview */
+.price-preview{background:linear-gradient(135deg,#e8f5e9,#e3f2fd);border-radius:16px;padding:20px 24px;border:1px solid #c8e6c9;margin-top:20px;}
+.price-preview .est-price{font-size:2rem;font-weight:800;color:#0b2b4a;}
+.price-preview .est-label{font-size:.8rem;color:#64748b;margin-top:4px;}
+.analysis-row{display:flex;flex-wrap:wrap;gap:16px;margin-top:12px;}
+.analysis-item{background:#fff;padding:8px 16px;border-radius:10px;border:1px solid #eef2f6;font-size:.82rem;}
+.analysis-item strong{display:block;font-size:1rem;color:#0b2b4a;}
+/* Submit button */
+.submit-btn{width:100%;padding:14px;background:#078930;color:#fff;border:none;border-radius:60px;font-weight:800;font-size:1rem;cursor:pointer;margin-top:20px;transition:.2s;display:flex;align-items:center;justify-content:center;gap:10px;}
+.submit-btn:hover{background:#0b2b4a;}
+.submit-btn:disabled{background:#94a3b8;cursor:not-allowed;}
+.vendor-badge{display:inline-flex;align-items:center;gap:8px;background:#e8f5e9;padding:6px 16px;border-radius:40px;font-size:.82rem;font-weight:600;color:#1f7b3a;margin-bottom:20px;}
+.errorlist{list-style:none;background:#fef3f3;border-radius:8px;padding:8px 14px;color:#b91c1c;font-size:.8rem;margin-top:4px;}
+@media(max-width:768px){.form-grid{grid-template-columns:1fr;}.mk-wrap{padding:16px;}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mk-wrap">
+    <div style="font-size:.82rem;color:#94a3b8;margin-bottom:16px;">
+        <a href="{% url 'store:home' %}" style="color:#475569;">Home</a> /
+        <a href="{% url 'makerspace:landing' %}" style="color:#475569;">Makerspace</a> /
+        <span style="color:#1e293b;font-weight:600;">Submit Order</span>
+    </div>
+
+    <h1 style="font-size:1.6rem;font-weight:800;margin-bottom:6px;">
+        <i class="fas fa-tools" style="color:#078930;"></i>
+        Submit Makerspace Order · ትዕዛዝ ላክ
+    </h1>
+    <p style="color:#64748b;font-size:.9rem;margin-bottom:20px;">
+        Upload your design file. We'll auto-calculate the estimated price based on file properties.
+    </p>
+
+    {% if vendor %}
+    <div class="vendor-badge">
+        <i class="fas fa-store"></i>
+        Makerspace by: <strong>{{ vendor.store_name }}</strong>
+        &nbsp;·&nbsp; Lead time: {{ mk_profile.min_lead_time_days }}–{{ mk_profile.max_lead_time_days }} days
+    </div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" id="mk-form">
+        {% csrf_token %}
+        <div class="mk-card" style="margin-bottom:20px;">
+            <h3><i class="fas fa-cube" style="color:#078930;"></i> Service & Material</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Service Type · አገልግሎት *</label>
+                    {{ form.service_type }}
+                    {% if form.service_type.errors %}<ul class="errorlist">{% for e in form.service_type.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label>Material · ቁሳቁስ *</label>
+                    {{ form.material }}
+                </div>
+                <div class="form-group" id="infill-group">
+                    <label>Infill % · ሙሌት (for 3D printing)</label>
+                    {{ form.infill }}
+                </div>
+                <div class="form-group">
+                    <label>Quantity · ብዛት *</label>
+                    {{ form.quantity }}
+                </div>
+                <div class="form-group">
+                    <label>Color · ቀለም</label>
+                    {{ form.color }}
+                </div>
+                <div class="form-group" style="grid-column:1/-1;">
+                    <label>Special Notes · ልዩ ማሳሰቢያ</label>
+                    {{ form.notes }}
+                </div>
+            </div>
+        </div>
+
+        <div class="mk-card">
+            <h3><i class="fas fa-upload" style="color:#078930;"></i> Upload Design File · ፋይል ጫን</h3>
+
+            <div class="file-zone" id="file-zone">
+                {{ form.design_file }}
+                <i class="fas fa-cloud-upload-alt"></i>
+                <div class="fz-title">Drag & drop your file here · ፋይልዎን ይጥሉ</div>
+                <div class="fz-sub">or click to browse · ወይም ጠቅ ያድርጉ</div>
+                <div class="fz-formats">
+                    <span class="fz-fmt">STL</span>
+                    <span class="fz-fmt">OBJ</span>
+                    <span class="fz-fmt">STEP</span>
+                    <span class="fz-fmt">DXF</span>
+                    <span class="fz-fmt">DWG</span>
+                    <span class="fz-fmt">SVG</span>
+                    <span class="fz-fmt">PDF</span>
+                    <span class="fz-fmt">IGES</span>
+                </div>
+                <div id="file-name-display" style="margin-top:10px;font-size:.85rem;color:#078930;font-weight:600;display:none;"></div>
+            </div>
+
+            {% if form.design_file.errors %}
+            <ul class="errorlist">{% for e in form.design_file.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+            {% endif %}
+            <div style="font-size:.75rem;color:#94a3b8;margin-top:6px;">
+                {{ form.design_file.help_text }}
+            </div>
+
+            <!-- Pricing preview info -->
+            {% if mk_profile %}
+            <div class="price-preview" style="margin-top:20px;">
+                <div style="font-size:.78rem;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">
+                    <i class="fas fa-calculator"></i> Pricing Rates · የዋጋ መጠን
+                </div>
+                <div class="analysis-row">
+                    <div class="analysis-item">
+                        <strong>ETB {{ mk_profile.price_pla_per_gram }}</strong>
+                        per gram — PLA
+                    </div>
+                    <div class="analysis-item">
+                        <strong>ETB {{ mk_profile.price_petg_per_gram }}</strong>
+                        per gram — PETG
+                    </div>
+                    <div class="analysis-item">
+                        <strong>ETB {{ mk_profile.price_abs_per_gram }}</strong>
+                        per gram — ABS
+                    </div>
+                    <div class="analysis-item">
+                        <strong>ETB {{ mk_profile.price_resin_per_gram }}</strong>
+                        per gram — Resin
+                    </div>
+                    <div class="analysis-item">
+                        <strong>ETB {{ mk_profile.price_laser_per_cm2 }}</strong>
+                        per cm² — Laser
+                    </div>
+                    <div class="analysis-item">
+                        <strong>ETB {{ mk_profile.price_cnc_per_cm2 }}</strong>
+                        per cm² — CNC
+                    </div>
+                </div>
+                <p style="font-size:.78rem;color:#64748b;margin-top:10px;">
+                    <i class="fas fa-info-circle" style="color:#078930;"></i>
+                    Final price is calculated automatically after upload. STL files get precise volume analysis.
+                    Other formats use estimated dimensions. Vendor confirms the final quote before you commit.
+                </p>
+            </div>
+            {% endif %}
+
+            <button type="submit" class="submit-btn" id="submit-btn">
+                <i class="fas fa-paper-plane"></i>
+                Submit Order & Get Quote · ትዕዛዝ ላክ
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// File drop zone UX
+const zone = document.getElementById('file-zone');
+const input = zone ? zone.querySelector('input[type=file]') : null;
+const nameDisplay = document.getElementById('file-name-display');
+const submitBtn = document.getElementById('submit-btn');
+
+if (input) {
+    input.addEventListener('change', function() {
+        if (this.files.length > 0) {
+            const f = this.files[0];
+            nameDisplay.textContent = '✓ ' + f.name + ' (' + (f.size / 1024 / 1024).toFixed(2) + ' MB)';
+            nameDisplay.style.display = 'block';
+            zone.style.borderColor = '#078930';
+            zone.style.background = '#e8f5e9';
+        }
+    });
+}
+['dragenter','dragover'].forEach(ev => {
+    zone && zone.addEventListener(ev, e => {
+        e.preventDefault();
+        zone.classList.add('drag-over');
+    });
+});
+['dragleave','drop'].forEach(ev => {
+    zone && zone.addEventListener(ev, e => {
+        e.preventDefault();
+        zone.classList.remove('drag-over');
+        if (ev === 'drop' && e.dataTransfer.files.length && input) {
+            input.files = e.dataTransfer.files;
+            input.dispatchEvent(new Event('change'));
+        }
+    });
+});
+
+// Show/hide infill based on service type
+const serviceSelect = document.querySelector('[name=service_type]');
+const infillGroup   = document.getElementById('infill-group');
+function toggleInfill() {
+    if (!serviceSelect || !infillGroup) return;
+    infillGroup.style.display = serviceSelect.value === '3d_print' ? '' : 'none';
+}
+if (serviceSelect) {
+    serviceSelect.addEventListener('change', toggleInfill);
+    toggleInfill();
+}
+
+// Prevent double-submit
+const form = document.getElementById('mk-form');
+if (form && submitBtn) {
+    form.addEventListener('submit', function() {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Calculating & submitting...';
+    });
+}
+</script>
+{% endblock %}

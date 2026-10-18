@@ -1,0 +1,403 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{{ agent.user.get_full_name|default:agent.user.username }} · Certified Agent · Qenagebeya 🇪🇹{% endblock %}
+
+{% block extra_css %}
+<style>
+.card-wrapper {
+    width: 100%;
+    max-width: 580px;
+    margin: 24px auto 48px;
+    padding: 0 12px;
+    box-sizing: border-box;
+}
+
+.agent-profile-box {
+    background: #ffffff;
+    border-radius: 24px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 10px 30px rgba(11, 43, 74, 0.08);
+    overflow: hidden;
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.profile-cover {
+    height: 120px;
+    background: linear-gradient(135deg, #0b2b4a 0%, #1e3a8a 50%, #d42e2e 100%);
+    position: relative;
+}
+
+/* Flag Ribbon */
+.cover-flag-ribbon {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 5px;
+    display: flex;
+}
+.cover-flag-ribbon .seg-green { flex: 1; background: #078930; }
+.cover-flag-ribbon .seg-yellow { flex: 1; background: #f59e0b; }
+.cover-flag-ribbon .seg-red { flex: 1; background: #d42e2e; }
+
+.profile-header {
+    padding: 0 20px 20px;
+    position: relative;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.avatar-wrap {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    background: #0b2b4a;
+    color: #ffffff;
+    font-size: 2.2rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 4px solid #ffffff;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    margin: -44px auto 12px;
+}
+
+.agent-title {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 4px;
+    word-break: break-word;
+}
+
+.agent-tier-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 50px;
+    margin-bottom: 12px;
+}
+
+.quick-connect-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin: 16px 0 20px;
+}
+
+.connect-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 12px 6px;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.8rem;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+.connect-btn i {
+    font-size: 1.2rem;
+}
+
+.btn-call {
+    background: #f0fdf4;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+}
+.btn-call:hover {
+    background: #15803d;
+    color: #ffffff;
+}
+
+.btn-wa {
+    background: #ecfdf5;
+    color: #047857;
+    border: 1px solid #a7f3d0;
+}
+.btn-wa:hover {
+    background: #25d366;
+    color: #ffffff;
+}
+
+.btn-email {
+    background: #f8fafc;
+    color: #0b2b4a;
+    border: 1px solid #e2e8f0;
+}
+.btn-email:hover {
+    background: #0b2b4a;
+    color: #ffffff;
+}
+
+.qr-preview-card {
+    background: #f8fafc;
+    border-radius: 16px;
+    padding: 16px;
+    border: 1px solid #eef2f6;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 16px 0 6px;
+    text-align: left;
+    box-sizing: border-box;
+}
+
+.qr-preview-img {
+    width: 82px;
+    height: 82px;
+    max-width: 100%;
+    background: #ffffff;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    padding: 4px;
+    flex-shrink: 0;
+    box-sizing: border-box;
+}
+
+.inquiry-card {
+    background: #ffffff;
+    border-top: 1px solid #eef2f6;
+    padding: 20px;
+    text-align: left;
+    box-sizing: border-box;
+}
+
+.form-grid-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.form-input {
+    width: 100%;
+    padding: 11px 13px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    margin-bottom: 10px;
+    outline: none;
+    box-sizing: border-box;
+    font-family: inherit;
+}
+
+.form-input:focus {
+    border-color: #0b2b4a;
+}
+
+.btn-submit-inquiry {
+    width: 100%;
+    padding: 13px;
+    background: #0b2b4a;
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.92rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.btn-submit-inquiry:hover {
+    background: #d42e2e;
+}
+
+/* ── Mobile Responsive Overrides ── */
+@media (max-width: 480px) {
+    .card-wrapper {
+        margin: 10px auto 28px;
+        padding: 0 6px;
+        max-width: 100%;
+    }
+    .profile-cover {
+        height: 90px;
+    }
+    .avatar-wrap {
+        width: 72px;
+        height: 72px;
+        font-size: 1.7rem;
+        margin: -36px auto 10px;
+    }
+    .agent-title {
+        font-size: 1.18rem;
+    }
+    .profile-header {
+        padding: 0 12px 14px;
+    }
+    .quick-connect-grid {
+        gap: 6px;
+    }
+    .connect-btn {
+        padding: 9px 3px;
+        font-size: 0.72rem;
+        border-radius: 10px;
+    }
+    .connect-btn i {
+        font-size: 1.05rem;
+    }
+    .qr-preview-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 12px;
+        padding: 12px;
+    }
+    .qr-preview-img {
+        width: 130px;
+        height: 130px;
+        margin: 0 auto;
+    }
+    .qr-btn-group {
+        justify-content: center !important;
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 8px !important;
+        width: 100% !important;
+    }
+    .qr-btn-group a {
+        justify-content: center !important;
+        padding: 8px 6px !important;
+        font-size: 0.72rem !important;
+    }
+    .form-grid-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+    .form-input {
+        font-size: 15px; /* avoids iOS safari zoom */
+    }
+    .inquiry-card {
+        padding: 16px 12px;
+    }
+}
+
+@media (max-width: 360px) {
+    .quick-connect-grid {
+        gap: 4px;
+    }
+    .connect-btn {
+        padding: 8px 2px;
+        font-size: 0.67rem;
+    }
+    .connect-btn i {
+        font-size: 0.95rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="card-wrapper">
+    <div class="agent-profile-box">
+        <div class="profile-cover">
+            <div class="cover-flag-ribbon">
+                <div class="seg-green"></div>
+                <div class="seg-yellow"></div>
+                <div class="seg-red"></div>
+            </div>
+        </div>
+        
+        <div class="profile-header">
+            <div class="avatar-wrap">
+                {{ agent.user.username|first|upper }}
+            </div>
+            <h1 class="agent-title">{{ agent.user.get_full_name|default:agent.user.username }}</h1>
+            <div class="agent-tier-badge">
+                <i class="fas fa-shield-alt"></i> {{ agent.get_tier_display }} · Verified Agent
+            </div>
+            <p style="font-size: 0.84rem; color: #64748b; margin-bottom: 6px; line-height: 1.4;">
+                Official representative connecting buyers, suppliers, and deals on Qenagebeya.
+            </p>
+
+            <!-- Quick Connect Buttons -->
+            <div class="quick-connect-grid">
+                {% if agent.user.phone %}
+                <a href="tel:{{ agent.user.phone }}" class="connect-btn btn-call">
+                    <i class="fas fa-phone-alt"></i>
+                    <span>Call Agent</span>
+                </a>
+                <a href="https://wa.me/{{ agent.user.phone }}?text=Hello%20{{ agent.user.get_full_name|default:agent.user.username }},%20I%20found%20your%20profile%20on%20Qenagebeya" target="_blank" class="connect-btn btn-wa">
+                    <i class="fab fa-whatsapp"></i>
+                    <span>WhatsApp</span>
+                </a>
+                {% else %}
+                <a href="tel:+251900000000" class="connect-btn btn-call">
+                    <i class="fas fa-phone-alt"></i>
+                    <span>Call Support</span>
+                </a>
+                <a href="https://wa.me/251900000000" target="_blank" class="connect-btn btn-wa">
+                    <i class="fab fa-whatsapp"></i>
+                    <span>WhatsApp</span>
+                </a>
+                {% endif %}
+                <a href="mailto:{{ agent.user.email }}" class="connect-btn btn-email">
+                    <i class="far fa-envelope"></i>
+                    <span>Send Email</span>
+                </a>
+            </div>
+
+            <!-- Agent QR Code Card -->
+            <div class="qr-preview-card">
+                <img src="{{ qr_data_uri }}" alt="Agent QR Code" class="qr-preview-img"/>
+                <div style="flex: 1; width: 100%;">
+                    <div style="font-weight: 700; color: #0f172a; font-size: 0.9rem;">Official Agent QR Code</div>
+                    <div style="font-size: 0.76rem; color: #64748b; margin: 3px 0 10px;">
+                        Scan or share to save this agent's digital business card.
+                    </div>
+                    <div class="qr-btn-group" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <a href="{% url 'agents:agent_qr' agent.pk %}?download=1" class="btn" style="padding: 6px 12px; font-size: 0.75rem; background: #0b2b4a; color: #fff; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                            <i class="fas fa-download"></i> Save QR
+                        </a>
+                        <a href="{% url 'agents:agent_qr' agent.pk %}?format=badge&download=1" class="btn" style="padding: 6px 12px; font-size: 0.75rem; background: #d42e2e; color: #fff; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                            <i class="fas fa-id-badge"></i> Business Card
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Direct Inquiry Form -->
+        <div class="inquiry-card">
+            <h3 style="font-size: 1rem; font-weight: 700; color: #0f172a; margin-bottom: 4px;">
+                <i class="fas fa-paper-plane" style="color: #d42e2e;"></i> Send Direct Inquiry / Deal Request
+            </h3>
+            <p style="font-size: 0.8rem; color: #64748b; margin-bottom: 14px;">
+                Leave a message and {{ agent.user.get_full_name|default:agent.user.username }} will respond promptly.
+            </p>
+
+            {% if inquiry_sent %}
+            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; padding: 12px 14px; border-radius: 10px; font-size: 0.85rem; font-weight: 600; margin-bottom: 14px;">
+                <i class="fas fa-check-circle"></i> Thank you! Your inquiry has been submitted directly to {{ agent.user.get_full_name|default:agent.user.username }}.
+            </div>
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+                <input type="text" name="name" class="form-input" placeholder="Your Full Name *" required/>
+                <div class="form-grid-row">
+                    <input type="tel" name="phone" class="form-input" placeholder="Phone Number *" required/>
+                    <input type="email" name="email" class="form-input" placeholder="Email Address"/>
+                </div>
+                <input type="text" name="subject" class="form-input" placeholder="Subject / Deal Interest"/>
+                <textarea name="message" rows="3" class="form-input" placeholder="Describe your product requirement, deal, or question..." required></textarea>
+                <button type="submit" class="btn-submit-inquiry">
+                    <i class="fas fa-paper-plane"></i> Submit Inquiry to Agent
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

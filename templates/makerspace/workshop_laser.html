@@ -1,0 +1,608 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}Laser Cutting & 2D Vector CAD Studio · Makerspace — Qenagebeya 🇪🇹{% endblock %}
+
+{% block extra_css %}
+<style>
+.laser-container {
+    max-width: 1400px;
+    margin: 20px auto 40px;
+    padding: 0 20px;
+}
+
+.laser-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 20px;
+    background: #fff;
+    padding: 18px 24px;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0,0,0,.04);
+}
+
+.laser-grid {
+    display: grid;
+    grid-template-columns: 280px 1fr 320px;
+    gap: 20px;
+}
+
+@media (max-width: 1100px) {
+    .laser-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.tool-panel {
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    padding: 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.tool-btn-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.tool-btn {
+    padding: 10px;
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #334155;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    transition: .15s;
+}
+
+.tool-btn:hover, .tool-btn.active {
+    background: #e6f0fa;
+    border-color: #1a4b8a;
+    color: #1a4b8a;
+}
+
+/* Layer modes (Cut / Score / Engrave) */
+.layer-radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.layer-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 600;
+    transition: .15s;
+}
+
+.layer-option:hover {
+    background: #f8fafc;
+}
+
+.layer-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+}
+
+/* Canvas Area */
+.canvas-wrapper {
+    background: #1e293b;
+    border-radius: 16px;
+    border: 1px solid #334155;
+    position: relative;
+    min-height: 560px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.canvas-toolbar {
+    background: rgba(15, 23, 42, 0.95);
+    padding: 10px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #334155;
+}
+
+#laser-canvas {
+    flex: 1;
+    width: 100%;
+    background: #0f172a;
+    cursor: crosshair;
+    display: block;
+}
+
+.quote-card {
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    padding: 16px;
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.82rem;
+    color: #64748b;
+    margin-bottom: 8px;
+}
+
+.stat-item strong {
+    color: #0f172a;
+}
+
+.price-banner {
+    background: linear-gradient(135deg, #1a4b8a, #0b2b4a);
+    color: #fff;
+    padding: 16px;
+    border-radius: 12px;
+    text-align: center;
+    margin-top: 10px;
+}
+
+.price-banner .price {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #FCDD09;
+}
+
+.order-btn-laser {
+    width: 100%;
+    padding: 12px;
+    background: #1a4b8a;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.95rem;
+    border-radius: 40px;
+    border: none;
+    cursor: pointer;
+    transition: .2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none;
+}
+
+.order-btn-laser:hover {
+    background: #0b2b4a;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(26,75,138,0.3);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="laser-container">
+    <!-- Header -->
+    <div class="laser-header">
+        <div>
+            <h1 style="font-size:1.4rem;font-weight:800;color:#0b2b4a;margin:0;display:flex;align-items:center;gap:10px;">
+                <i class="fas fa-cut" style="color:#1a4b8a;"></i> Laser Cutting & Vector CAD Studio · ሌዘር ስራቤት
+            </h1>
+            <p style="font-size:0.85rem;color:#64748b;margin:4px 0 0;">
+                Draw 2D vector shapes, arrange engravings & Ethiopian patterns, calculate cut path length, and place precision cutting orders.
+            </p>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;">
+            <a href="{% url 'makerspace:landing' %}" class="tool-btn" style="padding:6px 14px;flex-direction:row;background:#f1f5f9;">
+                <i class="fas fa-arrow-left"></i> Makerspace Hub
+            </a>
+            <button id="btn-export-svg" class="tool-btn" style="padding:6px 14px;flex-direction:row;background:#0b2b4a;color:#fff;">
+                <i class="fas fa-file-code"></i> Export .SVG
+            </button>
+        </div>
+    </div>
+
+    <!-- Studio Grid -->
+    <div class="laser-grid">
+        <!-- LEFT: Vector Tools & Material Config -->
+        <div class="tool-panel">
+            <div style="font-size:0.95rem;font-weight:700;color:#0b2b4a;border-bottom:1px solid #f1f5f9;padding-bottom:8px;">
+                <i class="fas fa-pencil-ruler"></i> Vector Drawing Tools
+            </div>
+
+            <div class="tool-btn-grid">
+                <button class="tool-btn active" data-tool="rect"><i class="fas fa-vector-square"></i> Rectangle</button>
+                <button class="tool-btn" data-tool="circle"><i class="far fa-circle"></i> Circle / Ring</button>
+                <button class="tool-btn" data-tool="text"><i class="fas fa-font"></i> Text Engrave</button>
+                <button class="tool-btn" data-tool="pattern"><i class="fas fa-certificate"></i> Mesob Pattern</button>
+                <button class="tool-btn" data-tool="keychain"><i class="fas fa-tag"></i> Keychain Blank</button>
+                <button class="tool-btn" data-tool="clear"><i class="fas fa-trash-alt" style="color:#dc2626;"></i> Clear Bed</button>
+            </div>
+
+            <!-- Layer Mode Selector -->
+            <div style="font-size:0.88rem;font-weight:700;color:#0b2b4a;margin-top:6px;">
+                <i class="fas fa-layer-group"></i> Operation Layer Mode
+            </div>
+
+            <div class="layer-radio-group">
+                <label class="layer-option">
+                    <input type="radio" name="layer-mode" value="cut" checked>
+                    <span class="layer-dot" style="background:#dc2626;"></span>
+                    <span>Vector Cut (Through Sheet)</span>
+                </label>
+                <label class="layer-option">
+                    <input type="radio" name="layer-mode" value="score">
+                    <span class="layer-dot" style="background:#0284c7;"></span>
+                    <span>Vector Score (Surface Outline)</span>
+                </label>
+                <label class="layer-option">
+                    <input type="radio" name="layer-mode" value="engrave">
+                    <span class="layer-dot" style="background:#1e293b;"></span>
+                    <span>Raster Engrave (Shaded Fill)</span>
+                </label>
+            </div>
+
+            <!-- Material & Sheet Thickness -->
+            <div style="font-size:0.88rem;font-weight:700;color:#0b2b4a;margin-top:6px;">
+                <i class="fas fa-box-open"></i> Sheet Material & Thickness
+            </div>
+
+            <div class="form-group">
+                <select id="sel-laser-material" class="form-select" style="width:100%;padding:8px;border-radius:8px;border:1px solid #cbd5e1;font-size:0.83rem;">
+                    <option value="laser_wood" data-rate="0.80">3mm Birch Plywood (Clean Edge)</option>
+                    <option value="laser_wood_6mm" data-rate="1.20">6mm Structural Plywood</option>
+                    <option value="laser_acrylic" data-rate="1.40">3mm Clear Cast Acrylic (Glass-like)</option>
+                    <option value="laser_acrylic_black" data-rate="1.50">3mm Gloss Black Acrylic</option>
+                    <option value="laser_mdf" data-rate="0.70">3mm Craft MDF Board</option>
+                    <option value="laser_leather" data-rate="1.80">Genuine Ethiopian Leather</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label style="font-size:0.8rem;font-weight:700;color:#475569;">Laser Bed Preset Size</label>
+                <select id="sel-bed-size" class="form-select" style="width:100%;padding:8px;border-radius:8px;border:1px solid #cbd5e1;font-size:0.83rem;">
+                    <option value="600x400">600 × 400 mm (Standard Laser Bed)</option>
+                    <option value="300x200">300 × 200 mm (Compact Sheet)</option>
+                    <option value="900x600">900 × 600 mm (Large Production Bed)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- CENTER: Interactive 2D Vector CAD Canvas -->
+        <div class="canvas-wrapper">
+            <div class="canvas-toolbar">
+                <div style="color:#cbd5e1;font-size:0.8rem;display:flex;align-items:center;gap:12px;">
+                    <span><i class="fas fa-ruler-combined"></i> Bed: <strong id="lbl-bed-dim">600 × 400 mm</strong></span>
+                    <span>Grid: <strong>10 mm Snap</strong></span>
+                </div>
+                <div style="display:flex;gap:8px;">
+                    <button id="btn-add-sample" class="tool-btn" style="padding:4px 10px;font-size:0.75rem;flex-direction:row;background:#334155;color:#fff;border:none;">
+                        <i class="fas fa-magic"></i> Load Example Layout
+                    </button>
+                </div>
+            </div>
+
+            <canvas id="laser-canvas" width="600" height="400"></canvas>
+
+            <div style="background:rgba(15,23,42,0.95);padding:8px 16px;color:#94a3b8;font-size:0.75rem;display:flex;justify-content:space-between;border-top:1px solid #334155;">
+                <span>Click & drag on canvas to draw vector geometry. Colors indicate Cut (Red), Score (Blue), Engrave (Black).</span>
+                <span id="canvas-cursor-pos">X: 0mm, Y: 0mm</span>
+            </div>
+        </div>
+
+        <!-- RIGHT: Live Vector Path Stats & Price Quote -->
+        <div class="tool-panel">
+            <div style="font-size:0.95rem;font-weight:700;color:#0b2b4a;border-bottom:1px solid #f1f5f9;padding-bottom:8px;">
+                <i class="fas fa-calculator"></i> Cutting & Engraving Quote
+            </div>
+
+            <div class="quote-card">
+                <div class="stat-item">
+                    <span>Total Cut Perimeter:</span>
+                    <strong id="stat-cut-len">1.45 m</strong>
+                </div>
+                <div class="stat-item">
+                    <span>Score Line Length:</span>
+                    <strong id="stat-score-len">0.60 m</strong>
+                </div>
+                <div class="stat-item">
+                    <span>Raster Engrave Area:</span>
+                    <strong id="stat-engrave-area">48.0 cm²</strong>
+                </div>
+                <div class="stat-item">
+                    <span>Vector Elements:</span>
+                    <strong id="stat-elem-count">4 items</strong>
+                </div>
+                <div class="stat-item">
+                    <span>Estimated Machine Time:</span>
+                    <strong id="stat-laser-time">~4 mins 30s</strong>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label style="font-size:0.8rem;font-weight:700;color:#475569;">Batch Quantity</label>
+                <input type="number" id="inp-laser-qty" class="form-control" min="1" max="5000" value="1" style="padding:8px;border:1px solid #cbd5e1;border-radius:8px;">
+            </div>
+
+            <div class="price-banner">
+                <div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:1px;opacity:0.85;">Estimated Laser Cost</div>
+                <div class="price" id="stat-laser-total">ETB 120.00</div>
+                <div style="font-size:0.72rem;opacity:0.8;margin-top:2px;">Includes sheet stock + machine run time</div>
+            </div>
+
+            <button id="btn-submit-laser-order" class="order-btn-laser" style="margin-top:auto;">
+                <i class="fas fa-paper-plane"></i> Order Laser Cut · ወደ ትዕዛዝ ላክ
+            </button>
+            <button id="btn-export-svg-side" class="tool-btn" style="padding:8px;flex-direction:row;width:100%;justify-content:center;">
+                <i class="fas fa-download"></i> Download Production .SVG
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    const canvas = document.getElementById('laser-canvas');
+    const ctx = canvas.getContext('2d');
+    let currentTool = 'rect';
+    let shapes = [];
+    let isDrawing = false;
+    let startX = 0, startY = 0;
+
+    // Initialize Canvas Dimensions & Grid
+    function resizeCanvas() {
+        const bedSize = document.getElementById('sel-bed-size').value.split('x');
+        canvas.width = parseInt(bedSize[0]);
+        canvas.height = parseInt(bedSize[1]);
+        document.getElementById('lbl-bed-dim').textContent = `${canvas.width} × ${canvas.height} mm`;
+        drawScene();
+    }
+
+    function drawGrid() {
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // 10mm grid lines
+        ctx.strokeStyle = '#1e293b';
+        ctx.lineWidth = 0.5;
+        for (let x = 0; x < canvas.width; x += 10) {
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, canvas.height);
+            ctx.stroke();
+        }
+        for (let y = 0; y < canvas.height; y += 10) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(canvas.width, y);
+            ctx.stroke();
+        }
+
+        // 100mm major grid lines
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 1;
+        for (let x = 0; x < canvas.width; x += 100) {
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, canvas.height);
+            ctx.stroke();
+        }
+        for (let y = 0; y < canvas.height; y += 100) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(canvas.width, y);
+            ctx.stroke();
+        }
+    }
+
+    function drawScene() {
+        drawGrid();
+
+        shapes.forEach(s => {
+            ctx.save();
+            if (s.mode === 'cut') {
+                ctx.strokeStyle = '#ef4444'; // Red Vector Cut
+                ctx.lineWidth = 2;
+                ctx.fillStyle = 'rgba(239, 68, 68, 0.05)';
+            } else if (s.mode === 'score') {
+                ctx.strokeStyle = '#0284c7'; // Blue Score
+                ctx.lineWidth = 1.5;
+                ctx.fillStyle = 'transparent';
+            } else {
+                ctx.fillStyle = '#f8fafc'; // Black / White Engrave
+                ctx.strokeStyle = 'transparent';
+            }
+
+            if (s.type === 'rect') {
+                ctx.beginPath();
+                ctx.rect(s.x, s.y, s.w, s.h);
+                if (s.mode === 'engrave') ctx.fill(); else { ctx.fill(); ctx.stroke(); }
+            } else if (s.type === 'circle') {
+                ctx.beginPath();
+                ctx.arc(s.x + s.w/2, s.y + s.h/2, Math.abs(s.w/2), 0, Math.PI * 2);
+                if (s.mode === 'engrave') ctx.fill(); else { ctx.fill(); ctx.stroke(); }
+            } else if (s.type === 'text') {
+                ctx.font = 'bold 24px Inter, sans-serif';
+                ctx.fillStyle = s.mode === 'cut' ? '#ef4444' : '#38bdf8';
+                ctx.fillText(s.text || 'QENA 🇪🇹', s.x, s.y + 24);
+            } else if (s.type === 'pattern') {
+                // Ethiopian geometric motif
+                ctx.strokeStyle = '#078930';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(s.x, s.y, s.w, s.h);
+                ctx.strokeRect(s.x + 8, s.y + 8, s.w - 16, s.h - 16);
+            }
+            ctx.restore();
+        });
+
+        calculateLaserStats();
+    }
+
+    // Tool switching
+    document.querySelectorAll('.tool-btn[data-tool]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const tool = this.getAttribute('data-tool');
+            if (tool === 'clear') {
+                shapes = [];
+                drawScene();
+                return;
+            }
+            document.querySelectorAll('.tool-btn[data-tool]').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentTool = tool;
+        });
+    });
+
+    // Drawing Interaction
+    canvas.addEventListener('mousedown', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        startX = e.clientX - rect.left;
+        startY = e.clientY - rect.top;
+        isDrawing = true;
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const x = Math.round(e.clientX - rect.left);
+        const y = Math.round(e.clientY - rect.top);
+        document.getElementById('canvas-cursor-pos').textContent = `X: ${x} mm, Y: ${y} mm`;
+    });
+
+    canvas.addEventListener('mouseup', (e) => {
+        if (!isDrawing) return;
+        isDrawing = false;
+        const rect = canvas.getBoundingClientRect();
+        const endX = e.clientX - rect.left;
+        const endY = e.clientY - rect.top;
+
+        const w = Math.abs(endX - startX) || 50;
+        const h = Math.abs(endY - startY) || 40;
+        const posX = Math.min(startX, endX);
+        const posY = Math.min(startY, endY);
+
+        const mode = document.querySelector('input[name="layer-mode"]:checked').value;
+
+        shapes.push({
+            type: currentTool,
+            x: posX,
+            y: posY,
+            w: Math.max(20, w),
+            h: Math.max(20, h),
+            mode: mode,
+            text: currentTool === 'text' ? 'QENAGEBEYA' : ''
+        });
+
+        drawScene();
+    });
+
+    // Sample Layout generator
+    document.getElementById('btn-add-sample').addEventListener('click', () => {
+        shapes = [
+            { type: 'rect', x: 40, y: 40, w: 200, h: 120, mode: 'cut' },
+            { type: 'circle', x: 280, y: 40, w: 100, h: 100, mode: 'cut' },
+            { type: 'text', x: 60, y: 70, w: 160, h: 40, mode: 'engrave', text: 'ETHIOPIA 🇪🇹' },
+            { type: 'pattern', x: 50, y: 200, w: 330, h: 80, mode: 'score' }
+        ];
+        drawScene();
+    });
+
+    // Stat & Price calculation
+    function calculateLaserStats() {
+        let cutPerimeterMm = 0;
+        let scoreMm = 0;
+        let engraveCm2 = 0;
+
+        shapes.forEach(s => {
+            const perim = 2 * (s.w + s.h);
+            const area = (s.w * s.h) / 100.0;
+
+            if (s.mode === 'cut') cutPerimeterMm += perim;
+            else if (s.mode === 'score') scoreMm += perim;
+            else if (s.mode === 'engrave') engraveCm2 += area;
+        });
+
+        const cutMeters = cutPerimeterMm / 1000.0;
+        const scoreMeters = scoreMm / 1000.0;
+
+        const selMat = document.getElementById('sel-laser-material');
+        const rate = parseFloat(selMat.options[selMat.selectedIndex].getAttribute('data-rate')) || 0.80;
+        const qty = parseInt(document.getElementById('inp-laser-qty').value) || 1;
+
+        // Base minimum + rate calculation
+        const baseCost = 40.0;
+        const cutCost = (cutMeters * 35.0) + (scoreMeters * 15.0) + (engraveCm2 * rate);
+        const unitTotal = Math.max(60.0, baseCost + cutCost);
+        const batchTotal = unitTotal * qty;
+
+        const timeSeconds = Math.round((cutMeters * 20) + (scoreMeters * 10) + (engraveCm2 * 2.5));
+        const timeMins = Math.floor(timeSeconds / 60);
+        const timeSecs = timeSeconds % 60;
+
+        document.getElementById('stat-cut-len').textContent = `${cutMeters.toFixed(2)} m`;
+        document.getElementById('stat-score-len').textContent = `${scoreMeters.toFixed(2)} m`;
+        document.getElementById('stat-engrave-area').textContent = `${engraveCm2.toFixed(1)} cm²`;
+        document.getElementById('stat-elem-count').textContent = `${shapes.length} items`;
+        document.getElementById('stat-laser-time').textContent = `~${timeMins}m ${timeSecs}s`;
+        document.getElementById('stat-laser-total').textContent = `ETB ${batchTotal.toFixed(2)}`;
+    }
+
+    document.getElementById('sel-laser-material').addEventListener('change', calculateLaserStats);
+    document.getElementById('inp-laser-qty').addEventListener('input', calculateLaserStats);
+    document.getElementById('sel-bed-size').addEventListener('change', resizeCanvas);
+
+    // SVG Export
+    function exportSVG() {
+        let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${canvas.width}mm" height="${canvas.height}mm" viewBox="0 0 ${canvas.width} ${canvas.height}">\n`;
+        svg += `  <!-- Generated by Qenagebeya Laser Studio -->\n`;
+        shapes.forEach(s => {
+            const color = s.mode === 'cut' ? '#ff0000' : (s.mode === 'score' ? '#0000ff' : '#000000');
+            const strokeW = s.mode === 'cut' ? '0.2mm' : '0.1mm';
+            if (s.type === 'rect' || s.type === 'pattern') {
+                svg += `  <rect x="${s.x}" y="${s.y}" width="${s.w}" height="${s.h}" fill="${s.mode==='engrave'?'#000000':'none'}" stroke="${color}" stroke-width="${strokeW}"/>\n`;
+            } else if (s.type === 'circle') {
+                svg += `  <circle cx="${s.x + s.w/2}" cy="${s.y + s.h/2}" r="${s.w/2}" fill="${s.mode==='engrave'?'#000000':'none'}" stroke="${color}" stroke-width="${strokeW}"/>\n`;
+            } else if (s.type === 'text') {
+                svg += `  <text x="${s.x}" y="${s.y + 20}" font-family="Arial" font-size="16" fill="${color}">${s.text}</text>\n`;
+            }
+        });
+        svg += `</svg>`;
+
+        const blob = new Blob([svg], { type: 'image/svg+xml' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'qena_laser_cut.svg';
+        a.click();
+    }
+
+    document.getElementById('btn-export-svg').addEventListener('click', exportSVG);
+    document.getElementById('btn-export-svg-side').addEventListener('click', exportSVG);
+
+    // Submit Order Bridge
+    document.getElementById('btn-submit-laser-order').addEventListener('click', () => {
+        const mat = document.getElementById('sel-laser-material').value;
+        const qty = document.getElementById('inp-laser-qty').value;
+        const notes = `Laser studio layout: ${shapes.length} vector objects. Cut len: ${document.getElementById('stat-cut-len').textContent}, Engrave area: ${document.getElementById('stat-engrave-area').textContent}`;
+        const url = `{% url 'makerspace:submit_order' %}?service_type=laser&material=${mat}&quantity=${qty}&notes=${encodeURIComponent(notes)}`;
+        window.location.href = url;
+    });
+
+    resizeCanvas();
+    // Pre-populate sample
+    document.getElementById('btn-add-sample').click();
+})();
+</script>
+{% endblock %}

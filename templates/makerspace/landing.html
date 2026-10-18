@@ -1,0 +1,231 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}Makerspace · ስራቤት — Qenagebeya 🇪🇹{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Hero ── */
+.mk-hero{background:linear-gradient(135deg,#0b2b4a 0%,#1a4b8a 60%,#078930 100%);color:#fff;padding:56px 32px;text-align:center;}
+.mk-hero h1{font-size:2.6rem;font-weight:800;letter-spacing:-1px;}
+.mk-hero p{font-size:1.05rem;opacity:.85;max-width:580px;margin:12px auto 0;}
+.mk-hero .hero-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:28px;}
+.mk-btn{padding:12px 32px;border-radius:60px;font-weight:700;font-size:.95rem;border:none;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:.2s;}
+.mk-btn-primary{background:#078930;color:#fff;}
+.mk-btn-primary:hover{background:#0b2b4a;}
+.mk-btn-outline{background:transparent;border:2px solid rgba(255,255,255,.7);color:#fff;}
+.mk-btn-outline:hover{background:rgba(255,255,255,.15);}
+/* ── Services grid ── */
+.services-section{padding:48px 32px;max-width:1100px;margin:0 auto;}
+.services-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:24px;margin-top:24px;}
+.service-card{background:#fff;border-radius:20px;padding:28px 24px;border:1px solid #eef2f6;box-shadow:0 2px 8px rgba(0,0,0,.03);transition:.2s;}
+.service-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.08);border-color:#078930;}
+.service-card .icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin-bottom:16px;}
+.service-card h3{font-size:1.05rem;font-weight:700;margin-bottom:8px;}
+.service-card p{font-size:.85rem;color:#64748b;line-height:1.6;}
+/* ── Vendors grid ── */
+.vendors-section{padding:0 32px 48px;max-width:1100px;margin:0 auto;}
+.vendor-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;margin-top:20px;}
+.vendor-mk-card{background:#fff;border-radius:20px;border:1px solid #eef2f6;padding:24px;box-shadow:0 2px 6px rgba(0,0,0,.02);display:flex;flex-direction:column;gap:12px;}
+.vendor-mk-card .vname{font-size:1rem;font-weight:700;}
+.vendor-mk-card .vdesc{font-size:.82rem;color:#64748b;line-height:1.6;}
+.pricing-row{display:flex;flex-wrap:wrap;gap:8px;}
+.price-tag{background:#f1f4f9;padding:4px 12px;border-radius:40px;font-size:.72rem;font-weight:600;color:#0b2b4a;}
+.lead-time{font-size:.78rem;color:#94a3b8;display:flex;align-items:center;gap:5px;}
+/* ── How it works ── */
+.how-section{background:#f8fafc;padding:48px 32px;border-top:1px solid #eef2f6;}
+.how-steps{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:24px;max-width:900px;margin:24px auto 0;}
+.step{text-align:center;}
+.step .num{width:44px;height:44px;border-radius:50%;background:#078930;color:#fff;font-weight:800;font-size:1.1rem;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;}
+.step h4{font-weight:700;font-size:.9rem;margin-bottom:6px;}
+.step p{font-size:.8rem;color:#64748b;}
+.step-arrow{display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:#078930;padding-top:22px;}
+/* ── Supported formats ── */
+.formats-section{padding:32px;max-width:1100px;margin:0 auto;}
+.fmt-grid{display:flex;flex-wrap:wrap;gap:12px;margin-top:16px;}
+.fmt-chip{background:#fff;border:1px solid #eef2f6;padding:8px 18px;border-radius:40px;font-size:.82rem;font-weight:700;display:inline-flex;align-items:center;gap:8px;}
+.fmt-chip.fmt-3d{border-color:#078930;color:#078930;}
+.fmt-chip.fmt-2d{border-color:#1a4b8a;color:#1a4b8a;}
+.fmt-chip.fmt-doc{border-color:#b85a1a;color:#b85a1a;}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<div class="mk-hero">
+    <div style="font-size:.75rem;background:rgba(7,137,48,.3);display:inline-block;padding:4px 16px;border-radius:40px;margin-bottom:12px;font-weight:600;">
+        🛠 Qenagebeya Makerspace · ስራቤት
+    </div>
+    <h1>Print · Cut · Create · ፍጠር</h1>
+    <p>Upload your design file — 3D print, laser cut, CNC machine, or get design services from verified Ethiopian makerspaces.</p>
+    <div class="hero-btns">
+        <a href="{% url 'makerspace:submit_order' %}" class="mk-btn mk-btn-primary">
+            <i class="fas fa-upload"></i> Upload & Get Quote
+        </a>
+        <a href="{% url 'makerspace:my_orders' %}" class="mk-btn mk-btn-outline">
+            <i class="fas fa-list"></i> My Orders · ትዕዛዞቼ
+        </a>
+    </div>
+</div>
+
+<!-- Services -->
+<div class="services-section">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:10px;margin-bottom:8px;">
+        <div>
+            <h2 style="font-size:1.6rem;font-weight:800;color:#0b2b4a;margin:0;">🔧 Interactive Workshops & Services · ስራቤት</h2>
+            <p style="font-size:0.88rem;color:#64748b;margin:4px 0 0;">Launch our built-in CAD studio editors or upload existing files for instant Ethiopian production.</p>
+        </div>
+    </div>
+    <div class="services-grid">
+        <!-- 1. 3D Printing -->
+        <div class="service-card" style="display:flex;flex-direction:column;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                <div class="icon" style="background:#e8f5e9;color:#078930;"><i class="fas fa-cube"></i></div>
+                <span style="background:#e8f5e9;color:#078930;font-size:0.72rem;font-weight:700;padding:3px 8px;border-radius:6px;">WebGL 3D CAD</span>
+            </div>
+            <h3>3D Printing · ሶስት-ዲ ማተሚያ</h3>
+            <p style="flex:1;">Design parametric 3D shapes, inspect STL/OBJ models, simulate infill slicing, and calculate filament grams in real time.</p>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-top:16px;">
+                <a href="{% url 'makerspace:workshop_3d' %}" class="mk-btn mk-btn-primary" style="padding:8px 16px;font-size:0.83rem;justify-content:center;border-radius:10px;background:#078930;">
+                    <i class="fas fa-cubes"></i> Open 3D Workshop Editor →
+                </a>
+                <a href="{% url 'makerspace:submit_order' %}?service_type=3d_print" style="font-size:0.78rem;color:#64748b;text-align:center;text-decoration:none;font-weight:600;">
+                    Or Upload STL & Quote →
+                </a>
+            </div>
+        </div>
+
+        <!-- 2. Laser Cutting -->
+        <div class="service-card" style="display:flex;flex-direction:column;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                <div class="icon" style="background:#e6f0fa;color:#1a4b8a;"><i class="fas fa-cut"></i></div>
+                <span style="background:#e6f0fa;color:#1a4b8a;font-size:0.72rem;font-weight:700;padding:3px 8px;border-radius:6px;">2D Vector CAD</span>
+            </div>
+            <h3>Laser Cutting · ሌዘር ቁረጥ</h3>
+            <p style="flex:1;">Draw 2D vector layouts, Ethiopian Mesob patterns, text engravings, and calculate cut perimeters across plywood, acrylic & leather.</p>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-top:16px;">
+                <a href="{% url 'makerspace:workshop_laser' %}" class="mk-btn mk-btn-primary" style="padding:8px 16px;font-size:0.83rem;justify-content:center;border-radius:10px;background:#1a4b8a;">
+                    <i class="fas fa-drafting-compass"></i> Open Laser Studio →
+                </a>
+                <a href="{% url 'makerspace:submit_order' %}?service_type=laser" style="font-size:0.78rem;color:#64748b;text-align:center;text-decoration:none;font-weight:600;">
+                    Or Upload DXF/SVG & Quote →
+                </a>
+            </div>
+        </div>
+
+        <!-- 3. CNC Machining -->
+        <div class="service-card" style="display:flex;flex-direction:column;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                <div class="icon" style="background:#fef3f3;color:#b45309;"><i class="fas fa-tools"></i></div>
+                <span style="background:#fef3c7;color:#92400e;font-size:0.72rem;font-weight:700;padding:3px 8px;border-radius:6px;">CAM Simulator</span>
+            </div>
+            <h3>CNC Machining · ሲኤንሲ</h3>
+            <p style="flex:1;">Configure billet dimensions in aluminum or hardwood, build pocketing & drill operations, and generate ISO/GRBL G-code.</p>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-top:16px;">
+                <a href="{% url 'makerspace:workshop_cnc' %}" class="mk-btn mk-btn-primary" style="padding:8px 16px;font-size:0.83rem;justify-content:center;border-radius:10px;background:#b45309;">
+                    <i class="fas fa-cog"></i> Open CNC Workshop →
+                </a>
+                <a href="{% url 'makerspace:submit_order' %}?service_type=cnc" style="font-size:0.78rem;color:#64748b;text-align:center;text-decoration:none;font-weight:600;">
+                    Or Upload STEP/DWG & Quote →
+                </a>
+            </div>
+        </div>
+
+        <!-- 4. Design Service -->
+        <div class="service-card" style="display:flex;flex-direction:column;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                <div class="icon" style="background:#fff4e6;color:#b85a1a;"><i class="fas fa-palette"></i></div>
+                <span style="background:#ffedd5;color:#9a3412;font-size:0.72rem;font-weight:700;padding:3px 8px;border-radius:6px;">Concept Sketchpad</span>
+            </div>
+            <h3>Design Service · ዲዛይን</h3>
+            <p style="flex:1;">Sketch napkin ideas directly on our canvas, annotate dimensions, upload broken part photos, and request custom CAD models.</p>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-top:16px;">
+                <a href="{% url 'makerspace:workshop_design' %}" class="mk-btn mk-btn-primary" style="padding:8px 16px;font-size:0.83rem;justify-content:center;border-radius:10px;background:#b85a1a;">
+                    <i class="fas fa-pen-nib"></i> Open Design Studio →
+                </a>
+                <a href="{% url 'makerspace:submit_order' %}?service_type=design" style="font-size:0.78rem;color:#64748b;text-align:center;text-decoration:none;font-weight:600;">
+                    Or Submit Written Brief →
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Supported Formats -->
+<div class="formats-section">
+    <h2 style="font-size:1.3rem;font-weight:800;">📁 Supported File Formats</h2>
+    <div class="fmt-grid">
+        <span class="fmt-chip fmt-3d"><i class="fas fa-cube"></i> STL — 3D Print (auto volume)</span>
+        <span class="fmt-chip fmt-3d"><i class="fas fa-cube"></i> OBJ — 3D Object</span>
+        <span class="fmt-chip fmt-3d"><i class="fas fa-cube"></i> STEP / IGES — CAD Solid</span>
+        <span class="fmt-chip fmt-2d"><i class="fas fa-vector-square"></i> DXF — AutoCAD Drawing</span>
+        <span class="fmt-chip fmt-2d"><i class="fas fa-draw-polygon"></i> SVG — Vector Art</span>
+        <span class="fmt-chip fmt-2d"><i class="fas fa-file"></i> DWG — AutoCAD Binary</span>
+        <span class="fmt-chip fmt-doc"><i class="fas fa-file-pdf"></i> PDF — Document / Drawing</span>
+    </div>
+</div>
+
+<!-- Available Vendors -->
+{% if profiles %}
+<div class="vendors-section">
+    <h2 style="font-size:1.3rem;font-weight:800;">🏪 Available Makerspaces</h2>
+    <div class="vendor-cards">
+        {% for profile in profiles %}
+        <div class="vendor-mk-card">
+            <div class="vname">
+                <i class="fas fa-tools" style="color:#078930;margin-right:8px;"></i>
+                {{ profile.vendor.store_name }}
+            </div>
+            {% if profile.description %}
+                <div class="vdesc">{{ profile.description|truncatechars:100 }}</div>
+            {% endif %}
+            <div class="pricing-row">
+                <span class="price-tag">PLA ETB{{ profile.price_pla_per_gram }}/g</span>
+                <span class="price-tag">PETG ETB{{ profile.price_petg_per_gram }}/g</span>
+                <span class="price-tag">Laser ETB{{ profile.price_laser_per_cm2 }}/cm²</span>
+            </div>
+            <div class="lead-time">
+                <i class="fas fa-clock"></i>
+                Lead time: {{ profile.min_lead_time_days }}–{{ profile.max_lead_time_days }} days
+            </div>
+            <a href="{% url 'makerspace:submit_order_vendor' profile.vendor.slug %}"
+               class="mk-btn mk-btn-primary" style="margin-top:4px;justify-content:center;">
+                <i class="fas fa-upload"></i> Order from this Makerspace
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- How it works -->
+<div class="how-section">
+    <div style="text-align:center;">
+        <h2 style="font-size:1.5rem;font-weight:800;">⚙️ How it Works · እንዴት ይሰራል</h2>
+    </div>
+    <div class="how-steps">
+        <div class="step">
+            <div class="num">1</div>
+            <h4>Upload File · ፋይል ጫን</h4>
+            <p>Upload your STL, DXF, SVG, or PDF design file.</p>
+        </div>
+        <div class="step-arrow"><i class="fas fa-arrow-right"></i></div>
+        <div class="step">
+            <div class="num">2</div>
+            <h4>Get Quote · ዋጋ ይቀበሉ</h4>
+            <p>System auto-calculates price. Vendor reviews and confirms.</p>
+        </div>
+        <div class="step-arrow"><i class="fas fa-arrow-right"></i></div>
+        <div class="step">
+            <div class="num">3</div>
+            <h4>Accept · ተቀበሉ</h4>
+            <p>Accept the quote. Vendor starts production.</p>
+        </div>
+        <div class="step-arrow"><i class="fas fa-arrow-right"></i></div>
+        <div class="step">
+            <div class="num">4</div>
+            <h4>Receive · ይቀበሉ</h4>
+            <p>Pick up or have it delivered to you.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

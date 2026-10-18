@@ -1,0 +1,245 @@
+{% extends 'vendors/base_vendor.html' %}
+{% block title %}{{ order.order_number }} · Makerspace Vendor{% endblock %}
+{% block breadcrumb %}Makerspace / {{ order.order_number }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.mk-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.mk-info-item{padding:10px 0;border-bottom:1px solid #f1f4f9;}
+.mk-info-item .ilabel{font-size:.78rem;color:#94a3b8;font-weight:600;margin-bottom:3px;}
+.mk-info-item .ivalue{font-size:.9rem;font-weight:600;}
+.analysis-box{background:linear-gradient(135deg,#f0fff4,#e3f2fd);border-radius:14px;padding:16px 20px;border:1px solid #c8e6c9;display:flex;flex-wrap:wrap;gap:16px;margin-bottom:20px;}
+.an-item strong{display:block;font-size:1.3rem;font-weight:800;color:#0b2b4a;}
+.an-item span{font-size:.75rem;color:#64748b;}
+.action-panel{background:#f8fafc;border-radius:16px;padding:20px;border:1px solid #eef2f6;}
+.action-panel h4{font-size:.9rem;font-weight:700;margin-bottom:14px;color:#475569;text-transform:uppercase;letter-spacing:.4px;}
+.tl-list{list-style:none;padding:0;}
+.tl-list li{display:flex;gap:12px;padding:8px 0;border-left:2px solid #eef2f6;margin-left:10px;padding-left:18px;position:relative;font-size:.82rem;}
+.tl-list li::before{content:'';width:8px;height:8px;border-radius:50%;background:#078930;position:absolute;left:-5px;top:13px;}
+.tl-time{color:#94a3b8;min-width:70px;}
+.reject-form{background:#fef9f9;border-radius:12px;padding:16px;border:1px solid #fecaca;margin-top:16px;}
+.status-badge-lg{padding:8px 24px;border-radius:40px;font-size:.9rem;font-weight:700;display:inline-block;}
+.st-quote_pending{background:#fef3f3;color:#b91c1c;}
+.st-quoted{background:#fff4e6;color:#b85a1a;}
+.st-accepted{background:#e6f0fa;color:#1a4b8a;}
+.st-in_production{background:#f0fff4;color:#078930;}
+.st-ready{background:#e8f5e9;color:#1f7b3a;}
+.st-delivered{background:#e6f7e6;color:#1f7b3a;}
+.st-rejected,.st-cancelled{background:#f1f4f9;color:#64748b;}
+@media(max-width:768px){.mk-info-grid{grid-template-columns:1fr;}}
+</style>
+{% endblock %}
+
+{% block vendor_content %}
+<div class="page-header">
+    <div>
+        <h2>{{ order.order_number }}</h2>
+        <div style="margin-top:6px;">
+            <span class="status-badge-lg st-{{ order.status }}">{{ order.get_status_display }}</span>
+        </div>
+    </div>
+    <a href="{% url 'makerspace:vendor_orders' %}" class="btn-back">
+        <i class="fas fa-arrow-left"></i> All Orders
+    </a>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 340px;gap:24px;align-items:start;">
+
+    <!-- Left: Order info -->
+    <div>
+        <!-- File & Analysis -->
+        <div class="form-card" style="margin-bottom:20px;">
+            <h3 style="font-size:.9rem;font-weight:700;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid #eef2f6;">
+                <i class="fas fa-file-upload" style="color:#078930;margin-right:8px;"></i>
+                Design File & Auto-Analysis
+            </h3>
+
+            <div style="margin-bottom:16px;">
+                <a href="{{ order.design_file.url }}" target="_blank"
+                   style="display:inline-flex;align-items:center;gap:8px;background:#e8f5e9;padding:10px 20px;border-radius:40px;font-weight:700;color:#078930;text-decoration:none;font-size:.88rem;">
+                    <i class="fas fa-download"></i>
+                    Download {{ order.file_name }}
+                </a>
+                <span style="font-size:.75rem;color:#94a3b8;margin-left:10px;">{{ order.file_type|upper }} file</span>
+            </div>
+
+            {% if order.estimated_grams > 0 or order.estimated_area_cm2 > 0 or order.estimated_volume_cm3 > 0 %}
+            <div class="analysis-box">
+                {% if order.estimated_volume_cm3 > 0 %}
+                <div class="an-item">
+                    <strong>{{ order.estimated_volume_cm3 }} cm³</strong>
+                    <span>Volume (solid)</span>
+                </div>
+                {% endif %}
+                {% if order.estimated_grams > 0 %}
+                <div class="an-item">
+                    <strong>{{ order.estimated_grams }} g</strong>
+                    <span>Est. weight at {{ order.infill }}% infill</span>
+                </div>
+                {% endif %}
+                {% if order.estimated_area_cm2 > 0 %}
+                <div class="an-item">
+                    <strong>{{ order.estimated_area_cm2 }} cm²</strong>
+                    <span>Cutting area</span>
+                </div>
+                {% endif %}
+                <div class="an-item">
+                    <strong>× {{ order.quantity }}</strong>
+                    <span>Quantity</span>
+                </div>
+                <div class="an-item">
+                    <strong>ETB {{ order.system_price }}</strong>
+                    <span>System estimate</span>
+                </div>
+            </div>
+            {% else %}
+            <div style="background:#fff8e6;border:1px solid #f5d7b0;border-radius:12px;padding:12px 16px;font-size:.82rem;color:#b85a1a;margin-bottom:16px;">
+                <i class="fas fa-info-circle"></i>
+                File type ({{ order.file_type|upper }}) could not be auto-analysed.
+                Please review the file manually and set your own price below.
+            </div>
+            {% endif %}
+
+            <!-- Order details -->
+            <div class="mk-info-grid">
+                <div class="mk-info-item">
+                    <div class="ilabel">Service</div>
+                    <div class="ivalue">{{ order.get_service_type_display }}</div>
+                </div>
+                <div class="mk-info-item">
+                    <div class="ilabel">Material</div>
+                    <div class="ivalue">{{ order.get_material_display }}</div>
+                </div>
+                <div class="mk-info-item">
+                    <div class="ilabel">Infill</div>
+                    <div class="ivalue">{{ order.infill }}%</div>
+                </div>
+                <div class="mk-info-item">
+                    <div class="ilabel">Color</div>
+                    <div class="ivalue">{{ order.color|default:"Not specified" }}</div>
+                </div>
+                <div class="mk-info-item">
+                    <div class="ilabel">Customer</div>
+                    <div class="ivalue">{{ order.customer.get_full_name|default:order.customer.username }}</div>
+                </div>
+                <div class="mk-info-item">
+                    <div class="ilabel">Submitted</div>
+                    <div class="ivalue">{{ order.created_at|date:"M j, Y · g:i A" }}</div>
+                </div>
+                {% if order.notes %}
+                <div class="mk-info-item" style="grid-column:1/-1;">
+                    <div class="ilabel">Customer Notes</div>
+                    <div class="ivalue" style="font-weight:400;color:#475569;">{{ order.notes }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Status log -->
+        {% if logs %}
+        <div class="form-card">
+            <h3 style="font-size:.9rem;font-weight:700;margin-bottom:14px;">
+                <i class="fas fa-history" style="color:#078930;margin-right:8px;"></i> Status History
+            </h3>
+            <ul class="tl-list">
+                {% for log in logs %}
+                <li>
+                    <span class="tl-time">{{ log.changed_at|date:"M j H:i" }}</span>
+                    <div>
+                        <strong>{{ log.new_status }}</strong>
+                        {% if log.note %} — <span style="color:#64748b;">{{ log.note|truncatechars:60 }}</span>{% endif %}
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Right: Action panel -->
+    <div>
+
+        <!-- Quote / set price -->
+        {% if order.status == 'quote_pending' %}
+        <div class="action-panel" style="margin-bottom:16px;border:2px solid #078930;">
+            <h4><i class="fas fa-tag" style="color:#078930;"></i> Send Quote · ዋጋ ቁረጥ</h4>
+            <p style="font-size:.78rem;color:#64748b;margin-bottom:12px;">
+                System estimate: <strong>ETB {{ order.system_price }}</strong>.
+                Override if needed, then send to customer.
+            </p>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="quote"/>
+                <div class="form-group" style="margin-bottom:12px;">
+                    <label style="font-size:.82rem;font-weight:600;color:#475569;display:block;margin-bottom:6px;">
+                        Your Price (ETB) *
+                    </label>
+                    {{ quote_form.vendor_price }}
+                </div>
+                <div class="form-group" style="margin-bottom:14px;">
+                    <label style="font-size:.82rem;font-weight:600;color:#475569;display:block;margin-bottom:6px;">
+                        Message to customer
+                    </label>
+                    {{ quote_form.vendor_note }}
+                </div>
+                <button type="submit" class="btn-save" style="width:100%;justify-content:center;">
+                    <i class="fas fa-paper-plane"></i> Send Quote
+                </button>
+            </form>
+        </div>
+        {% endif %}
+
+        <!-- Update status -->
+        {% if order.status in 'accepted,in_production,ready,quoted' %}
+        <div class="action-panel" style="margin-bottom:16px;">
+            <h4><i class="fas fa-sync" style="color:#0b2b4a;"></i> Update Status</h4>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="status"/>
+                <div class="form-group" style="margin-bottom:12px;">
+                    {{ status_form.status }}
+                </div>
+                <div class="form-group" style="margin-bottom:14px;">
+                    <label style="font-size:.82rem;font-weight:600;color:#475569;display:block;margin-bottom:6px;">
+                        Note to customer
+                    </label>
+                    {{ status_form.vendor_note }}
+                </div>
+                <button type="submit" class="btn-save" style="width:100%;justify-content:center;">
+                    <i class="fas fa-check"></i> Update Status
+                </button>
+            </form>
+        </div>
+        {% endif %}
+
+        <!-- Current price -->
+        <div style="background:#e8f5e9;border-radius:14px;padding:16px 20px;border:1px solid #c8e6c9;text-align:center;margin-bottom:16px;">
+            <div style="font-size:.75rem;color:#64748b;font-weight:600;margin-bottom:4px;">FINAL PRICE</div>
+            <div style="font-size:2rem;font-weight:800;color:#078930;">ETB {{ order.final_price }}</div>
+            <div style="font-size:.75rem;color:#94a3b8;margin-top:4px;">
+                {% if order.vendor_price %}Your quote{% else %}System estimate{% endif %} · {{ order.quantity }} unit{% if order.quantity != 1 %}s{% endif %}
+            </div>
+        </div>
+
+        <!-- Reject -->
+        {% if order.status in 'quote_pending,quoted,accepted' %}
+        <div class="reject-form">
+            <h4 style="font-size:.82rem;font-weight:700;color:#b91c1c;margin-bottom:10px;">
+                <i class="fas fa-times-circle"></i> Reject Order
+            </h4>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="reject"/>
+                <textarea name="rejection_reason" rows="2" placeholder="Reason for rejection..."
+                          style="width:100%;padding:8px 12px;border:1px solid #fecaca;border-radius:8px;font-size:.82rem;outline:none;resize:none;font-family:inherit;"></textarea>
+                <button type="submit" class="btn-sm-danger" style="width:100%;justify-content:center;margin-top:8px;"
+                        onclick="return confirm('Reject this order?')">
+                    <i class="fas fa-times"></i> Reject Order
+                </button>
+            </form>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}

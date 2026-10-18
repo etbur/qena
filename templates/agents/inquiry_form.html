@@ -1,0 +1,26 @@
+{% extends 'agents/base_agent.html' %}
+{% block title %}{{ action }} Inquiry – Agent Portal{% endblock %}
+{% block breadcrumb %}Inquiries / {{ action }}{% endblock %}
+
+{% block agent_content %}
+<div class="page-header">
+    <h2>📩 {{ action }} Inquiry · ጥያቄ</h2>
+    <a href="{% url 'agents:inquiries' %}" class="btn-back"><i class="fas fa-arrow-left"></i> Back</a>
+</div>
+<div class="form-card">
+    <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="form-group">
+            <label>{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}<div style="color:#d42e2e;font-size:.78rem;margin-top:4px;">{{ field.errors.0 }}</div>{% endif %}
+        </div>
+        {% endfor %}
+        <div style="display:flex;gap:12px;margin-top:8px;">
+            <button type="submit" class="btn-save"><i class="fas fa-save"></i> Save</button>
+            <a href="{% url 'agents:inquiries' %}" class="btn-back">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

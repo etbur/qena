@@ -1,0 +1,124 @@
+{% extends 'vendors/base_vendor.html' %}
+{% block title %}Orders – Vendor Portal{% endblock %}
+{% block breadcrumb %}Orders{% endblock %}
+
+{% block vendor_content %}
+<div class="page-header">
+    <div>
+        <h2>📦 Customer Orders</h2>
+        <span class="sub">Track, fulfill, and update customer order status</span>
+    </div>
+</div>
+
+<!-- Stats Summary Grid -->
+<div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px;">
+    <div class="stat-card">
+        <div class="label">Total Orders</div>
+        <div class="value">{{ total_count }}</div>
+        <div class="change"><i class="fas fa-shopping-bag"></i> All time</div>
+    </div>
+    <div class="stat-card" style="border-left: 4px solid #d42e2e; background: #fffdfd;">
+        <div class="label" style="color: #b91c1c;">New / Pending</div>
+        <div class="value" style="color: #d42e2e;">{{ pending_count }}</div>
+        <div class="change down">
+            <i class="fas fa-exclamation-circle"></i>
+            {% if pending_count > 0 %}Awaiting fulfillment{% else %}All clear{% endif %}
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Processing</div>
+        <div class="value" style="color: #b85a1a;">{{ processing_count }}</div>
+        <div class="change" style="color: #b85a1a;"><i class="fas fa-box-open"></i> In progress</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Shipped</div>
+        <div class="value" style="color: #1a4b8a;">{{ shipped_count }}</div>
+        <div class="change" style="color: #1a4b8a;"><i class="fas fa-truck"></i> On the way</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Delivered</div>
+        <div class="value" style="color: #1f7b3a;">{{ delivered_count }}</div>
+        <div class="change" style="color: #1f7b3a;"><i class="fas fa-check-circle"></i> Completed</div>
+    </div>
+</div>
+
+<!-- Status Filter Tabs -->
+<div class="quick-actions" style="margin-bottom: 20px;">
+    <a href="?status=all" class="btn {% if status_filter == 'all' %}btn-primary{% endif %}">
+        All ({{ total_count }})
+    </a>
+    <a href="?status=pending" class="btn {% if status_filter == 'pending' %}btn-danger{% endif %}" style="{% if status_filter != 'pending' and pending_count > 0 %}border-color:#fca5a5;color:#b91c1c;background:#fef2f2;{% endif %}">
+        <i class="fas fa-clock"></i> Pending ({{ pending_count }})
+    </a>
+    <a href="?status=processing" class="btn {% if status_filter == 'processing' %}btn-primary{% endif %}">
+        Processing ({{ processing_count }})
+    </a>
+    <a href="?status=shipped" class="btn {% if status_filter == 'shipped' %}btn-primary{% endif %}">
+        Shipped ({{ shipped_count }})
+    </a>
+    <a href="?status=delivered" class="btn {% if status_filter == 'delivered' %}btn-primary{% endif %}">
+        Delivered ({{ delivered_count }})
+    </a>
+</div>
+
+<!-- Orders Table -->
+<div class="table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th>Order #</th>
+                <th>Customer</th>
+                <th>Product</th>
+                <th>Qty</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th style="text-align: right;">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for oi in order_items %}
+            <tr>
+                <td><strong>#{{ oi.order.order_number }}</strong></td>
+                <td>
+                    <div style="font-weight:600; color:#0b2b4a;">{{ oi.order.shipping_name }}</div>
+                    <div style="font-size:.75rem; color:#64748b;"><i class="fas fa-phone-alt" style="font-size:.65rem;"></i> {{ oi.order.shipping_phone }}</div>
+                </td>
+                <td>
+                    <div style="font-weight:600;">{{ oi.product_name|truncatechars:35 }}</div>
+                    {% if oi.product.category %}
+                    <div style="font-size:.7rem; color:#94a3b8;">{{ oi.product.category.name }}</div>
+                    {% endif %}
+                </td>
+                <td><strong>{{ oi.quantity }}</strong></td>
+                <td><strong>ETB {{ oi.subtotal }}</strong></td>
+                <td>
+                    <span class="status {{ oi.order.status }}">{{ oi.order.get_status_display }}</span>
+                </td>
+                <td>{{ oi.order.created_at|date:"M j, Y H:i" }}</td>
+                <td style="text-align: right;">
+                    <form method="POST" action="{% url 'vendors:order_fulfill' oi.id %}" style="display:inline-flex; gap:6px; align-items:center;">
+                        {% csrf_token %}
+                        <select name="status" class="form-control" style="padding: 4px 8px; font-size: 0.75rem; border-radius: 8px; border: 1px solid #cbd5e1; outline:none;">
+                            {% for code, label in status_choices %}
+                            <option value="{{ code }}" {% if oi.order.status == code %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn-sm-edit" style="background:#0b2b4a; color:white; border-color:#0b2b4a; padding: 5px 10px;">
+                            Update
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" style="text-align:center; padding:48px 20px; color:#94a3b8;">
+                    <i class="fas fa-inbox" style="font-size:2rem; margin-bottom:8px; display:block;"></i>
+                    No orders match the selected filter.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

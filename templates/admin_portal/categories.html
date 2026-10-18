@@ -1,0 +1,75 @@
+{% extends 'admin_portal/base_admin.html' %}
+{% block title %}Categories – Admin Portal{% endblock %}
+{% block breadcrumb %}Categories{% endblock %}
+
+{% block admin_content %}
+<div class="page-header">
+    <h2>🗂 Categories · ምድቦች <span class="sub">({{ categories.count }})</span></h2>
+</div>
+
+<div class="table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th>Icon</th>
+                <th>Name</th>
+                <th>Slug</th>
+                <th>Parent</th>
+                <th>Products</th>
+                <th>Order</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cat in categories %}
+            <tr>
+                <td>
+                    <div style="width:36px;height:36px;border-radius:8px;background:#e8f5e9;
+                                display:flex;align-items:center;justify-content:center;color:#078930;">
+                        <i class="{{ cat.icon }}"></i>
+                    </div>
+                </td>
+                <td>
+                    <strong>{{ cat.name }}</strong>
+                    {% if cat.parent %}
+                        <div style="font-size:.72rem;color:#94a3b8;">
+                            under {{ cat.parent.name }}
+                        </div>
+                    {% endif %}
+                </td>
+                <td style="font-size:.75rem;color:#94a3b8;">{{ cat.slug }}</td>
+                <td>{{ cat.parent.name|default:"—" }}</td>
+                <td>{{ cat.products.count }}</td>
+                <td>{{ cat.order }}</td>
+                <td>
+                    {% if cat.is_active %}
+                        <span class="status active">Active</span>
+                    {% else %}
+                        <span class="status inactive">Inactive</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <form method="post"
+                          action="{% url 'admin_portal:category_toggle' cat.pk %}"
+                          style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit"
+                                class="act-btn {% if cat.is_active %}act-btn-deactivate{% else %}act-btn-activate{% endif %}">
+                            <i class="fas fa-{% if cat.is_active %}eye-slash{% else %}eye{% endif %}"></i>
+                            {% if cat.is_active %}Hide{% else %}Show{% endif %}
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" style="text-align:center;padding:32px;color:#94a3b8;">
+                    No categories yet.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

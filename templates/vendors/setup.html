@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% block title %}Start Selling & Launch Your Store – Qenagebeya{% endblock %}
+
+{% block extra_css %}
+<style>
+.setup-wrap{min-height:75vh;padding:40px 24px 60px;max-width:920px;margin:0 auto;}
+.setup-header{display:flex;align-items:center;gap:18px;margin-bottom:28px;}
+.setup-icon{width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,#0b2b4a,#1a4b8a);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.75rem;box-shadow:0 8px 24px rgba(11,43,74,0.15);flex-shrink:0;}
+.setup-header h1{font-size:1.9rem;font-weight:900;color:#0b2b4a;margin-bottom:4px;}
+.setup-header p{color:#64748b;font-size:.92rem;margin:0;}
+.form-card{background:#fff;border-radius:24px;padding:36px;border:1px solid #eef2f6;box-shadow:0 4px 20px rgba(0,0,0,0.03);}
+.form-section-title{font-size:.92rem;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:#0b2b4a;margin:24px 0 14px;padding-bottom:8px;border-bottom:1px solid #f1f4f9;display:flex;align-items:center;gap:8px;}
+.form-section-title:first-child{margin-top:0;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+.form-group{margin-bottom:0;}
+.form-group label{display:block;font-size:.82rem;font-weight:700;color:#334155;margin-bottom:6px;}
+.form-group .hint{font-size:.74rem;color:#94a3b8;font-weight:400;margin-left:4px;}
+.form-control{width:100%;padding:11px 15px;border:1px solid #e2e8f0;border-radius:12px;font-size:.88rem;outline:none;transition:.2s;background:#f8fafc;}
+.form-control:focus{border-color:#0b2b4a;background:#fff;box-shadow:0 0 0 3px rgba(11,43,74,0.08);}
+.domain-wrap{display:flex;align-items:center;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;}
+.domain-prefix{padding:11px 14px;background:#eef2f6;color:#64748b;font-size:.82rem;font-weight:600;}
+.domain-wrap input{flex:1;border:none;background:transparent;padding:11px 12px;font-size:.88rem;outline:none;}
+.color-picker-row{display:flex;gap:16px;align-items:center;}
+.color-picker-box{flex:1;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:10px;}
+.color-picker-box input[type="color"]{width:36px;height:36px;border:none;border-radius:8px;cursor:pointer;padding:0;background:none;}
+.storefront-badge{display:inline-flex;align-items:center;gap:6px;background:#e6f7e6;color:#1f7b3a;font-size:.75rem;font-weight:700;padding:4px 12px;border-radius:40px;margin-bottom:14px;}
+.submit-btn{margin-top:28px;width:100%;padding:14px 36px;background:linear-gradient(135deg,#0b2b4a,#1a4b8a);color:#fff;border:none;border-radius:60px;font-weight:800;font-size:1rem;cursor:pointer;transition:.2s;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 8px 20px rgba(11,43,74,0.18);}
+.submit-btn:hover{background:linear-gradient(135deg,#d42e2e,#b91c1c);box-shadow:0 8px 24px rgba(212,46,46,0.25);transform:translateY(-1px);}
+@media(max-width:768px){.form-grid{grid-template-columns:1fr;}.form-card{padding:24px;}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="setup-wrap">
+    <div class="setup-header">
+        <div class="setup-icon"><i class="fas fa-store"></i></div>
+        <div>
+            <h1>Create Your Store on Qenagebeya</h1>
+            <p>Sell on Ethiopia's marketplace AND launch your own dedicated website (e.g. <strong>alex.com</strong>).</p>
+        </div>
+    </div>
+
+    <div class="form-card">
+        <div class="storefront-badge">
+            <i class="fas fa-bolt"></i> Dual Access: Your products sell on <strong>qenagebeya.com</strong> + your own <strong>custom domain</strong>
+        </div>
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <!-- Store Identity -->
+            <div class="form-section-title"><i class="fas fa-id-card"></i> 1. Store Identity & Description</div>
+            <div class="form-grid">
+                <div class="form-group" style="grid-column:1/-1;">
+                    <label>Store Name * <span class="hint">(e.g. Alex Tech Store)</span></label>
+                    {{ form.store_name }}
+                    {% if form.store_name.errors %}<div style="color:#d42e2e;font-size:.78rem;margin-top:4px;">{{ form.store_name.errors.0 }}</div>{% endif %}
+                </div>
+                <div class="form-group" style="grid-column:1/-1;">
+                    <label>Store Tagline <span class="hint">(appears on your storefront banner)</span></label>
+                    {{ form.store_tagline }}
+                </div>
+                <div class="form-group" style="grid-column:1/-1;">
+                    <label>Store Description</label>
+                    {{ form.description }}
+                </div>
+            </div>
+
+            <!-- Custom Domain & Storefront URL -->
+            <div class="form-section-title"><i class="fas fa-globe"></i> 2. Your Store URL & Custom Domain</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Subdomain * <span class="hint">(free instant URL)</span></label>
+                    <div class="domain-wrap">
+                        <span class="domain-prefix">https://</span>
+                        {{ form.subdomain }}
+                        <span class="domain-prefix">.qenagebeya.com</span>
+                    </div>
+                    {% if form.subdomain.errors %}<div style="color:#d42e2e;font-size:.78rem;margin-top:4px;">{{ form.subdomain.errors.0 }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label>Custom Domain <span class="hint">(e.g. alex.com — optional)</span></label>
+                    <div class="domain-wrap">
+                        <span class="domain-prefix">🌍</span>
+                        {{ form.custom_domain }}
+                    </div>
+                    {% if form.custom_domain.errors %}<div style="color:#d42e2e;font-size:.78rem;margin-top:4px;">{{ form.custom_domain.errors.0 }}</div>{% endif %}
+                </div>
+            </div>
+
+            <!-- Store Branding & Colors -->
+            <div class="form-section-title"><i class="fas fa-paint-brush"></i> 3. Store Branding & Theme Colors</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Primary Brand Color <span class="hint">(Header & Main buttons)</span></label>
+                    <div class="color-picker-box">
+                        {{ form.brand_primary }}
+                        <span style="font-size:.82rem;font-weight:600;color:#64748b;">Choose primary color</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Accent Color <span class="hint">(Badges, discounts & highlights)</span></label>
+                    <div class="color-picker-box">
+                        {{ form.brand_secondary }}
+                        <span style="font-size:.82rem;font-weight:600;color:#64748b;">Choose accent color</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Store Logo</label>
+                    {{ form.logo }}
+                </div>
+                <div class="form-group">
+                    <label>Store Banner Image</label>
+                    {{ form.banner }}
+                </div>
+            </div>
+
+            <!-- Contact & Location -->
+            <div class="form-section-title"><i class="fas fa-map-marker-alt"></i> 4. Contact & Location</div>
+            <div class="form-grid">
+                <div class="form-group"><label>Business Phone *</label>{{ form.phone }}</div>
+                <div class="form-group"><label>Business Email *</label>{{ form.email }}</div>
+                <div class="form-group" style="grid-column:1/-1;"><label>Store / Warehouse Address</label>{{ form.address }}</div>
+                <div class="form-group"><label>City</label>{{ form.city }}</div>
+                <div class="form-group"><label>Country</label>{{ form.country }}</div>
+            </div>
+
+            <button type="submit" class="submit-btn">
+                <i class="fas fa-rocket"></i> Launch My Store & Storefront
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+// Auto-fill subdomain from store name as user types
+const nameInput = document.getElementById('id_store_name');
+const subInput = document.getElementById('id_subdomain');
+if(nameInput && subInput){
+    nameInput.addEventListener('input', function(){
+        if(!subInput.dataset.manual){
+            subInput.value = this.value.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+        }
+    });
+    subInput.addEventListener('input', function(){
+        subInput.dataset.manual = 'true';
+    });
+}
+</script>
+{% endblock %}

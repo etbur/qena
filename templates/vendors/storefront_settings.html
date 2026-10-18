@@ -1,0 +1,448 @@
+{% extends 'vendors/base_vendor.html' %}
+{% block title %}Storefront · {{ vendor.store_name }}{% endblock %}
+{% block breadcrumb %}Storefront Settings{% endblock %}
+
+{% block extra_css %}
+<style>
+.sf-preview{background:linear-gradient(135deg,var(--p,#0b2b4a),#1a4b8a);border-radius:14px;padding:24px;color:#fff;margin-bottom:20px;position:relative;overflow:hidden;}
+.sf-preview::after{content:'';position:absolute;right:-20px;top:-20px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.06);}
+.sf-preview h3{font-size:1.15rem;font-weight:800;margin-bottom:4px;display:flex;align-items:center;gap:8px;}
+.sf-preview p{font-size:.82rem;opacity:.85;margin-bottom:14px;line-height:1.5;}
+.sf-preview .preview-url{background:rgba(255,255,255,.15);border-radius:8px;padding:10px 14px;font-size:.78rem;font-family:monospace;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.sf-preview .preview-url a{color:#78e8a4;font-weight:700;word-break:break-all;text-decoration:none;}
+.sf-preview .preview-url a:hover{text-decoration:underline;}
+.section-box{background:#fff;border-radius:14px;padding:22px;border:1px solid #eef2f6;margin-bottom:16px;}
+.section-box h4{font-size:.84rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#94a3b8;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid #f1f4f9;display:flex;align-items:center;justify-content:space-between;}
+.color-row{display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;}
+.color-group{display:flex;flex-direction:column;gap:5px;}
+.color-group label{font-size:.76rem;font-weight:600;color:#64748b;}
+.domain-input-wrap{display:flex;align-items:stretch;border:1px solid #eef2f6;border-radius:9px;overflow:hidden;}
+.domain-prefix{background:#f8fafc;padding:9px 14px;font-size:.82rem;color:#94a3b8;border-right:1px solid #eef2f6;white-space:nowrap;display:flex;align-items:center;}
+.domain-prefix.suffix{border-right:none;border-left:1px solid #eef2f6;}
+.domain-input-wrap input{flex:1;border:none;outline:none;padding:9px 12px;font-size:.83rem;}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;}
+.toggle-row label{font-size:.85rem;font-weight:600;color:#1e293b;}
+.toggle-row .toggle-desc{font-size:.75rem;color:#94a3b8;margin-top:2px;}
+.toggle{position:relative;display:inline-block;width:44px;height:24px;}
+.toggle input{display:none;}
+.toggle-slider{position:absolute;inset:0;background:#e2e8f0;border-radius:40px;cursor:pointer;transition:.2s;}
+.toggle-slider:before{content:'';position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s;}
+.toggle input:checked + .toggle-slider{background:#078930;}
+.toggle input:checked + .toggle-slider:before{transform:translateX(20px);}
+.social-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.social-input-wrap{display:flex;align-items:stretch;border:1px solid #eef2f6;border-radius:9px;overflow:hidden;}
+.social-prefix{background:#f8fafc;padding:9px 12px;font-size:.85rem;border-right:1px solid #eef2f6;display:flex;align-items:center;min-width:42px;justify-content:center;}
+.social-input-wrap input{flex:1;border:none;outline:none;padding:9px 12px;font-size:.82rem;}
+.font-select{width:100%;padding:9px 12px;border:1px solid #eef2f6;border-radius:9px;font-size:.83rem;outline:none;background:#fff;}
+.font-select:focus{border-color:#d42e2e;}
+.steps-list{list-style:none;counter-reset:steps;}
+.steps-list li{counter-increment:steps;display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid #f1f4f9;}
+.steps-list li:last-child{border-bottom:none;}
+.steps-list li::before{content:counter(steps);background:#0b2b4a;color:#fff;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;flex-shrink:0;margin-top:2px;}
+.steps-list li div{font-size:.82rem;color:#475569;line-height:1.5;}
+.steps-list li strong{color:#1e293b;}
+.badge-plan{display:inline-block;padding:3px 10px;border-radius:40px;font-size:.68rem;font-weight:700;}
+.badge-status-active{background:#dcfce7;color:#15803d;border:1px solid #bbf7d0;}
+.badge-status-pending{background:#fef9c3;color:#854d0e;border:1px solid #fef08a;}
+.badge-status-inactive{background:#fee2e2;color:#b91c1c;border:1px solid #fecaca;}
+.bank-card{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px 14px;margin-bottom:8px;}
+.bank-card .bank-title{font-size:.82rem;font-weight:700;color:#1e293b;display:flex;align-items:center;justify-content:space-between;}
+.bank-card .bank-acc{font-family:monospace;font-size:.85rem;color:#0b2b4a;font-weight:700;margin-top:3px;}
+</style>
+{% endblock %}
+
+{% block vendor_content %}
+
+<!-- Live preview card -->
+<div class="sf-preview" style="--p:{{ vendor.brand_primary }};">
+  <div style="z-index:1;position:relative;">
+    <h3>
+      🌐 Standalone Branded Storefront
+      {% if vendor.is_storefront_active %}
+        <span class="badge-plan badge-status-active"><i class="fas fa-check-circle"></i> Active (10,000 ETB / Year Approved)</span>
+      {% elif vendor.storefront_status == 'pending_approval' %}
+        <span class="badge-plan badge-status-pending"><i class="fas fa-clock"></i> Pending Admin Approval (FT Submitted)</span>
+      {% else %}
+        <span class="badge-plan badge-status-inactive"><i class="fas fa-lock"></i> 10,000 ETB Annual FT Subscription Required</span>
+      {% endif %}
+    </h3>
+    <p>
+      Your standalone website operates on its own domain with your branding and products, powered by Qenagebeya's shared database.
+      {% if vendor.is_storefront_active %}
+        <br/><strong>Subscription Status:</strong> 1-Year Active (Expires: {{ vendor.storefront_expires_at|date:"M d, Y" }} · {{ vendor.storefront_days_left }} days left)
+      {% endif %}
+    </p>
+
+    <div class="preview-url">
+      <span>🔗 Local Subdomain:</span>
+      <a href="http://{{ vendor.subdomain }}.localhost:8000" target="_blank">
+        http://{{ vendor.subdomain }}.localhost:8000
+      </a>
+      <span style="margin-left:8px;">| 🌐 Wildcard DNS:</span>
+      <a href="http://{{ vendor.subdomain }}.127.0.0.1.nip.io:8000" target="_blank">
+        http://{{ vendor.subdomain }}.127.0.0.1.nip.io:8000
+      </a>
+      {% if vendor.custom_domain %}
+      <span style="margin-left:8px;">| 🌍 Custom Domain:</span>
+      <a href="http://{{ vendor.custom_domain }}:8000" target="_blank" style="color:#fcd34d;">
+        http://{{ vendor.custom_domain }}:8000
+      </a>
+      {% endif %}
+      <span style="margin-left:auto;opacity:.85;font-size:.75rem;">
+        {% if vendor.is_storefront_active %}🟢 Live Public{% else %}🟡 Verification Pending{% endif %}
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- 10,000 ETB / Year FT Subscription Section -->
+<div class="section-box" style="border: 2px solid {% if vendor.is_storefront_active %}#bbf7d0{% elif vendor.storefront_status == 'pending_approval' %}#fef08a{% else %}#fed7aa{% endif %};">
+  <h4>
+    <span><i class="fas fa-receipt" style="color:#d97706;margin-right:6px;"></i> Standalone Storefront Subscription (10,000 ETB / Year by FT)</span>
+    {% if vendor.is_storefront_active %}
+      <span class="badge-plan badge-status-active">✅ APPROVED & ACTIVE</span>
+    {% elif vendor.storefront_status == 'pending_approval' %}
+      <span class="badge-plan badge-status-pending">⏳ PENDING ADMIN VERIFICATION</span>
+    {% else %}
+      <span class="badge-plan badge-status-inactive">⚠️ PAYMENT REQUIRED</span>
+    {% endif %}
+  </h4>
+
+  <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:20px;align-items:start;">
+    <div>
+      <p style="font-size:.85rem;color:#475569;margin-bottom:12px;line-height:1.5;">
+        To get your dedicated standalone page (e.g. <code>{{ vendor.custom_domain|default:"alex.com" }}</code> or <code>{{ vendor.subdomain }}.localhost</code>) approved and activated, please transfer <strong>10,000 ETB / year</strong> via Funds Transfer (FT) to any of our official accounts below:
+      </p>
+
+      <div class="bank-card">
+        <div class="bank-title"><span>🏦 Commercial Bank of Ethiopia (CBE)</span><span style="color:#078930;font-size:.72rem;">FT / Transfer</span></div>
+        <div class="bank-acc">1000 4892 1092 3</div>
+        <div style="font-size:.72rem;color:#64748b;margin-top:2px;">Account Name: Qenagebeya Technologies PLC</div>
+      </div>
+
+      <div class="bank-card">
+        <div class="bank-title"><span>📱 Telebirr SuperApp</span><span style="color:#0284c7;font-size:.72rem;">Instant Transfer</span></div>
+        <div class="bank-acc">+251 911 234 567</div>
+        <div style="font-size:.72rem;color:#64748b;margin-top:2px;">Account Name: Qenagebeya Marketplace</div>
+      </div>
+
+      <div class="bank-card">
+        <div class="bank-title"><span>🏛 Awash Bank</span><span style="color:#7c3aed;font-size:.72rem;">Direct FT</span></div>
+        <div class="bank-acc">0130 4829 0192 00</div>
+        <div style="font-size:.72rem;color:#64748b;margin-top:2px;">Account Name: Qenagebeya Technologies PLC</div>
+      </div>
+    </div>
+
+    <div style="background:#f8fafc;border-radius:12px;padding:16px;border:1px solid #e2e8f0;">
+      <h5 style="font-size:.84rem;font-weight:700;color:#1e293b;margin-bottom:10px;">
+        <i class="fas fa-paper-plane" style="color:#0b2b4a;"></i> Submit 10,000 ETB FT Details
+      </h5>
+
+      {% if vendor.storefront_status == 'pending_approval' %}
+        <div style="background:#fef9c3;border:1px solid #fef08a;border-radius:8px;padding:10px 12px;font-size:.78rem;color:#854d0e;margin-bottom:12px;">
+          <i class="fas fa-info-circle"></i> <strong>FT Reference Submitted:</strong> <code>{{ vendor.storefront_payment_ref }}</code><br/>
+          Admin team is verifying your Funds Transfer. Once approved, your standalone domain activates automatically for 1 full year.
+        </div>
+      {% elif vendor.is_storefront_active %}
+        <div style="background:#dcfce7;border:1px solid #bbf7d0;border-radius:8px;padding:10px 12px;font-size:.78rem;color:#15803d;margin-bottom:12px;">
+          <i class="fas fa-check-circle"></i> <strong>Subscription Active!</strong><br/>
+          Paid 10,000 ETB (Ref: <code>{{ vendor.storefront_payment_ref|default:"Verified" }}</code>)<br/>
+          Valid until: <strong>{{ vendor.storefront_expires_at|date:"F d, Y" }}</strong>
+        </div>
+      {% endif %}
+
+      <form method="post" action="{% url 'vendors:storefront_settings' %}">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="submit_ft_payment"/>
+
+        <div class="form-group" style="margin-bottom:10px;">
+          <label style="font-size:.76rem;font-weight:600;color:#475569;">Payment Method / Bank</label>
+          <select name="storefront_payment_method" class="form-control" style="font-size:.82rem;padding:7px 10px;">
+            <option value="cbe_ft" {% if vendor.storefront_payment_method == 'cbe_ft' %}selected{% endif %}>CBE (Commercial Bank of Ethiopia FT)</option>
+            <option value="telebirr" {% if vendor.storefront_payment_method == 'telebirr' %}selected{% endif %}>Telebirr Transfer</option>
+            <option value="awash_ft" {% if vendor.storefront_payment_method == 'awash_ft' %}selected{% endif %}>Awash Bank FT</option>
+            <option value="dashen_ft" {% if vendor.storefront_payment_method == 'dashen_ft' %}selected{% endif %}>Dashen Bank FT</option>
+            <option value="bank_transfer" {% if vendor.storefront_payment_method == 'bank_transfer' %}selected{% endif %}>Other Bank Funds Transfer</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom:10px;">
+          <label style="font-size:.76rem;font-weight:600;color:#475569;">FT Reference / Transaction ID *</label>
+          <input type="text" name="storefront_payment_ref" value="{{ vendor.storefront_payment_ref }}"
+                 class="form-control" placeholder="e.g. FT2628491823 or TXN-99281" required style="font-size:.82rem;padding:7px 10px;"/>
+        </div>
+
+        <div class="form-group" style="margin-bottom:12px;">
+          <label style="font-size:.76rem;font-weight:600;color:#475569;">Payment Note / Payer Name</label>
+          <textarea name="storefront_payment_note" class="form-control" rows="2"
+                    placeholder="e.g. Transferred from Alex Trading CBE account" style="font-size:.8rem;padding:7px 10px;">{{ vendor.storefront_payment_note }}</textarea>
+        </div>
+
+        <button type="submit" class="btn-save" style="width:100%;font-size:.85rem;padding:10px;justify-content:center;background:#0b2b4a;">
+          <i class="fas fa-check"></i> Submit 10,000 ETB FT for Admin Approval
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Main Branding & Domain Form -->
+<form method="post" action="{% url 'vendors:storefront_settings' %}">
+{% csrf_token %}
+<input type="hidden" name="action" value="save_settings"/>
+
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;align-items:start;">
+<div>
+
+<!-- Branding -->
+<div class="section-box">
+  <h4>🎨 Branding & Visual Identity</h4>
+  <div class="form-grid-2" style="margin-bottom:14px;">
+    <div class="form-group">
+      <label>Store Tagline</label>
+      <input type="text" name="store_tagline" value="{{ vendor.store_tagline }}"
+             class="form-control" placeholder="e.g. Ethiopia's Premier Electronics Store" maxlength="200"/>
+    </div>
+    <div class="form-group">
+      <label>SEO Keywords <span style="font-size:.7rem;color:#94a3b8;">(comma-separated)</span></label>
+      <input type="text" name="store_keywords" value="{{ vendor.store_keywords }}"
+             class="form-control" placeholder="electronics, phones, addis ababa" maxlength="300"/>
+    </div>
+  </div>
+  <div class="color-row">
+    <div class="color-group" style="flex:1;">
+      <label>Primary Color (header, buttons)</label>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input type="color" id="pick-primary" value="{{ vendor.brand_primary }}"
+               oninput="document.getElementById('txt-primary').value=this.value;updatePreview()"
+               style="width:40px;height:36px;border:1px solid #eef2f6;border-radius:7px;cursor:pointer;padding:2px;"/>
+        <input type="text" id="txt-primary" name="brand_primary" value="{{ vendor.brand_primary }}"
+               class="form-control" style="width:100px;" maxlength="7"
+               oninput="document.getElementById('pick-primary').value=this.value;updatePreview()"/>
+      </div>
+    </div>
+    <div class="color-group" style="flex:1;">
+      <label>Accent Color (prices, badges)</label>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input type="color" id="pick-secondary" value="{{ vendor.brand_secondary }}"
+               oninput="document.getElementById('txt-secondary').value=this.value;updatePreview()"
+               style="width:40px;height:36px;border:1px solid #eef2f6;border-radius:7px;cursor:pointer;padding:2px;"/>
+        <input type="text" id="txt-secondary" name="brand_secondary" value="{{ vendor.brand_secondary }}"
+               class="form-control" style="width:100px;" maxlength="7"
+               oninput="document.getElementById('pick-secondary').value=this.value;updatePreview()"/>
+      </div>
+    </div>
+    <div class="color-group" style="flex:1;">
+      <label>Font Family</label>
+      <select name="brand_font" class="font-select">
+        <option value="Inter" {% if vendor.brand_font == 'Inter' %}selected{% endif %}>Inter</option>
+        <option value="Roboto" {% if vendor.brand_font == 'Roboto' %}selected{% endif %}>Roboto</option>
+        <option value="Poppins" {% if vendor.brand_font == 'Poppins' %}selected{% endif %}>Poppins</option>
+        <option value="Lato" {% if vendor.brand_font == 'Lato' %}selected{% endif %}>Lato</option>
+        <option value="Montserrat" {% if vendor.brand_font == 'Montserrat' %}selected{% endif %}>Montserrat</option>
+        <option value="Open Sans" {% if vendor.brand_font == 'Open Sans' %}selected{% endif %}>Open Sans</option>
+        <option value="Raleway" {% if vendor.brand_font == 'Raleway' %}selected{% endif %}>Raleway</option>
+        <option value="Ubuntu" {% if vendor.brand_font == 'Ubuntu' %}selected{% endif %}>Ubuntu</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<!-- Domain -->
+<div class="section-box">
+  <h4>🌐 Domain Configuration</h4>
+  <div class="toggle-row" style="margin-bottom:14px;">
+    <div>
+      <label>Storefront Feature Enabled</label>
+      <div class="toggle-desc">Allow customers to visit your branded standalone store URL</div>
+    </div>
+    <label class="toggle">
+      <input type="checkbox" name="storefront_enabled" {% if vendor.storefront_enabled %}checked{% endif %}/>
+      <span class="toggle-slider"></span>
+    </label>
+  </div>
+
+  <div class="form-group">
+    <label>Subdomain <span class="badge-plan" style="background:#e6f0fa;color:#1a4b8a;">Included</span></label>
+    <div class="domain-input-wrap">
+      <span class="domain-prefix" style="background:#f8fafc;font-size:.78rem;color:#94a3b8;">http://</span>
+      <input type="text" name="subdomain" value="{{ vendor.subdomain }}"
+             placeholder="your-store" maxlength="100" style="border:none;outline:none;padding:9px 12px;font-size:.83rem;flex:1;"/>
+      <span class="domain-prefix suffix" style="font-size:.76rem;color:#94a3b8;">.localhost:8000</span>
+    </div>
+    <div style="font-size:.72rem;color:#94a3b8;margin-top:4px;">
+      Production: <strong>{{ vendor.subdomain }}.qenagebeya.com</strong>
+    </div>
+  </div>
+
+  <div class="form-group" style="margin-top:14px;">
+    <label>Custom Domain (e.g. <code>alex.com</code>) <span class="badge-plan" style="background:#fef9e6;color:#8a7a1a;">10,000 ETB/yr FT</span></label>
+    <div class="domain-input-wrap">
+      <span class="domain-prefix">🌍</span>
+      <input type="text" name="custom_domain" value="{{ vendor.custom_domain }}"
+             placeholder="www.yourstore.com" maxlength="253" style="border:none;outline:none;padding:9px 12px;font-size:.83rem;flex:1;"/>
+    </div>
+    <div style="font-size:.72rem;color:#94a3b8;margin-top:4px;">
+      Point your domain's DNS A record to our server IP, then enter it here.
+    </div>
+  </div>
+</div>
+
+<!-- Social links -->
+<div class="section-box">
+  <h4>📲 Social & Contact Links</h4>
+  <div class="social-grid">
+    <div class="form-group">
+      <label>WhatsApp Number</label>
+      <div class="social-input-wrap">
+        <span class="social-prefix" style="color:#25d366;"><i class="fab fa-whatsapp"></i></span>
+        <input type="text" name="whatsapp" value="{{ vendor.whatsapp }}" placeholder="+251912345678" maxlength="30"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Telegram Username</label>
+      <div class="social-input-wrap">
+        <span class="social-prefix" style="color:#2ca5e0;"><i class="fab fa-telegram-plane"></i></span>
+        <input type="text" name="telegram" value="{{ vendor.telegram }}" placeholder="@your_handle" maxlength="100"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Instagram</label>
+      <div class="social-input-wrap">
+        <span class="social-prefix" style="color:#e1306c;"><i class="fab fa-instagram"></i></span>
+        <input type="text" name="instagram" value="{{ vendor.instagram }}" placeholder="username" maxlength="100"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>TikTok</label>
+      <div class="social-input-wrap">
+        <span class="social-prefix"><i class="fab fa-tiktok"></i></span>
+        <input type="text" name="tiktok" value="{{ vendor.tiktok }}" placeholder="@username" maxlength="100"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Facebook Page</label>
+      <div class="social-input-wrap">
+        <span class="social-prefix" style="color:#1877f2;"><i class="fab fa-facebook-f"></i></span>
+        <input type="text" name="facebook" value="{{ vendor.facebook }}" placeholder="pagename" maxlength="100"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Twitter / X</label>
+      <div class="social-input-wrap">
+        <span class="social-prefix"><i class="fab fa-twitter"></i></span>
+        <input type="text" name="twitter" value="{{ vendor.twitter }}" placeholder="@handle" maxlength="100"/>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="display:flex;gap:10px;">
+  <button type="submit" class="btn-save"><i class="fas fa-save"></i> Save Storefront Settings</button>
+  {% if vendor.subdomain %}
+  <a href="http://{{ vendor.subdomain }}.localhost:8000" target="_blank" class="btn-back">
+    <i class="fas fa-external-link-alt"></i> Preview My Store
+  </a>
+  {% endif %}
+</div>
+
+</div><!-- /left col -->
+
+<!-- Right: setup guide -->
+<div>
+  <div class="section-box">
+    <h4>🚀 Standalone Domain Guide</h4>
+    <ul class="steps-list">
+      <li><div><strong>Configure Domain & Branding</strong><br/>Enter your custom domain (e.g. <code>alex.com</code>) and customize colors.</div></li>
+      <li><div><strong>Transfer 10,000 ETB via FT</strong><br/>Pay annual subscription to CBE, Telebirr, or Awash Bank.</div></li>
+      <li><div><strong>Submit FT Reference</strong><br/>Enter your FT reference ID above to request Admin Approval.</div></li>
+      <li><div><strong>Admin Approval (1 Year)</strong><br/>Admin verifies the FT payment and unlocks your standalone website for 365 days.</div></li>
+      <li><div><strong>Dual Access Live</strong><br/>Your products are sold on <code>alex.com</code> and on <code>qenagebeya.com</code>!</div></li>
+    </ul>
+  </div>
+
+  <!-- Live preview mini -->
+  <div class="section-box">
+    <h4>👁 Mini Live Preview</h4>
+    <div id="mini-preview" style="border-radius:10px;overflow:hidden;border:1px solid #eef2f6;">
+      <div id="prev-header" style="padding:12px 14px;color:#fff;display:flex;align-items:center;gap:8px;font-weight:700;font-size:.85rem;">
+        {% if vendor.logo %}<img src="{{ vendor.logo.url }}" style="height:28px;border-radius:5px;" alt=""/>{% endif %}
+        {{ vendor.store_name }}
+      </div>
+      <div style="padding:12px;background:#f8fafc;">
+        <div style="height:8px;border-radius:4px;width:60%;margin-bottom:7px;" id="prev-bar1"></div>
+        <div style="height:6px;border-radius:4px;width:40%;margin-bottom:12px;background:#e2e8f0;"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;">
+          {% for i in "123" %}
+          <div style="background:#fff;border-radius:8px;overflow:hidden;border:1px solid #eef2f6;">
+            <div style="height:54px;background:#f1f4f9;"></div>
+            <div style="padding:6px;">
+              <div style="height:6px;border-radius:3px;background:#e2e8f0;margin-bottom:4px;"></div>
+              <div style="height:8px;border-radius:3px;width:60%;" id="prev-price-{{ i }}"></div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    <div style="font-size:.72rem;color:#94a3b8;margin-top:8px;text-align:center;">Preview updates dynamically with your chosen colors</div>
+  </div>
+
+  <!-- Storefront stats -->
+  <div class="section-box">
+    <h4>📊 Storefront Status</h4>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;justify-content:space-between;font-size:.82rem;">
+        <span style="color:#64748b;">Annual Fee</span>
+        <strong>10,000 ETB / Year</strong>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:.82rem;">
+        <span style="color:#64748b;">Approval Status</span>
+        {% if vendor.is_storefront_active %}
+          <span style="color:#15803d;font-weight:700;">🟢 Approved (Active)</span>
+        {% elif vendor.storefront_status == 'pending_approval' %}
+          <span style="color:#854d0e;font-weight:700;">🟡 Pending Approval</span>
+        {% else %}
+          <span style="color:#b91c1c;font-weight:700;">🔴 Inactive</span>
+        {% endif %}
+      </div>
+      {% if vendor.storefront_payment_ref %}
+      <div style="display:flex;justify-content:space-between;font-size:.82rem;">
+        <span style="color:#64748b;">FT Reference</span>
+        <code style="background:#f1f5f9;padding:2px 6px;border-radius:4px;">{{ vendor.storefront_payment_ref }}</code>
+      </div>
+      {% endif %}
+      {% if vendor.storefront_expires_at %}
+      <div style="display:flex;justify-content:space-between;font-size:.82rem;">
+        <span style="color:#64748b;">Expires On</span>
+        <strong>{{ vendor.storefront_expires_at|date:"Y-m-d" }}</strong>
+      </div>
+      {% endif %}
+      <div style="display:flex;justify-content:space-between;font-size:.82rem;">
+        <span style="color:#64748b;">Active Products</span>
+        <strong>{{ vendor.products.count }}</strong>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /grid -->
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function updatePreview(){
+  const p = document.getElementById('txt-primary').value;
+  const s = document.getElementById('txt-secondary').value;
+  document.getElementById('prev-header').style.background = p;
+  document.getElementById('prev-bar1').style.background = s;
+  document.querySelectorAll('[id^="prev-price-"]').forEach(el => el.style.background = s);
+  // update the preview card too
+  const sfCard = document.querySelector('.sf-preview');
+  if(sfCard) sfCard.style.background = 'linear-gradient(135deg,'+p+',#1a4b8a)';
+}
+// init on load
+updatePreview();
+</script>
+{% endblock %}

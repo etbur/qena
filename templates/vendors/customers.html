@@ -1,0 +1,36 @@
+{% extends 'vendors/base_vendor.html' %}
+{% block title %}Customers – Vendor Portal{% endblock %}
+{% block breadcrumb %}Customers{% endblock %}
+
+{% block vendor_content %}
+<div class="page-header">
+    <h2>👥 Customers · ደንበኞቼ <span class="sub">({{ customers.count }})</span></h2>
+</div>
+<div class="table-wrap">
+    <table>
+        <thead>
+            <tr><th>Customer</th><th>Email</th><th>City</th><th>Orders</th><th>Member Since</th></tr>
+        </thead>
+        <tbody>
+            {% for c in customers %}
+            <tr>
+                <td>
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <div style="width:32px;height:32px;border-radius:50%;background:#078930;color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;">
+                            {{ c.username|first|upper }}
+                        </div>
+                        <strong>{{ c.get_full_name|default:c.username }}</strong>
+                    </div>
+                </td>
+                <td>{{ c.email }}</td>
+                <td>{{ c.city|default:"—" }}</td>
+                <td>{{ c.order_count }}</td>
+                <td>{{ c.date_joined|date:"M j, Y" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" style="text-align:center;padding:32px;color:#94a3b8;">No customers yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

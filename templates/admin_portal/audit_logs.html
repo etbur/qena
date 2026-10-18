@@ -1,0 +1,45 @@
+{% extends 'admin_portal/base_admin.html' %}
+{% block title %}Audit Logs – Admin Portal{% endblock %}
+{% block breadcrumb %}Audit Logs{% endblock %}
+
+{% block admin_content %}
+<div class="page-header">
+    <h2>📋 Audit Logs</h2>
+</div>
+
+<div class="table-wrap">
+    <table>
+        <thead>
+            <tr><th>Actor</th><th>Action</th><th>Description</th><th>IP</th><th>Time</th></tr>
+        </thead>
+        <tbody>
+            {% for log in logs %}
+            <tr>
+                <td>
+                    <strong>{{ log.actor.username|default:"System" }}</strong>
+                    <div style="font-size:0.72rem;color:#94a3b8;">{{ log.actor.get_role_display|default:"" }}</div>
+                </td>
+                <td>
+                    <span class="status
+                        {% if log.action == 'approve' %}active
+                        {% elif log.action == 'suspend' %}suspended
+                        {% elif log.action == 'delete' %}inactive
+                        {% else %}approved{% endif %}">
+                        {{ log.get_action_display }}
+                    </span>
+                </td>
+                <td>{{ log.description|truncatechars:60 }}</td>
+                <td style="font-size:0.75rem;color:#94a3b8;">{{ log.ip_address|default:"—" }}</td>
+                <td style="font-size:0.78rem;color:#94a3b8;white-space:nowrap;">
+                    {{ log.created_at|date:"Y-m-d H:i" }}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="text-align:center;padding:32px;color:#94a3b8;">No logs yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

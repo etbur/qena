@@ -1,0 +1,53 @@
+{% extends 'admin_portal/base_admin.html' %}
+{% block title %}Disputes – Admin Portal{% endblock %}
+{% block breadcrumb %}Disputes{% endblock %}
+
+{% block admin_content %}
+<div class="page-header">
+    <h2>🚩 Disputes <span class="sub">({{ disputes.count }})</span></h2>
+</div>
+
+<div class="table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Subject</th>
+                <th>Order</th>
+                <th>Raised By</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for d in disputes %}
+            <tr>
+                <td><strong>#{{ d.pk }}</strong></td>
+                <td>{{ d.subject|truncatechars:40 }}</td>
+                <td>{{ d.order.order_number }}</td>
+                <td>{{ d.raised_by.get_full_name|default:d.raised_by.username }}</td>
+                <td><span class="status {{ d.status }}">{{ d.get_status_display }}</span></td>
+                <td>{{ d.created_at|date:"Y-m-d" }}</td>
+                <td>
+                    {% if d.status == 'open' %}
+                    <form method="post" action="{% url 'admin_portal:dispute_resolve' d.pk %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="act-btn act-btn-approve">
+                            <i class="fas fa-check-circle"></i> Resolve
+                        </button>
+                    </form>
+                    {% else %}
+                    <span style="font-size:0.72rem;color:#94a3b8;">{{ d.get_status_display }}</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" style="text-align:center;padding:32px;color:#94a3b8;">No disputes. 🎉</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

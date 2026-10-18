@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "Register" %} – Qenagebeya 🇪🇹{% endblock %}
+
+{% block extra_css %}
+<style>
+.auth-wrap{min-height:60vh;display:flex;align-items:center;justify-content:center;padding:40px 16px}
+.auth-card{background:#fff;border-radius:24px;padding:40px;width:100%;max-width:560px;border:1px solid #eef2f6;box-shadow:0 8px 32px rgba(0,0,0,.06)}
+.brand{text-align:center;margin-bottom:28px}
+.brand h1{font-size:1.6rem;font-weight:800;color:#0b2b4a}
+.flag-bar{width:60px;height:5px;background:linear-gradient(to right,#078930 33.3%,#FCDD09 33.3% 66.6%,#DA121A 66.6%);border-radius:4px;margin:8px auto 4px;}
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-size:.82rem;font-weight:600;color:#475569;margin-bottom:6px}
+.form-control{width:100%;padding:10px 14px;border:1px solid #eef2f6;border-radius:10px;font-size:.88rem;outline:none;transition:.2s}
+.form-control:focus{border-color:#078930;box-shadow:0 0 0 3px rgba(7,137,48,.1)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.role-group{background:#f8fafc;border-radius:14px;padding:14px;margin-bottom:16px}
+.role-group .role-label{display:block;font-size:.82rem;font-weight:600;color:#475569;margin-bottom:10px}
+.role-options{display:flex;gap:10px;flex-wrap:wrap}
+.role-option{flex:1;min-width:110px}
+.role-option input[type=radio]{display:none}
+.role-option label{display:block;padding:10px 14px;background:#fff;border:2px solid #eef2f6;border-radius:12px;text-align:center;font-size:.82rem;font-weight:600;cursor:pointer;transition:.2s}
+.role-option input[type=radio]:checked + label{border-color:#078930;background:#078930;color:#fff}
+.role-option label:hover{border-color:#94a3b8}
+.auth-btn{width:100%;padding:13px;background:#0b2b4a;color:#fff;border:none;border-radius:60px;font-weight:700;font-size:.95rem;cursor:pointer;margin-top:8px;transition:.2s}
+.auth-btn:hover{background:#078930}
+.auth-footer{text-align:center;margin-top:20px;font-size:.85rem;color:#94a3b8}
+.auth-footer a{color:#078930;font-weight:600}
+.errorlist{list-style:none;padding:6px 12px;background:#fef3f3;border-radius:8px;color:#b91c1c;font-size:.8rem;margin-top:4px}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+    <div class="auth-card">
+        <div class="brand">
+            <h1><i class="fas fa-store-alt" style="color:#078930;"></i> Qenagebeya 🇪🇹</h1>
+            <div class="flag-bar"></div>
+            <p style="font-size:.85rem;color:#94a3b8;margin-top:4px;">
+                መለያ ፍጠሩ · Herrega Uumi · Create your account
+            </p>
+        </div>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <!-- Role picker -->
+            <div class="role-group">
+                <label class="role-label">
+                    {% trans "I want to join as" %} · እንደ ···
+                </label>
+                <div class="role-options">
+                    {% for radio in form.role %}
+                    <div class="role-option">
+                        {{ radio.tag }}
+                        <label for="{{ radio.id_for_label }}">
+                            {% if radio.data.value == 'customer' %}
+                                <i class="fas fa-user" style="display:block;font-size:1.2rem;margin-bottom:4px;"></i>
+                                {% trans "Customer" %}<br/><span style="font-size:.7rem;opacity:.7;">ደንበኛ · Maamiltuu</span>
+                            {% elif radio.data.value == 'vendor' %}
+                                <i class="fas fa-store" style="display:block;font-size:1.2rem;margin-bottom:4px;"></i>
+                                {% trans "Vendor" %}<br/><span style="font-size:.7rem;opacity:.7;">ሻጭ · Gurgurtoo</span>
+                            {% elif radio.data.value == 'agent' %}
+                                <i class="fas fa-headset" style="display:block;font-size:1.2rem;margin-bottom:4px;"></i>
+                                Agent<br/><span style="font-size:.7rem;opacity:.7;">ወኪል · Gorsaa</span>
+                            {% endif %}
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if form.role.errors %}<ul class="errorlist">{% for e in form.role.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>First Name · የአባት ስም</label>{{ form.first_name }}
+                    {% if form.first_name.errors %}<ul class="errorlist">{% for e in form.first_name.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label>Last Name · ስም</label>{{ form.last_name }}
+                    {% if form.last_name.errors %}<ul class="errorlist">{% for e in form.last_name.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Username · የተጠቃሚ ስም</label>{{ form.username }}
+                {% if form.username.errors %}<ul class="errorlist">{% for e in form.username.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+            </div>
+            <div class="form-group">
+                <label>Email</label>{{ form.email }}
+                {% if form.email.errors %}<ul class="errorlist">{% for e in form.email.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+            </div>
+            <div class="form-group"><label>Phone · ስልክ</label>{{ form.phone }}</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Password · ፓስዎርድ</label>{{ form.password1 }}
+                    {% if form.password1.errors %}<ul class="errorlist">{% for e in form.password1.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label>Confirm · አረጋግጥ</label>{{ form.password2 }}
+                    {% if form.password2.errors %}<ul class="errorlist">{% for e in form.password2.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                </div>
+            </div>
+
+            <button type="submit" class="auth-btn">
+                <i class="fas fa-user-plus"></i>
+                {% trans "Create Account" %} · ተመዝገቡ · Galmaa'i
+            </button>
+        </form>
+        <div class="auth-footer">
+            Already have an account? · መለያ አለዎት?<br/>
+            <a href="{% url 'accounts:login' %}">{% trans "Sign in" %} · ግቡ · Seeni</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

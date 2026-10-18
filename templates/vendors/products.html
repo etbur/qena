@@ -1,0 +1,116 @@
+{% extends 'vendors/base_vendor.html' %}
+{% block title %}Products – Vendor Portal{% endblock %}
+{% block breadcrumb %}Products{% endblock %}
+
+{% block vendor_content %}
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+    <h2 style="font-size:1.2rem;font-weight:700;">My Products <span style="font-size:.85rem;font-weight:400;color:#94a3b8;">({{ products.count }})</span></h2>
+    <a href="{% url 'vendors:product_add' %}" class="btn btn-primary"><i class="fas fa-plus"></i> Add Product</a>
+</div>
+
+<div class="table-wrap">
+    <table>
+        <thead>
+            <tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th>QR Code</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+            {% for p in products %}
+            <tr>
+                <td>
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        {% if p.image %}
+                            <img src="{{ p.image.url }}" style="width:48px;height:48px;border-radius:10px;object-fit:cover;"/>
+                        {% else %}
+                            <div style="width:48px;height:48px;border-radius:10px;background:#f1f4f9;display:flex;align-items:center;justify-content:center;color:#94a3b8;"><i class="fas fa-box"></i></div>
+                        {% endif %}
+                        <div>
+                            <div style="font-weight:600;font-size:.88rem;">{{ p.name|truncatechars:40 }}</div>
+                            {% if p.is_featured %}<span style="font-size:.65rem;background:#fef9e6;color:#8a7a1a;padding:2px 8px;border-radius:40px;margin-right:4px;">Featured</span>{% endif %}
+                            {% if p.is_flash_deal %}<span style="font-size:.65rem;background:#fef3f3;color:#b91c1c;padding:2px 8px;border-radius:40px;">Flash Deal</span>{% endif %}
+                        </div>
+                    </div>
+                </td>
+                <td>{{ p.category.name|default:"—" }}</td>
+                <td>ETB {{ p.price }}</td>
+                <td>
+                    {% if p.stock > 0 %}<span class="status delivered">{{ p.stock }}</span>
+                    {% else %}<span class="status pending">0</span>{% endif %}
+                </td>
+                <td>
+                    {% if p.is_active %}<span class="status delivered">Active</span>
+                    {% else %}<span class="status cancelled">Inactive</span>{% endif %}
+                </td>
+                <td>
+                    <button type="button" onclick="showVendorProductQR('{{ p.name|escapejs }}', 'ETB {{ p.price }}', '{{ p.qr_code_data_uri }}', '{{ p.get_qr_download_url }}', '{{ p.get_qr_badge_download_url }}')" class="btn" style="padding:4px 10px;font-size:.78rem;background:#f8fafc;color:#0b2b4a;border:1px solid #cbd5e1;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
+                        <i class="fas fa-qrcode" style="color:#0b2b4a;"></i> QR
+                    </button>
+                </td>
+                <td>
+                    <a href="{{ p.get_absolute_url }}" class="btn" style="padding:5px 12px;font-size:.75rem;" target="_blank"><i class="fas fa-eye"></i></a>
+                    <a href="{% url 'vendors:product_edit' p.pk %}" class="btn" style="padding:5px 12px;font-size:.75rem;"><i class="fas fa-edit"></i></a>
+                    <a href="{% url 'vendors:product_delete' p.pk %}" class="btn btn-danger" style="padding:5px 12px;font-size:.75rem;"><i class="fas fa-trash"></i></a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" style="text-align:center;padding:32px;color:#94a3b8;">
+                No products yet. <a href="{% url 'vendors:product_add' %}" style="color:#d42e2e;font-weight:600;">Add your first product</a>.
+            </td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Vendor Product QR Modal -->
+<div id="vProductQRModal" style="display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(11, 43, 74, 0.65); backdrop-filter: blur(6px); align-items: center; justify-content: center; padding: 12px; box-sizing: border-box;">
+    <div style="background: #ffffff; border-radius: 24px; max-width: 420px; width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.25); text-align: center; position: relative; overflow: hidden; box-sizing: border-box;">
+        
+        <!-- Ethiopian Flag Accent Ribbon -->
+        <div style="height: 5px; width: 100%; display: flex;">
+            <div style="flex: 1; background: #078930;"></div>
+            <div style="flex: 1; background: #f59e0b;"></div>
+            <div style="flex: 1; background: #d42e2e;"></div>
+        </div>
+
+        <div style="padding: 24px 18px 20px;">
+            <button onclick="document.getElementById('vProductQRModal').style.display='none'" style="position: absolute; top: 14px; right: 14px; background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; color: #64748b; font-size: 1rem; display: flex; align-items: center; justify-content: center;">
+                &times;
+            </button>
+            <div style="font-size: 0.72rem; font-weight: 800; color: #078930; letter-spacing: 0.5px; text-transform: uppercase;">Product Marketing QR</div>
+            <h3 id="vModalTitle" style="font-size: 1.15rem; font-weight: 800; color: #0f172a; margin: 4px 0 2px; word-break: break-word;"></h3>
+            <div id="vModalPrice" style="font-size: 0.95rem; font-weight: 800; color: #0b2b4a; margin-bottom: 10px;"></div>
+            
+            <div style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 18px; padding: 14px; display: inline-block; margin-bottom: 12px;">
+                <img id="vModalQRImg" src="" alt="Product QR" style="width: 160px; height: 160px; max-width: 100%; display: block; border-radius: 8px;"/>
+            </div>
+
+            <p style="font-size: 0.78rem; color: #64748b; margin-bottom: 16px; line-height: 1.4;">
+                Use this QR code on product tags, shelf displays, Instagram stories, or print marketing.
+            </p>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <a id="vModalDownloadRaw" href="#" class="btn" style="background: #0b2b4a; color: #fff; padding: 10px 8px; border-radius: 10px; font-weight: 700; font-size: 0.8rem; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                    <i class="fas fa-file-image"></i> Save PNG
+                </a>
+                <a id="vModalDownloadBadge" href="#" class="btn" style="background: #078930; color: #fff; padding: 10px 8px; border-radius: 10px; font-weight: 700; font-size: 0.8rem; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                    <i class="fas fa-print"></i> Flyer
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showVendorProductQR(title, price, qrDataUri, rawUrl, badgeUrl) {
+    document.getElementById('vModalTitle').textContent = title;
+    document.getElementById('vModalPrice').textContent = price;
+    document.getElementById('vModalQRImg').src = qrDataUri;
+    document.getElementById('vModalDownloadRaw').href = rawUrl;
+    document.getElementById('vModalDownloadBadge').href = badgeUrl;
+    document.getElementById('vProductQRModal').style.display = 'flex';
+}
+window.addEventListener('click', function(e) {
+    var m = document.getElementById('vProductQRModal');
+    if (m && e.target === m) m.style.display = 'none';
+});
+</script>
+{% endblock %}

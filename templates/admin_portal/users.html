@@ -1,0 +1,85 @@
+{% extends 'admin_portal/base_admin.html' %}
+{% block title %}Users – Admin Portal{% endblock %}
+{% block breadcrumb %}Users{% endblock %}
+
+{% block admin_content %}
+<div class="page-header">
+    <h2>👥 Users <span class="sub">({{ users.count }})</span></h2>
+</div>
+
+<form method="get" class="search-row">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search name, email, username…"/>
+    <select name="role">
+        <option value="">All Roles</option>
+        <option value="customer"  {% if role == 'customer'  %}selected{% endif %}>Customer</option>
+        <option value="vendor"    {% if role == 'vendor'    %}selected{% endif %}>Vendor</option>
+        <option value="agent"     {% if role == 'agent'     %}selected{% endif %}>Agent</option>
+        <option value="admin"     {% if role == 'admin'     %}selected{% endif %}>Admin</option>
+    </select>
+    <button type="submit" class="search-btn"><i class="fas fa-search"></i> Search</button>
+    {% if q or role %}<a href="{% url 'admin_portal:users' %}" style="font-size:.83rem;color:#d42e2e;font-weight:600;">Clear</a>{% endif %}
+</form>
+
+<div class="table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Orders</th>
+                <th>Joined</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in users %}
+            <tr>
+                <td>
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <div style="width:34px;height:34px;border-radius:50%;
+                                    background:{% if u.role == 'vendor' %}#1f7b3a{% elif u.role == 'agent' %}#b85a1a{% elif u.role == 'admin' %}#0b2b4a{% else %}#1a4b8a{% endif %};
+                                    color:white;display:flex;align-items:center;
+                                    justify-content:center;font-weight:700;font-size:0.8rem;">
+                            {{ u.username|first|upper }}
+                        </div>
+                        <div>
+                            <strong>{{ u.get_full_name|default:u.username }}</strong>
+                            <div style="font-size:0.72rem;color:#94a3b8;">{{ u.email }}</div>
+                        </div>
+                    </div>
+                </td>
+                <td>{{ u.get_role_display }}</td>
+                <td>
+                    {% if u.is_active %}
+                        <span class="status active">Active</span>
+                    {% else %}
+                        <span class="status inactive">Inactive</span>
+                    {% endif %}
+                </td>
+                <td>{{ u.orders.count }}</td>
+                <td>{{ u.date_joined|date:"Y-m-d" }}</td>
+                <td>
+                    {% if u != request.user %}
+                    <form method="post" action="{% url 'admin_portal:user_toggle' u.pk %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit"
+                                class="act-btn {% if u.is_active %}act-btn-deactivate{% else %}act-btn-activate{% endif %}">
+                            <i class="fas fa-{% if u.is_active %}ban{% else %}check{% endif %}"></i>
+                            {% if u.is_active %}Suspend{% else %}Activate{% endif %}
+                        </button>
+                    </form>
+                    {% else %}
+                    <span style="font-size:0.72rem;color:#94a3b8;">You</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" style="text-align:center;padding:32px;color:#94a3b8;">No users found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

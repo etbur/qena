@@ -1,0 +1,17 @@
+{% extends 'storefront/base.html' %}
+{% block title %}About · {{ vendor.store_name }}{% endblock %}
+{% block content %}
+<div style="max-width:760px;margin:0 auto;">
+  <h1 style="font-size:1.8rem;font-weight:800;margin-bottom:8px;">About {{ vendor.store_name }}</h1>
+  {% if vendor.store_tagline %}<p style="font-size:1rem;color:#64748b;margin-bottom:20px;">{{ vendor.store_tagline }}</p>{% endif %}
+  {% if vendor.banner %}<img src="{{ vendor.banner.url }}" style="width:100%;border-radius:16px;margin-bottom:24px;" alt=""/>{% endif %}
+  {% if vendor.description %}
+  <div style="font-size:.92rem;line-height:1.8;color:#475569;background:#fff;border-radius:14px;padding:24px;border:1px solid #eef2f6;">{{ vendor.description|linebreaks }}</div>
+  {% endif %}
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px;">
+    {% if vendor.phone %}<div style="background:#fff;border-radius:12px;padding:16px;border:1px solid #eef2f6;"><i class="fas fa-phone" style="color:var(--secondary);margin-right:8px;"></i>{{ vendor.phone }}</div>{% endif %}
+    {% if vendor.email %}<div style="background:#fff;border-radius:12px;padding:16px;border:1px solid #eef2f6;"><i class="fas fa-envelope" style="color:var(--secondary);margin-right:8px;"></i>{{ vendor.email }}</div>{% endif %}
+    {% if vendor.address %}<div style="background:#fff;border-radius:12px;padding:16px;border:1px solid #eef2f6;grid-column:1/-1;"><i class="fas fa-map-marker-alt" style="color:var(--secondary);margin-right:8px;"></i>{{ vendor.address }}{% if vendor.city %}, {{ vendor.city }}{% endif %}</div>{% endif %}
+  </div>
+</div>
+{% endblock %}

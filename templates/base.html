@@ -1,0 +1,1506 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Qenagebeya · ቀናጌቤያ{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background: #f4f6f9;
+            color: #1e293b;
+            line-height: 1.5;
+        }
+
+        /* top bar */
+        .top-bar {
+            background: #fff;
+            border-bottom: 1px solid #eef2f6;
+            padding: 8px 32px;
+            font-size: 0.8rem;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            color: #475569;
+        }
+
+        .top-bar .left {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+        }
+
+        .top-bar .left span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .top-bar .left i {
+            color: #d42e2e;
+            font-size: 0.75rem;
+        }
+
+        .top-bar .right {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .top-bar .right a {
+            color: #1e293b;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.8rem;
+        }
+
+        /* language switcher */
+        .lang-switch {
+            display: flex;
+            gap: 2px;
+            align-items: center;
+            background: #f1f4f9;
+            border-radius: 30px;
+            padding: 3px 10px;
+        }
+
+        .lang-switch a {
+            color: #475569;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.78rem;
+            padding: 2px 6px;
+            border-radius: 20px;
+            transition: 0.15s;
+        }
+
+        .lang-switch a:hover,
+        .lang-switch a.active {
+            background: #0b2b4a;
+            color: white;
+        }
+
+        .lang-switch span {
+            color: #94a3b8;
+            font-size: 0.7rem;
+        }
+
+        /* Ethiopian flag accent bar */
+        .eth-bar {
+            height: 4px;
+            background: linear-gradient(to right, #078930 33.3%, #FCDD09 33.3% 66.6%, #DA121A 66.6%);
+        }
+
+        /* main header */
+        .main-header {
+            background: white;
+            padding: 14px 32px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            border-bottom: 1px solid #eef2f6;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: #0b2b4a;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+
+        .logo i {
+            color: #d42e2e;
+            margin-right: 6px;
+        }
+
+        .logo .eth-flag {
+            font-size: 1.2rem;
+            margin-left: 6px;
+        }
+
+        .delivery-area {
+            background: #f1f4f9;
+            padding: 6px 18px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #1e293b;
+            font-weight: 500;
+        }
+
+        /* ── Search icon button in header ── */
+        .search-toggle-btn {
+            background: #f1f4f9;
+            border: 1px solid #eef2f6;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #475569;
+            transition: 0.2s;
+            flex-shrink: 0;
+        }
+        .search-toggle-btn:hover {
+            background: #0b2b4a;
+            color: white;
+            border-color: #0b2b4a;
+        }
+
+        /* ── Full-width search popup overlay ── */
+        .search-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(11, 27, 43, 0.55);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 9999;
+            display: none;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 80px;
+        }
+        .search-overlay.open {
+            display: flex;
+            animation: fadeIn 0.18s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+
+        .search-popup {
+            background: white;
+            border-radius: 20px;
+            padding: 20px 24px;
+            width: 100%;
+            max-width: 680px;
+            margin: 0 16px;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.18);
+            animation: slideDown 0.2s ease;
+        }
+        @keyframes slideDown {
+            from { transform: translateY(-16px); opacity: 0; }
+            to   { transform: translateY(0);      opacity: 1; }
+        }
+
+        .search-popup-inner {
+            display: flex;
+            align-items: center;
+            background: #f1f4f9;
+            border-radius: 60px;
+            padding: 4px 4px 4px 22px;
+            border: 2px solid transparent;
+            transition: 0.2s;
+            position: relative;   /* anchor for autocomplete dropdown */
+        }
+        .search-popup-inner:focus-within {
+            background: white;
+            border-color: #078930;
+            box-shadow: 0 0 0 4px rgba(7,137,48,0.12);
+        }
+        .search-popup-inner input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            padding: 12px 0;
+            font-size: 1rem;
+            outline: none;
+            color: #1e293b;
+        }
+        .search-popup-inner input::placeholder { color: #94a3b8; }
+        .search-popup-inner button[type=submit] {
+            background: #0b2b4a;
+            border: none;
+            color: white;
+            padding: 10px 26px;
+            border-radius: 60px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.2s;
+            white-space: nowrap;
+        }
+        .search-popup-inner button[type=submit]:hover { background: #078930; }
+        .search-popup-close {
+            background: none;
+            border: none;
+            font-size: 1.3rem;
+            color: #94a3b8;
+            cursor: pointer;
+            padding: 10px 12px;
+            border-radius: 50%;
+            transition: 0.15s;
+            margin-left: 6px;
+        }
+        .search-popup-close:hover { background: #f1f4f9; color: #1e293b; }
+
+        .search-popup-hint {
+            margin-top: 12px;
+            font-size: 0.78rem;
+            color: #94a3b8;
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .search-popup-hint a {
+            color: #0b2b4a;
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .search-popup-hint a:hover { color: #078930; }
+
+        /* ── Search autocomplete dropdown ── */
+        .search-autocomplete {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 16px 48px rgba(0,0,0,0.14);
+            border: 1px solid #eef2f6;
+            overflow: hidden;
+            z-index: 10000;
+            display: none;
+        }
+        .search-autocomplete.show { display: block; animation: slideDown 0.15s ease; }
+        .search-ac-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 18px;
+            cursor: pointer;
+            transition: background 0.12s;
+            text-decoration: none;
+            color: #1e293b;
+            border-bottom: 1px solid #f8fafc;
+        }
+        .search-ac-item:last-child { border-bottom: none; }
+        .search-ac-item:hover, .search-ac-item.active { background: #f1f4f9; }
+        .search-ac-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+        .search-ac-icon.product  { background: #e8f5e9; color: #078930; }
+        .search-ac-icon.category { background: #e6f0fa; color: #1a4b8a; }
+        .search-ac-icon.fuzzy    { background: #fff4e6; color: #b85a1a; }
+        .search-ac-label { flex: 1; font-size: 0.88rem; font-weight: 600; line-height: 1.3; }
+        .search-ac-sub   { font-size: 0.72rem; color: #94a3b8; font-weight: 400; }
+        .search-ac-price { font-size: 0.82rem; font-weight: 700; color: #0b2b4a; white-space: nowrap; }
+        .search-ac-badge {
+            font-size: 0.62rem;
+            padding: 2px 8px;
+            border-radius: 40px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .search-ac-badge.fuzzy { background: #fff4e6; color: #b85a1a; }
+        .search-ac-footer {
+            padding: 10px 18px;
+            background: #f8fafc;
+            font-size: 0.78rem;
+            color: #94a3b8;
+            text-align: center;
+            cursor: pointer;
+        }
+        .search-ac-footer:hover { background: #eef2f6; color: #0b2b4a; }
+
+        /* ── Header shortcut pills (Rent · Job · Digital · Makerspace) ── */
+        .header-shortcuts {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: nowrap;
+        }
+        .shortcut-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-decoration: none;
+            white-space: nowrap;
+            border: 1px solid #eef2f6;
+            background: #f8fafc;
+            color: #1e293b;
+            transition: 0.15s;
+        }
+        .shortcut-pill:hover { background: #0b2b4a; color: white; border-color: #0b2b4a; }
+        .shortcut-pill.pill-rent      { color: #b85a1a; border-color: #f5d7b0; background: #fff8f0; }
+        .shortcut-pill.pill-rent:hover { background: #b85a1a; color: white; border-color: #b85a1a; }
+        .shortcut-pill.pill-job       { color: #078930; border-color: #b7e5c1; background: #f0fff4; }
+        .shortcut-pill.pill-job:hover { background: #078930; color: white; border-color: #078930; }
+        .shortcut-pill.pill-digital   { color: #1a4b8a; border-color: #b3cfec; background: #f0f6ff; }
+        .shortcut-pill.pill-digital:hover { background: #1a4b8a; color: white; border-color: #1a4b8a; }
+        .shortcut-pill.pill-maker     { color: #6d28d9; border-color: #ddd6fe; background: #faf5ff; }
+        .shortcut-pill.pill-maker:hover { background: #6d28d9; color: white; border-color: #6d28d9; }
+        .shortcut-pill.pill-tryon     { color: #a21caf; border-color: #f0abfc; background: #fdf4ff; }
+        .shortcut-pill.pill-tryon:hover { background: linear-gradient(135deg, #a21caf, #db2777); color: white; border-color: #a21caf; }
+        @media (max-width: 1100px) {
+            .main-header {
+                flex-wrap: wrap;
+            }
+            .header-shortcuts {
+                order: 3;
+                width: 100%;
+                margin: 6px 0 0;
+                padding: 6px 0 2px;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+                gap: 6px;
+                border-top: 1px solid #f1f5f9;
+            }
+            .header-shortcuts::-webkit-scrollbar {
+                display: none;
+            }
+            .shortcut-pill {
+                padding: 5px 12px;
+                font-size: 0.74rem;
+                flex-shrink: 0;
+            }
+        }
+
+        /* ── Search popup mobile ── */
+        @media (max-width: 600px) {
+            .search-overlay { padding-top: 60px; }
+            .search-popup { border-radius: 16px; padding: 16px; margin: 0 10px; }
+            .search-popup-inner { padding: 3px 3px 3px 16px; }
+            .search-popup-inner input { font-size: 0.9rem; }
+            .search-popup-inner button[type=submit] { padding: 8px 16px; font-size: 0.82rem; }
+        }
+
+        /* ── Remove the old inline .search-bar ── */
+        .search-bar { display: none !important; }
+
+        .header-actions {
+            display: flex;
+            gap: 18px;
+            align-items: center;
+        }
+
+        .header-actions a {
+            color: #1e293b;
+            text-decoration: none;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+        }
+
+        .header-actions a i {
+            font-size: 1rem;
+            color: #475569;
+        }
+
+        .cart-icon {
+            background: #0b2b4a;
+            color: white !important;
+            padding: 8px 18px;
+            border-radius: 60px;
+            font-weight: 600;
+        }
+
+        .cart-icon i {
+            color: white !important;
+        }
+
+        .cart-count {
+            background: #d42e2e;
+            color: white;
+            font-size: 0.6rem;
+            padding: 1px 6px;
+            border-radius: 50%;
+            margin-left: 2px;
+            vertical-align: top;
+        }
+
+        .admin-link {
+            color: #d42e2e !important;
+            font-weight: 700 !important;
+        }
+
+        /* sticky nav */
+        .sticky-nav-wrapper {
+            position: sticky;
+            top: 0;
+            z-index: 999;
+            background: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+            border-bottom: 1px solid #eef2f6;
+            display: flex;
+            align-items: stretch;
+            overflow: hidden;
+            /* clips children so scroll arrows work */
+        }
+
+        .category-nav {
+            background: white;
+            padding: 0 0;
+            display: flex;
+            align-items: center;
+            gap: 0;
+            flex-wrap: nowrap;
+            /* NEVER wrap — scroll instead */
+            overflow-x: auto;
+            /* horizontal scroll */
+            overflow-y: visible;
+            width: 100%;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            /* smooth on iOS */
+        }
+
+        .category-nav::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Scroll arrow buttons */
+        .nav-scroll-btn {
+            flex-shrink: 0;
+            width: 36px;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            z-index: 1001;
+            display: none;
+            /* shown via JS when needed */
+            align-items: center;
+            justify-content: center;
+            color: #475569;
+            font-size: 0.9rem;
+            transition: color 0.15s;
+            background: white;
+        }
+
+        .nav-scroll-btn:hover {
+            color: #d42e2e;
+        }
+
+        .nav-scroll-btn.left {
+            box-shadow: 4px 0 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .nav-scroll-btn.right {
+            box-shadow: -4px 0 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .nav-item {
+            position: relative;
+            padding: 14px 18px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #1e293b;
+            cursor: default;
+            transition: 0.2s;
+            border-bottom: 3px solid transparent;
+            white-space: nowrap;
+            /* each item stays single-line */
+            flex-shrink: 0;
+            /* items never shrink */
+        }
+
+        .nav-item:hover {
+            color: #d42e2e;
+            border-bottom-color: #d42e2e;
+        }
+
+        .nav-item i {
+            margin-right: 8px;
+            color: #d42e2e;
+            width: 18px;
+        }
+
+        .nav-dropdown {
+            position: fixed;
+            /* fixed so it escapes the scroll overflow */
+            min-width: 220px;
+            background: white;
+            border-radius: 0 0 16px 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+            padding: 12px 0;
+            display: none;
+            z-index: 1002;
+            border-top: 1px solid #eef2f6;
+        }
+
+        .nav-item:hover .nav-dropdown {
+            display: block;
+        }
+
+        .nav-dropdown a {
+            display: block;
+            padding: 8px 24px;
+            color: #1e293b;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: 0.15s;
+        }
+
+        .nav-dropdown a:hover {
+            background: #f8fafc;
+            color: #d42e2e;
+            padding-left: 28px;
+        }
+
+        .nav-dropdown .dropdown-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #94a3b8;
+            padding: 6px 24px 2px;
+            font-weight: 700;
+        }
+
+        .nav-dropdown .divider {
+            height: 1px;
+            background: #eef2f6;
+            margin: 6px 16px;
+        }
+
+        .mega-dropdown {
+            position: fixed;
+            /* fixed so it escapes overflow */
+            left: 0;
+            width: 100vw;
+            background: white;
+            border-radius: 0 0 24px 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+            padding: 28px 40px 36px;
+            display: none;
+            grid-template-columns: 240px 1fr 260px;
+            gap: 30px;
+            z-index: 1002;
+            border-top: 1px solid #eef2f6;
+        }
+
+        .nav-item:hover .mega-dropdown {
+            display: grid;
+        }
+
+        .mega-dropdown .col h4 {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #94a3b8;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .mega-dropdown .col a {
+            display: block;
+            color: #1e293b;
+            text-decoration: none;
+            padding: 5px 0;
+            font-size: 0.88rem;
+            font-weight: 500;
+            transition: 0.15s;
+        }
+
+        .mega-dropdown .col a:hover {
+            color: #d42e2e;
+            padding-left: 4px;
+        }
+
+        .mega-dropdown .col .badge-new {
+            background: #d42e2e;
+            color: white;
+            font-size: 0.55rem;
+            padding: 1px 10px;
+            border-radius: 40px;
+            margin-left: 6px;
+        }
+
+        .mega-dropdown .trending-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .mega-dropdown .trending-item {
+            background: #f8fafc;
+            border-radius: 14px;
+            padding: 10px 12px;
+            font-size: 0.78rem;
+            border: 1px solid #edf0f4;
+        }
+
+        .mega-dropdown .trending-item .title {
+            font-weight: 600;
+            margin-top: 3px;
+            font-size: 0.82rem;
+        }
+
+        .mega-dropdown .trending-item .price {
+            color: #0b2b4a;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+
+        .mega-dropdown .sub-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2px 16px;
+        }
+
+        .mega-dropdown .sub-grid a {
+            font-weight: 400;
+            font-size: 0.85rem;
+            padding: 3px 0;
+        }
+
+        .mega-dropdown .category-list a i {
+            width: 20px;
+            color: #d42e2e;
+            margin-right: 8px;
+        }
+
+        .mega-dropdown .view-all-link {
+            color: #d42e2e !important;
+            font-weight: 600 !important;
+            margin-top: 6px;
+        }
+
+        /* messages */
+        .messages-bar {
+            padding: 8px 32px;
+        }
+
+        .alert {
+            padding: 10px 20px;
+            border-radius: 10px;
+            margin: 4px 0;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-success {
+            background: #e6f7e6;
+            color: #1f7b3a;
+            border: 1px solid #b7e5c1;
+        }
+
+        .alert-warning {
+            background: #fff4e6;
+            color: #b85a1a;
+            border: 1px solid #f5d7b0;
+        }
+
+        .alert-error,
+        .alert-danger {
+            background: #fef3f3;
+            color: #b91c1c;
+            border: 1px solid #f5b8b8;
+        }
+
+        .alert-info {
+            background: #e6f0fa;
+            color: #1a4b8a;
+            border: 1px solid #b3cfec;
+        }
+
+        .container {
+            max-width: 100%;
+            padding: 0 32px;
+        }
+
+        /* footer */
+        .footer {
+            background: #0b1b2b;
+            color: #cbd5e1;
+            padding: 48px 32px 24px;
+            margin-top: 48px;
+            border-radius: 32px 32px 0 0;
+        }
+
+        .footer .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 32px;
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        .footer a {
+            color: #b0c4db;
+            text-decoration: none;
+            display: block;
+            margin: 6px 0;
+            font-size: 0.85rem;
+        }
+
+        .footer a:hover {
+            color: white;
+        }
+
+        .footer .brand {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white;
+            letter-spacing: -0.5px;
+        }
+
+        .footer .copy {
+            border-top: 1px solid #2a3a4e;
+            padding-top: 24px;
+            margin-top: 32px;
+            font-size: 0.8rem;
+            text-align: center;
+            color: #8ba0b8;
+            max-width: 1280px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.4)} }
+
+        /* Google Translate widget hide Google bar */
+        .goog-te-banner-frame {
+            display: none !important;
+        }
+
+        body {
+            top: 0 !important;
+        }
+
+        .skiptranslate {
+            display: none !important;
+        }
+
+        @media (max-width: 768px) {
+
+            .top-bar,
+            .main-header,
+            .category-nav,
+            .container {
+                padding-left: 12px;
+                padding-right: 12px;
+            }
+
+            .top-bar {
+                padding: 6px 12px;
+                font-size: 0.74rem;
+            }
+
+            .top-bar .left {
+                display: none;
+            }
+
+            .top-bar .right {
+                width: 100%;
+                justify-content: space-between;
+                display: flex;
+                align-items: center;
+            }
+
+            .mega-dropdown {
+                grid-template-columns: 1fr;
+                padding: 20px;
+            }
+
+            .category-nav .nav-item:first-child:hover .mega-dropdown {
+                display: block;
+            }
+
+            .main-header {
+                padding: 8px 12px;
+                gap: 8px;
+            }
+
+            .logo {
+                font-size: 1.18rem;
+            }
+
+            .delivery-area {
+                display: none;   /* hide on small screens to save space */
+            }
+
+            .header-actions {
+                gap: 6px;
+                flex-wrap: nowrap;
+                justify-content: flex-end;
+                align-items: center;
+            }
+
+            .header-actions a {
+                padding: 6px 6px;
+                font-size: 0.82rem;
+            }
+
+            .header-actions a .nav-text {
+                display: none;
+            }
+
+            .header-actions a i {
+                font-size: 1.15rem;
+            }
+
+            .cart-icon {
+                padding: 6px 12px !important;
+                border-radius: 40px;
+                font-size: 0.8rem;
+            }
+
+            .cart-icon .nav-text {
+                display: none;
+            }
+
+            .cart-icon i {
+                font-size: 1.05rem;
+            }
+
+            .nav-dropdown {
+                position: static;
+                box-shadow: none;
+                border-radius: 0;
+            }
+
+            .nav-item:hover .nav-dropdown {
+                display: none;
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+
+    <!-- Ethiopian flag accent bar -->
+    <div class="eth-bar"></div>
+
+    <!-- top bar -->
+    <div class="top-bar">
+        <div class="left">
+            <span><i class="fas fa-truck"></i> {% trans "Free delivery over" %} ETB 500</span>
+            <span><i class="fas fa-clock"></i> {% trans "Express 60 · Addis Ababa" %}</span>
+            <span><i class="fas fa-bolt"></i> {% trans "Flash Deals" %} 18:00 · 21:00</span>
+            <span>🇪🇹 Made in Ethiopia</span>
+        </div>
+        <div class="right">
+            {% if not request.user.is_authenticated %}
+            <a href="{% url 'vendors:setup' %}"><i class="fas fa-store"></i> {% trans "Sell on Qenagebeya" %}</a>
+            {% endif %}
+            <!-- Language switcher (native Django i18n) -->
+            <div class="lang-switch">
+                <form action="{% url 'set_language' %}" method="post" id="lang-form" style="display:none;">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.path }}" />
+                    <input type="hidden" name="language" id="lang-input" value="en" />
+                </form>
+                <a href="#" onclick="setLang('en');return false;"
+                    class="{% if LANGUAGE_CODE == 'en' %}active{% endif %}">EN</a>
+                <span>·</span>
+                <a href="#" onclick="setLang('am');return false;"
+                    class="{% if LANGUAGE_CODE == 'am' %}active{% endif %}">አማ</a>
+                <span>·</span>
+                <a href="#" onclick="setLang('om');return false;"
+                    class="{% if LANGUAGE_CODE == 'om' %}active{% endif %}">OM</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- main header -->
+    <!-- ═══ MAIN HEADER — single line ═══ -->
+    <div class="main-header">
+
+        <!-- Logo -->
+        <a href="{% url 'store:home' %}" class="logo">
+            <i class="fas fa-store-alt"></i>Qenagebeya<span class="eth-flag">🇪🇹</span>
+        </a>
+
+        <!-- Shortcut category pills -->
+        <div class="header-shortcuts">
+            <a href="{% url 'store:product_list' %}?q=rent"
+               class="shortcut-pill pill-rent">
+                <i class="fas fa-key"></i> Rent
+            </a>
+            <a href="{% url 'store:product_list' %}?q=job"
+               class="shortcut-pill pill-job">
+                <i class="fas fa-briefcase"></i> Jobs
+            </a>
+            <a href="{% url 'store:product_list' %}?q=digital"
+               class="shortcut-pill pill-digital">
+                <i class="fas fa-laptop-code"></i> Digital
+            </a>
+            <a href="{% url 'makerspace:landing' %}"
+               class="shortcut-pill pill-maker">
+                <i class="fas fa-tools"></i> Makerspace
+            </a>
+            <a href="{% url 'store:try_on' %}"
+               class="shortcut-pill pill-tryon" title="Virtual Try-On AR & Photo Fitting Room">
+                <i class="fas fa-magic"></i> ✨ Try-On
+            </a>
+            <a href="{% url 'live:home' %}"
+               class="shortcut-pill pill-rent">
+                <span style="width:8px;height:8px;border-radius:50%;background:#d42e2e;display:inline-block;flex-shrink:0;"></span> Live
+            </a>
+        </div>
+
+        <!-- Delivery area pill -->
+        <div class="delivery-area">
+            <i class="fas fa-map-pin"></i> {% trans "Deliver to · Choose area" %}
+        </div>
+
+        <!-- Right-side actions (search icon first, then the rest) -->
+        <div class="header-actions">
+
+            <!-- 🔍 Search icon — opens popup -->
+            <button class="search-toggle-btn" id="search-open-btn" title="{% trans 'Search' %}">
+                <i class="fas fa-search"></i>
+            </button>
+
+            {% if request.user.is_authenticated %}
+                <a href="{% url 'accounts:profile' %}" title="{% trans 'Profile' %}">
+                    <i class="far fa-user"></i>
+                    <span class="nav-text">{{ request.user.first_name|default:request.user.username }}</span>
+                </a>
+                {% if request.user.role == 'vendor' %}
+                    <a href="{% url 'vendors:dashboard' %}" title="{% trans 'My Store' %}">
+                        <i class="fas fa-store"></i> <span class="nav-text">{% trans "My Store" %}</span>
+                    </a>
+                {% elif request.user.role == 'agent' %}
+                    <a href="{% url 'agents:dashboard' %}" title="{% trans 'Agent' %}">
+                        <i class="fas fa-headset"></i> <span class="nav-text">{% trans "Agent" %}</span>
+                    </a>
+                {% endif %}
+                {% if request.user.role == 'admin' or request.user.is_staff %}
+                    <a href="{% url 'admin_portal:dashboard' %}" class="admin-link" title="{% trans 'Admin' %}">
+                        <i class="fas fa-shield-alt"></i> <span class="nav-text">{% trans "Admin" %}</span>
+                    </a>
+                {% endif %}
+                <a href="{% url 'accounts:logout' %}" title="{% trans 'Logout' %}">
+                    <i class="fas fa-sign-out-alt"></i> <span class="nav-text">{% trans "Logout" %}</span>
+                </a>
+            {% else %}
+                <a href="{% url 'accounts:login' %}" title="{% trans 'Account & Orders' %}">
+                    <i class="far fa-user"></i> <span class="nav-text">{% trans "Account & Orders" %}</span>
+                </a>
+            {% endif %}
+
+            <a href="{% url 'store:wishlist' %}" title="{% trans 'Wishlist' %}">
+                <i class="far fa-heart"></i> <span class="nav-text">{% trans "Wishlist" %}</span>
+            </a>
+
+            <a href="{% url 'store:cart' %}" class="cart-icon" title="{% trans 'Cart' %}">
+                <i class="fas fa-shopping-cart"></i> <span class="nav-text">{% trans "Cart" %}</span>
+                {% if cart_count > 0 %}
+                    <span class="cart-count">{{ cart_count }}</span>
+                {% endif %}
+            </a>
+
+        </div>
+    </div>
+
+    <!-- ═══ SEARCH POPUP OVERLAY ═══ -->
+    <div class="search-overlay" id="search-overlay">
+        <div class="search-popup" id="search-popup">
+            <form action="{% url 'store:product_list' %}" method="get" id="search-popup-form" autocomplete="off">
+                <div class="search-popup-inner" style="position:relative;">
+                    <input
+                        type="text"
+                        name="q"
+                        id="search-popup-input"
+                        placeholder="{% trans 'Search products, brands and stores' %}"
+                        value="{{ request.GET.q }}"
+                        autocomplete="off"
+                        role="combobox"
+                        aria-expanded="false"
+                        aria-haspopup="listbox"
+                    />
+                    <button type="submit">
+                        <i class="fas fa-search"></i> {% trans "Search" %}
+                    </button>
+                    <button type="button" class="search-popup-close" id="search-close-btn">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <!-- Autocomplete dropdown -->
+                    <div class="search-autocomplete" id="search-ac-dropdown" role="listbox"></div>
+                </div>
+            </form>
+            <div class="search-popup-hint">
+                <span>Quick searches · ፈጣን ፍለጋ:</span>
+                <a href="{% url 'store:product_list' %}?q=coffee">
+                    <i class="fas fa-mug-hot"></i> Coffee
+                </a>
+                <a href="{% url 'store:product_list' %}?q=habesha">
+                    <i class="fas fa-tshirt"></i> Habesha
+                </a>
+                <a href="{% url 'store:product_list' %}?q=rent">
+                    <i class="fas fa-key"></i> Rent
+                </a>
+                <a href="{% url 'store:product_list' %}?q=job">
+                    <i class="fas fa-briefcase"></i> Jobs
+                </a>
+                <a href="{% url 'store:product_list' %}?q=digital">
+                    <i class="fas fa-laptop-code"></i> Digital
+                </a>
+                <a href="{% url 'makerspace:landing' %}">
+                    <i class="fas fa-tools"></i> Makerspace · 3D Print
+                </a>
+                <a href="{% url 'live:home' %}">
+                    <span style="width:8px;height:8px;border-radius:50%;background:#d42e2e;display:inline-block;"></span> Live
+                </a>
+                <a href="{% url 'store:product_list' %}?q=berbere">
+                    <i class="fas fa-seedling"></i> Berbere
+                </a>
+                <a href="{% url 'store:product_list' %}?q=phone">
+                    <i class="fas fa-mobile-alt"></i> Phones
+                </a>
+                <a href="{% url 'store:product_list' %}">
+                    <i class="fas fa-th-large"></i> All products
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- STICKY NAVIGATION -->
+    <div class="sticky-nav-wrapper">
+        <button class="nav-scroll-btn left" id="scroll-left-btn"><i class="fas fa-chevron-left"></i></button>
+        <div class="category-nav" id="category-nav-scroll">
+
+            <!-- All Departments mega dropdown -->
+            <div class="nav-item" style="padding-left:0;">
+                <i class="fas fa-th-large"></i> {% trans "All Departments" %}
+                <div class="mega-dropdown">
+                    <div class="col category-list">
+                        {% for cat in nav_categories %}
+                        <a href="{% url 'store:category' cat.slug %}">
+                            <i class="{{ cat.icon }}"></i> {{ cat.name }}
+                        </a>
+                        {% endfor %}
+                        <a href="{% url 'store:product_list' %}" class="view-all-link">
+                            {% trans "View all" %} <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                    <div class="col">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px 24px;">
+                            <div>
+                                <h4>{% trans "Shop by Category" %}</h4>
+                                <div class="sub-grid">
+                                    {% for cat in nav_categories %}
+                                    <a href="{% url 'store:category' cat.slug %}">{{ cat.name }}</a>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div>
+                                <h4>Sale 🔥</h4>
+                                <a href="{% url 'store:product_list' %}">
+                                    New in <span class="badge-new">New</span>
+                                </a>
+                                <h4 style="margin-top:16px;">Quick Links</h4>
+                                <a href="{% url 'store:product_list' %}?sort=price_asc">Price: Low → High</a>
+                                <a href="{% url 'store:product_list' %}?sort=newest">{% trans "Trending now" %}</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <h4>{% trans "Trending now" %}</h4>
+                        <div class="trending-grid">
+                            {% for p in nav_trending %}
+                            <div class="trending-item">
+                                <div style="font-size:0.65rem;color:#94a3b8;">{{ p.category.name|default:"Store" }}
+                                </div>
+                                <div class="title">{{ p.name|truncatechars:26 }}</div>
+                                <div class="price">ETB {{ p.price }}</div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Per-category nav items -->
+            {% for cat in nav_categories %}
+            <div class="nav-item">
+                <i class="{{ cat.icon }}"></i> {{ cat.name }}
+                <div class="nav-dropdown">
+                    <div class="dropdown-title">{{ cat.name }}</div>
+                    {% for child in cat.children.all %}
+                    <a href="{% url 'store:category' child.slug %}">{{ child.name }}</a>
+                    {% empty %}
+                    <a href="{% url 'store:category' cat.slug %}">All {{ cat.name }}</a>
+                    {% endfor %}
+                    <div class="divider"></div>
+                    <a href="{% url 'store:category' cat.slug %}" style="color:#d42e2e;font-weight:600;">
+                        {% trans "View all" %} <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- Makerspace shortcut in nav -->
+            <div class="nav-item" style="flex-shrink:0;margin-left:8px;">
+                <a href="{% url 'makerspace:landing' %}"
+                   style="color:#078930;font-weight:700;display:flex;align-items:center;gap:6px;text-decoration:none;white-space:nowrap;">
+                    <i class="fas fa-tools" style="color:#078930;width:auto;margin-right:0;"></i>
+                    Makerspace
+                </a>
+            </div>
+
+            <!-- Live shortcut in nav -->
+            <div class="nav-item" style="flex-shrink:0;">
+                <a href="{% url 'live:home' %}"
+                   style="color:#d42e2e;font-weight:700;display:flex;align-items:center;gap:6px;text-decoration:none;white-space:nowrap;">
+                    <span style="width:8px;height:8px;border-radius:50%;background:#d42e2e;animation:pulse 1.2s infinite;display:inline-block;flex-shrink:0;"></span>
+                    Live
+                </a>
+            </div>
+
+        </div>
+        <button class="nav-scroll-btn right" id="scroll-right-btn"><i class="fas fa-chevron-right"></i></button>
+    </div>
+
+    <!-- Django messages -->
+    {% if messages %}
+    <div class="messages-bar">
+        {% for msg in messages %}
+        <div class="alert alert-{{ msg.tags }}">
+            <i class="fas fa-info-circle"></i> {{ msg }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- page content -->
+    {% block content %}{% endblock %}
+
+    <!-- footer -->
+    <div class="footer">
+        <div class="grid-4">
+            <div>
+                <div class="brand"><i class="fas fa-store-alt"></i> Qenagebeya 🇪🇹</div>
+                <p style="margin-top:8px;color:#94a9c2;font-size:0.82rem;line-height:1.7;">
+                    የኢትዮጵያ ቁጥር 1 የብዙ ሻጮች ገበያ።<br />
+                    Suuqii gugurudoo lakk.1 Itoophiyaa.<br />
+                    Ethiopia's #1 multi-vendor marketplace.
+                </p>
+            </div>
+            <div>
+                <strong style="color:white;">{% trans "Products" %}</strong>
+                {% for cat in nav_categories %}
+                <a href="{% url 'store:category' cat.slug %}">{{ cat.name }}</a>
+                {% endfor %}
+            </div>
+            <div>
+                <strong style="color:white;">Help · እርዳታ · Gargaarsa</strong>
+                <a href="#">Track order · ትዕዛዝ ክትትል</a>
+                <a href="#">Returns · መመለሻ</a>
+                <a href="#">Buyer protection · የገዥ ጥበቃ</a>
+                <a href="#">Contact 24/7</a>
+            </div>
+            <div>
+                <strong style="color:white;">Services & Portals</strong>
+                <a href="{% url 'makerspace:landing' %}"><i class="fas fa-tools"></i> Makerspace · 3D Print</a>
+                <a href="{% url 'live:home' %}"><i class="fas fa-video"></i> Live Streams</a>
+                <a href="{% url 'vendors:setup' %}">{% trans "Sell on Qenagebeya" %}</a>
+                <a href="{% url 'agents:dashboard' %}">Agent CRM Portal</a>
+            </div>
+        </div>
+        <div class="copy">
+            © 2026 Qenagebeya LLC 🇪🇹 · EN · አማርኛ · Afaan Oromoo ·
+            <a href="#" style="color:#8ba0b8;">Privacy</a> ·
+            <a href="#" style="color:#8ba0b8;">Terms</a>
+        </div>
+    </div>
+
+    <!-- Category Nav Scroll and Dropdown Positioning Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const catNav = document.getElementById('category-nav-scroll');
+            const leftBtn = document.getElementById('scroll-left-btn');
+            const rightBtn = document.getElementById('scroll-right-btn');
+            const navWrapper = document.querySelector('.sticky-nav-wrapper');
+
+            /* ── Horizontal scroll arrows ── */
+            function syncArrows() {
+                if (!catNav) return;
+                const sl = catNav.scrollLeft;
+                const max = catNav.scrollWidth - catNav.clientWidth;
+                leftBtn.style.display = sl > 2 ? 'flex' : 'none';
+                rightBtn.style.display = sl < max - 2 ? 'flex' : 'none';
+            }
+
+            if (catNav) {
+                leftBtn.addEventListener('click', () => catNav.scrollBy({ left: -240, behavior: 'smooth' }));
+                rightBtn.addEventListener('click', () => catNav.scrollBy({ left: 240, behavior: 'smooth' }));
+                catNav.addEventListener('scroll', syncArrows, { passive: true });
+                window.addEventListener('resize', syncArrows);
+                setTimeout(syncArrows, 150);   // run after fonts + layout settle
+            }
+
+            /* ── Dropdown position using fixed coordinates ── */
+            function positionDropdown(navItem) {
+                const dropdown = navItem.querySelector('.nav-dropdown, .mega-dropdown');
+                if (!dropdown) return;
+                const rect = navWrapper ? navWrapper.getBoundingClientRect() : { bottom: 56 };
+                // place just below the sticky bar
+                dropdown.style.top = `${rect.bottom}px`;
+
+                if (dropdown.classList.contains('mega-dropdown')) {
+                    dropdown.style.left = '0px';
+                    dropdown.style.width = `${window.innerWidth}px`;
+                } else {
+                    const iRect = navItem.getBoundingClientRect();
+                    let left = iRect.left;
+                    const dw = 230;
+                    if (left + dw > window.innerWidth) left = window.innerWidth - dw - 12;
+                    dropdown.style.left = `${Math.max(0, left)}px`;
+                    dropdown.style.width = `${dw}px`;
+                }
+            }
+
+            document.querySelectorAll('.category-nav .nav-item').forEach(item => {
+                item.addEventListener('mouseenter', () => {
+                    if (window.innerWidth <= 768) return;
+                    positionDropdown(item);
+                });
+            });
+
+            // Reposition on scroll or resize
+            ['scroll', 'resize'].forEach(ev => {
+                window.addEventListener(ev, () => {
+                    if (window.innerWidth <= 768) return;
+                    document.querySelectorAll('.category-nav .nav-item:hover').forEach(item => {
+                        positionDropdown(item);
+                    });
+                }, { passive: true });
+            });
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+
+    <!-- ── Search popup + autocomplete JS ── -->
+    <script>
+    (function () {
+        var overlay   = document.getElementById('search-overlay');
+        var popup     = document.getElementById('search-popup');
+        var openBtn   = document.getElementById('search-open-btn');
+        var closeBtn  = document.getElementById('search-close-btn');
+        var input     = document.getElementById('search-popup-input');
+        var dropdown  = document.getElementById('search-ac-dropdown');
+        var form      = document.getElementById('search-popup-form');
+
+        var suggestUrl = '/api/search-suggest/';
+        var debounceTimer = null;
+        var activeIndex = -1;
+        var currentItems = [];
+
+        /* ── Open / close ── */
+        function openSearch() {
+            if (!overlay) return;
+            overlay.classList.add('open');
+            document.body.style.overflow = 'hidden';
+            setTimeout(function () { if (input) { input.focus(); input.select(); } }, 80);
+        }
+        function closeSearch() {
+            if (!overlay) return;
+            overlay.classList.remove('open');
+            document.body.style.overflow = '';
+            hideDropdown();
+        }
+
+        if (openBtn)  openBtn.addEventListener('click', openSearch);
+        if (closeBtn) closeBtn.addEventListener('click', closeSearch);
+        if (overlay) {
+            overlay.addEventListener('click', function (e) {
+                if (popup && !popup.contains(e.target)) closeSearch();
+            });
+        }
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                if (dropdown && dropdown.classList.contains('show')) {
+                    hideDropdown();
+                } else {
+                    closeSearch();
+                }
+            }
+            if (e.key === 'ArrowDown') { e.preventDefault(); moveActive(1); }
+            if (e.key === 'ArrowUp')   { e.preventDefault(); moveActive(-1); }
+            if (e.key === 'Enter' && activeIndex >= 0) {
+                e.preventDefault();
+                if (currentItems[activeIndex]) {
+                    window.location.href = currentItems[activeIndex].url;
+                }
+            }
+        });
+
+        /* ── Autocomplete ── */
+        function showDropdown(items) {
+            if (!dropdown) return;
+            currentItems = items;
+            activeIndex = -1;
+
+            if (!items.length) { hideDropdown(); return; }
+
+            var icons = { product: 'fas fa-box-open', category: 'fas fa-th-large', fuzzy: 'fas fa-magic' };
+            var labels = { product: '', category: 'Category', fuzzy: 'Similar' };
+
+            var html = items.map(function(item, idx) {
+                var iconClass = icons[item.type] || 'fas fa-search';
+                var badge = item.type === 'fuzzy'
+                    ? '<span class="search-ac-badge fuzzy">Similar</span>'
+                    : '';
+                return '<a class="search-ac-item" data-idx="' + idx + '" href="' + item.url + '">' +
+                    '<div class="search-ac-icon ' + item.type + '"><i class="' + iconClass + '"></i></div>' +
+                    '<div class="search-ac-label">' +
+                        escHtml(item.label) + ' ' + badge +
+                        (item.sub ? '<div class="search-ac-sub">' + escHtml(item.sub) + '</div>' : '') +
+                    '</div>' +
+                    (item.price ? '<div class="search-ac-price">' + escHtml(item.price) + '</div>' : '') +
+                    '</a>';
+            }).join('');
+
+            // Footer: search all
+            html += '<div class="search-ac-footer" id="ac-search-all">' +
+                '<i class="fas fa-search"></i> Search all results for "<strong>' +
+                escHtml(input.value) + '</strong>"' +
+                '</div>';
+
+            dropdown.innerHTML = html;
+            dropdown.classList.add('show');
+
+            // Bind footer click
+            var footer = document.getElementById('ac-search-all');
+            if (footer) {
+                footer.addEventListener('click', function() {
+                    if (form) form.submit();
+                });
+            }
+
+            // Bind item clicks
+            dropdown.querySelectorAll('.search-ac-item').forEach(function(el) {
+                el.addEventListener('mouseenter', function() {
+                    setActive(parseInt(el.getAttribute('data-idx')));
+                });
+            });
+        }
+
+        function hideDropdown() {
+            if (dropdown) dropdown.classList.remove('show');
+            activeIndex = -1;
+        }
+
+        function moveActive(dir) {
+            var max = currentItems.length;
+            if (!max) return;
+            activeIndex = (activeIndex + dir + max) % max;
+            setActive(activeIndex);
+        }
+
+        function setActive(idx) {
+            activeIndex = idx;
+            dropdown.querySelectorAll('.search-ac-item').forEach(function(el, i) {
+                el.classList.toggle('active', i === idx);
+            });
+            if (currentItems[idx]) {
+                input.value = currentItems[idx].label;
+            }
+        }
+
+        function escHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        /* ── Input listener with debounce ── */
+        if (input) {
+            input.addEventListener('input', function () {
+                var q = input.value.trim();
+                clearTimeout(debounceTimer);
+
+                if (q.length < 2) { hideDropdown(); return; }
+
+                debounceTimer = setTimeout(function () {
+                    fetch(suggestUrl + '?q=' + encodeURIComponent(q))
+                        .then(function(r) { return r.json(); })
+                        .then(function(data) {
+                            if (input.value.trim() === q) {
+                                showDropdown(data.suggestions || []);
+                            }
+                        })
+                        .catch(function() { hideDropdown(); });
+                }, 220);
+            });
+
+            input.addEventListener('blur', function () {
+                // Small delay so click on item registers first
+                setTimeout(hideDropdown, 180);
+            });
+
+            input.addEventListener('focus', function () {
+                if (input.value.trim().length >= 2 && currentItems.length) {
+                    dropdown.classList.add('show');
+                }
+            });
+        }
+
+    })();
+    </script>
+
+    <!-- Language switch script -->
+    <script>
+        function setLang(lang) {
+            document.getElementById('lang-input').value = lang;
+            document.getElementById('lang-form').submit();
+        }
+    </script>
+
+    <!-- Google Translate (auto-detect & translate remaining content) -->
+    <div id="google_translate_element" style="display:none;"></div>
+    <script>
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'en',
+                includedLanguages: 'en,am,om',
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                autoDisplay: false
+            }, 'google_translate_element');
+        }
+    </script>
+    <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+</body>
+
+</html>

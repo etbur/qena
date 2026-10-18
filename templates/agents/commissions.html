@@ -1,0 +1,59 @@
+{% extends 'agents/base_agent.html' %}
+{% block title %}Commissions – Agent Portal{% endblock %}
+{% block breadcrumb %}Commissions{% endblock %}
+
+{% block agent_content %}
+<div class="page-header">
+    <h2>💰 My Commissions · ኮሚሽን</h2>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="label">Total Earned</div>
+        <div class="value">ETB {{ total_earned|floatformat:0 }}</div>
+        <div class="change"><i class="fas fa-arrow-up"></i> All time</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Total Paid</div>
+        <div class="value">ETB {{ total_paid|floatformat:0 }}</div>
+        <div class="change" style="color:#1f7b3a;"><i class="fas fa-check-circle"></i> Received</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Pending</div>
+        <div class="value" style="color:#b85a1a;">ETB {{ total_pending|floatformat:0 }}</div>
+        <div class="change down"><i class="fas fa-clock"></i> Awaiting payment</div>
+    </div>
+    <div class="stat-card">
+        <div class="label">Rate</div>
+        <div class="value">{{ agent.commission_rate }}%</div>
+        <div class="change"><i class="fas fa-percentage"></i> Per closed deal</div>
+    </div>
+</div>
+
+<div class="table-wrap" style="margin-top:20px;">
+    <table>
+        <thead>
+            <tr><th>Commission</th><th>Deal</th><th>Amount</th><th>Status</th><th>Date</th></tr>
+        </thead>
+        <tbody>
+            {% for c in commissions %}
+            <tr>
+                <td><strong>#{{ c.pk }}</strong></td>
+                <td>{{ c.deal.title|default:"—" }}</td>
+                <td>ETB {{ c.amount }}</td>
+                <td>
+                    {% if c.is_paid %}
+                        <span class="status completed">Paid · ተከፍሏል</span>
+                    {% else %}
+                        <span class="status pending">Pending · በመጠባበቅ</span>
+                    {% endif %}
+                </td>
+                <td>{{ c.created_at|date:"M j, Y" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" style="text-align:center;padding:32px;color:#94a3b8;">No commissions yet. Close deals to earn commissions!</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

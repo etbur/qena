@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+{% block title %}{{ vendor.store_name }} – Qenagebeya{% endblock %}
+
+{% block extra_css %}
+<style>
+.store-banner{background:linear-gradient(135deg,#0b2b4a,#1a4b8a);padding:40px 32px;color:#fff;display:flex;align-items:center;gap:24px}
+.store-logo{width:80px;height:80px;border-radius:20px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;color:#0b2b4a;flex-shrink:0}
+.store-logo img{width:80px;height:80px;border-radius:20px;object-fit:cover}
+.store-banner h1{font-size:1.8rem;font-weight:800}
+.tier-badge{background:rgba(255,255,255,.2);padding:4px 14px;border-radius:40px;font-size:.75rem;font-weight:600;margin-top:6px;display:inline-block}
+.product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:20px;padding:28px 32px}
+.product-card{background:#fff;border-radius:20px;padding:14px;border:1px solid #eef2f6;transition:.2s}
+.product-card:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.06)}
+.product-card img{width:100%;height:150px;object-fit:cover;border-radius:14px;background:#f1f4f9}
+.add-cart-btn{width:100%;margin-top:10px;padding:8px;background:#0b2b4a;color:#fff;border:none;border-radius:60px;font-weight:600;font-size:.78rem;cursor:pointer}
+.add-cart-btn:hover{background:#d42e2e}
+@media(max-width:768px){
+    .store-banner{padding:24px 16px;flex-direction:column;text-align:center;gap:16px;}
+    .store-logo{margin:0 auto;}
+    .product-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;padding:16px 12px;}
+    .product-card{padding:10px;border-radius:14px;}
+    .product-card img, .no-img{height:120px;}
+}
+@media(max-width:480px){
+    .store-banner h1{font-size:1.35rem;}
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="store-banner" style="background:linear-gradient(135deg, {{ vendor.brand_primary|default:'#0b2b4a' }}, #1a4b8a);">
+    <div class="store-logo">
+        {% if vendor.logo %}<img src="{{ vendor.logo.url }}" alt="{{ vendor.store_name }}"/>
+        {% else %}{{ vendor.store_name|first|upper }}{% endif %}
+    </div>
+    <div style="flex:1;">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+            <h1 style="margin:0;">{{ vendor.store_name }}</h1>
+            <span class="tier-badge"><i class="fas fa-medal"></i> {{ vendor.get_tier_display }} Vendor</span>
+            {% if vendor.custom_domain %}
+            <a href="http://{{ vendor.custom_domain }}" target="_blank"
+               style="background:rgba(255,255,255,.2);color:#fff;padding:4px 14px;border-radius:40px;font-size:.75rem;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:.2s;"
+               onmouseover="this.style.background='rgba(255,255,255,.35)'" onmouseout="this.style.background='rgba(255,255,255,.2)'">
+                <i class="fas fa-globe"></i> {{ vendor.custom_domain }} ↗
+            </a>
+            {% elif vendor.subdomain %}
+            <a href="http://{{ vendor.subdomain }}.localhost:8000" target="_blank"
+               style="background:rgba(255,255,255,.2);color:#fff;padding:4px 14px;border-radius:40px;font-size:.75rem;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:.2s;"
+               onmouseover="this.style.background='rgba(255,255,255,.35)'" onmouseout="this.style.background='rgba(255,255,255,.2)'">
+                <i class="fas fa-external-link-alt"></i> {{ vendor.subdomain }}.qenagebeya.com ↗
+            </a>
+            {% endif %}
+            <button onclick="document.getElementById('vendorStoreQRModal').style.display='flex'"
+               style="background:rgba(255,255,255,.25);color:#fff;border:none;padding:4px 14px;border-radius:40px;font-size:.75rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.2s;"
+               onmouseover="this.style.background='rgba(255,255,255,.4)'" onmouseout="this.style.background='rgba(255,255,255,.25)'">
+                <i class="fas fa-qrcode"></i> Store QR Code
+            </button>
+        </div>
+        {% if vendor.store_tagline %}<div style="margin-top:4px;font-weight:600;font-size:.92rem;opacity:.95;">{{ vendor.store_tagline }}</div>{% endif %}
+        {% if vendor.description %}<p style="margin-top:6px;opacity:.85;font-size:.88rem;max-width:600px;">{{ vendor.description }}</p>{% endif %}
+        <div style="margin-top:10px;font-size:.8rem;opacity:.8;display:flex;gap:16px;flex-wrap:wrap;">
+            <span><i class="fas fa-tags"></i> {{ vendor.total_products }} products</span>
+            {% if vendor.city %}<span><i class="fas fa-map-pin"></i> {{ vendor.city }}, {{ vendor.country }}</span>{% endif %}
+            {% if vendor.phone %}<span><i class="fas fa-phone"></i> {{ vendor.phone }}</span>{% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Vendor Store QR Modal -->
+<div id="vendorStoreQRModal" style="display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(11, 43, 74, 0.7); backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 12px; box-sizing: border-box; transition: all 0.3s ease;">
+    <div style="background: #ffffff; border-radius: 24px; max-width: 420px; width: 100%; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35); text-align: center; position: relative; overflow: hidden; border: 1px solid #e2e8f0; animation: qrPopIn 0.25s cubic-bezier(0.16, 1, 0.3, 1); box-sizing: border-box;">
+        
+        <!-- Ethiopian Flag Accent Ribbon -->
+        <div style="height: 5px; width: 100%; display: flex;">
+            <div style="flex: 1; background: #078930;"></div>
+            <div style="flex: 1; background: #f59e0b;"></div>
+            <div style="flex: 1; background: #d42e2e;"></div>
+        </div>
+
+        <div style="padding: 24px 18px 20px;">
+            <button onclick="document.getElementById('vendorStoreQRModal').style.display='none'" style="position: absolute; top: 14px; right: 14px; background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; color: #475569; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; transition: 0.2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
+                &times;
+            </button>
+
+            <div style="display: inline-flex; align-items: center; gap: 6px; background: #eff6ff; color: #1d4ed8; padding: 4px 12px; border-radius: 40px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; margin-bottom: 6px;">
+                <i class="fas fa-store"></i> Verified Vendor QR Code
+            </div>
+
+            <h3 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin: 4px 0 2px; word-break: break-word;">{{ vendor.store_name }}</h3>
+            <div style="font-size: 0.82rem; font-weight: 700; color: #64748b; margin-bottom: 12px;">{{ vendor.get_tier_display }} Tier Partner</div>
+            
+            <!-- Store QR Frame with Logo -->
+            <div style="background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%); border: 2px solid #e2e8f0; border-radius: 20px; padding: 14px; display: inline-block; box-shadow: 0 8px 20px rgba(0,0,0,0.06); margin-bottom: 12px;">
+                <img src="{{ vendor.qr_code_data_uri }}" alt="Store QR with Logo" style="width: 170px; height: 170px; max-width: 100%; display: block; border-radius: 10px;"/>
+            </div>
+
+            <p style="font-size: 0.78rem; color: #64748b; margin-bottom: 16px; line-height: 1.4;">
+                Scan with any phone camera to visit <strong>{{ vendor.store_name }}</strong> live catalog and place orders.
+            </p>
+
+            <!-- Action Buttons -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+                <a href="{{ vendor.get_qr_download_url }}" class="btn" style="background: #0b2b4a; color: #fff; padding: 10px 8px; border-radius: 10px; font-weight: 700; font-size: 0.8rem; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 4px; box-shadow: 0 4px 12px rgba(11, 43, 74, 0.2);">
+                    <i class="fas fa-download"></i> Save PNG
+                </a>
+                <a href="{{ vendor.get_qr_badge_download_url }}" class="btn" style="background: #d42e2e; color: #fff; padding: 10px 8px; border-radius: 10px; font-weight: 700; font-size: 0.8rem; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 4px; box-shadow: 0 4px 12px rgba(212, 46, 46, 0.2);">
+                    <i class="fas fa-id-badge"></i> Store Badge
+                </a>
+            </div>
+
+            <button onclick="copyStoreLink('{{ vendor.get_store_url }}')" id="btnCopyStoreLink" style="width: 100%; background: #f8fafc; color: #334155; border: 1px solid #cbd5e1; padding: 10px; border-radius: 12px; font-weight: 700; font-size: 0.82rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s;">
+                <i class="fas fa-link"></i> <span id="storeCopySpan">Copy Store URL</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes qrPopIn {
+    from { opacity: 0; transform: scale(0.92) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+</style>
+
+<script>
+function copyStoreLink(url) {
+    navigator.clipboard.writeText(url).then(function() {
+        var span = document.getElementById('storeCopySpan');
+        if(span) {
+            span.textContent = 'Store URL Copied! ✓';
+            setTimeout(function() { span.textContent = 'Copy Store URL'; }, 2000);
+        }
+    });
+}
+window.addEventListener('click', function(e) {
+    var modal = document.getElementById('vendorStoreQRModal');
+    if (modal && e.target === modal) {
+        modal.style.display = 'none';
+    }
+});
+</script>
+
+<div style="padding:20px 32px 0;">
+    <h3 style="font-size:1.1rem;font-weight:700;">Products from {{ vendor.store_name }}
+        <span style="font-size:.85rem;font-weight:400;color:#94a3b8;">({{ products.count }})</span>
+    </h3>
+</div>
+
+<div class="product-grid">
+    {% for p in products %}
+    <div class="product-card">
+        <a href="{{ p.get_absolute_url }}">
+            {% if p.image %}<img src="{{ p.image.url }}" alt="{{ p.name }}"/>
+            {% else %}<div class="no-img"><i class="fas fa-box-open"></i></div>{% endif %}
+        </a>
+        <div style="font-weight:600;font-size:.88rem;margin:8px 0 3px;"><a href="{{ p.get_absolute_url }}" style="color:#1e293b;">{{ p.name|truncatechars:45 }}</a></div>
+        <div style="font-weight:700;color:#0b2b4a;font-size:.95rem;">ETB {{ p.price }}
+            {% if p.original_price %}<span style="font-size:.75rem;color:#94a3b8;text-decoration:line-through;margin-left:4px;">ETB {{ p.original_price }}</span>{% endif %}
+        </div>
+        {% if p.in_stock %}
+        <form method="post" action="{% url 'store:cart_add' p.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="add-cart-btn"><i class="fas fa-cart-plus"></i> Add to Cart</button>
+        </form>
+        {% else %}
+        <div style="text-align:center;font-size:.78rem;color:#b91c1c;font-weight:600;margin-top:10px;">Out of Stock</div>
+        {% endif %}
+    </div>
+    {% empty %}
+    <p style="color:#94a3b8;grid-column:1/-1;padding:40px;text-align:center;">No products available in this store yet.</p>
+    {% endfor %}
+</div>
+{% endblock %}

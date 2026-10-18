@@ -1,0 +1,129 @@
+{% extends 'storefront/base.html' %}
+{% block title %}{{ vendor.store_name }}{% if vendor.store_tagline %} — {{ vendor.store_tagline }}{% endif %}{% endblock %}
+{% block nav_home %}active{% endblock %}
+
+{% block content %}
+
+{% if not q and not cat_slug %}
+<!-- Hero -->
+<div class="sf-hero">
+  <div>
+    <h1>{{ vendor.store_name }}</h1>
+    <p>{{ vendor.store_tagline|default:vendor.description|default:"Welcome to our store — quality products, great prices." }}</p>
+    <div class="sf-hero-cta">
+      <a href="#products" class="cta-primary"><i class="fas fa-shopping-bag"></i> Shop Now</a>
+      {% if vendor.whatsapp %}
+      <a href="https://wa.me/{{ vendor.whatsapp }}" target="_blank" class="cta-outline"><i class="fab fa-whatsapp"></i> WhatsApp Us</a>
+      {% endif %}
+    </div>
+  </div>
+  {% if vendor.banner %}<img src="{{ vendor.banner.url }}" alt="{{ vendor.store_name }}"/>{% endif %}
+</div>
+
+<!-- Feature strip -->
+<div class="sf-features">
+  <div class="sf-feat"><i class="fas fa-shipping-fast"></i><div><div class="ft">Fast Delivery</div><div class="fs">Addis Ababa & beyond</div></div></div>
+  <div class="sf-feat"><i class="fas fa-shield-alt"></i><div><div class="ft">Buyer Protection</div><div class="fs">Safe & secure</div></div></div>
+  <div class="sf-feat"><i class="fas fa-undo"></i><div><div class="ft">Easy Returns</div><div class="fs">Hassle-free policy</div></div></div>
+  <div class="sf-feat"><i class="fas fa-headset"></i><div><div class="ft">24/7 Support</div><div class="fs">We're always here</div></div></div>
+</div>
+
+<!-- Flash deals -->
+{% if flash %}
+<div class="sf-section-hdr"><h2>⚡ Flash Deals</h2><a href="/?filter=flash">View all</a></div>
+<div class="sf-grid">
+  {% for p in flash %}
+  <a href="/product/{{ p.pk }}/" class="sf-card">
+    <span class="sf-badge" style="position:absolute;top:8px;left:8px;z-index:1;">-{{ p.discount_percent }}%</span>
+    {% if p.image %}<img src="{{ p.image.url }}" class="sf-card-img" alt="{{ p.name }}"/>{% else %}<div class="sf-card-img-ph"><i class="fas fa-box"></i></div>{% endif %}
+    <div class="sf-card-body">
+      <div class="sf-card-name">{{ p.name|truncatechars:60 }}</div>
+      <div><span class="sf-card-price">ETB {{ p.price }}</span>{% if p.original_price %}<span class="sf-card-orig">ETB {{ p.original_price }}</span>{% endif %}</div>
+    </div>
+    <div style="padding:0 12px 12px;">
+      <span class="sf-card-btn" style="display:block;text-align:center;border-radius:8px;">View Deal</span>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- Featured -->
+{% if featured %}
+<div class="sf-section-hdr"><h2>⭐ Featured Products</h2><a href="/#products">View all</a></div>
+<div class="sf-grid">
+  {% for p in featured %}
+  <a href="/product/{{ p.pk }}/" class="sf-card" style="position:relative;">
+    {% if p.image %}<img src="{{ p.image.url }}" class="sf-card-img" alt="{{ p.name }}"/>{% else %}<div class="sf-card-img-ph"><i class="fas fa-box"></i></div>{% endif %}
+    <div class="sf-card-body">
+      <div class="sf-card-name">{{ p.name|truncatechars:60 }}</div>
+      <div><span class="sf-card-price">ETB {{ p.price }}</span>{% if p.original_price %}<span class="sf-card-orig">ETB {{ p.original_price }}</span>{% endif %}</div>
+    </div>
+    <div style="padding:0 12px 12px;">
+      <span class="sf-card-btn" style="display:block;text-align:center;border-radius:8px;">View Product</span>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+{% endif %}
+{% endif %}
+
+<!-- Category filter -->
+{% if categories %}
+<div style="overflow-x:auto;margin-bottom:16px;">
+  <div class="sf-cats">
+    <a href="/" class="sf-cat {% if not cat_slug %}active{% endif %}">All Products</a>
+    {% for cat in categories %}
+    <a href="/?cat={{ cat.slug }}" class="sf-cat {% if cat_slug == cat.slug %}active{% endif %}">{{ cat.name }}</a>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- All products -->
+<div class="sf-section-hdr" id="products">
+  <h2>
+    {% if q %}Results for "{{ q }}"{% elif cat_slug %}{{ cat_slug|title }}{% else %}🛍️ All Products{% endif %}
+    <span style="font-size:.8rem;font-weight:400;color:#94a3b8;">({{ products|length }} items)</span>
+  </h2>
+  {% if q or cat_slug %}<a href="/">← All Products</a>{% endif %}
+</div>
+
+<div class="sf-grid">
+  {% for p in products %}
+  <div class="sf-card" style="position:relative;display:flex;flex-direction:column;">
+    {% if p.is_flash_deal %}<span class="sf-badge" style="position:absolute;top:8px;left:8px;z-index:1;">DEAL</span>{% endif %}
+    <a href="/product/{{ p.pk }}/" style="display:block;">
+      {% if p.image %}<img src="{{ p.image.url }}" class="sf-card-img" alt="{{ p.name }}"/>{% else %}<div class="sf-card-img-ph"><i class="fas fa-box"></i></div>{% endif %}
+    </a>
+    <div class="sf-card-body" style="flex:1;">
+      <a href="/product/{{ p.pk }}/" style="color:inherit;">
+        <div class="sf-card-name">{{ p.name|truncatechars:60 }}</div>
+      </a>
+      <div><span class="sf-card-price">ETB {{ p.price }}</span>{% if p.original_price %}<span class="sf-card-orig">ETB {{ p.original_price }}</span>{% endif %}</div>
+    </div>
+    <div style="padding:0 12px 12px;">
+      <a href="/cart/add/{{ p.pk }}/" class="sf-card-btn" style="display:block;text-align:center;border-radius:8px;text-decoration:none;">🛒 Add to Cart</a>
+    </div>
+  </div>
+  {% empty %}
+  <div style="grid-column:1/-1;text-align:center;padding:48px;color:#94a3b8;">
+    <i class="fas fa-box-open" style="font-size:3rem;display:block;margin-bottom:12px;opacity:.3;"></i>
+    {% if q %}No products found for "{{ q }}"{% else %}No products yet.{% endif %}
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Powered by Qenagebeya banner -->
+<div style="background:linear-gradient(135deg,var(--primary),color-mix(in srgb,var(--primary),#000 20%));border-radius:16px;padding:28px 32px;color:#fff;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:16px;">
+  <div>
+    <div style="font-size:1rem;font-weight:800;margin-bottom:4px;">🛍️ Also available on Qenagebeya Marketplace</div>
+    <div style="font-size:.82rem;opacity:.8;">Find {{ vendor.store_name }} and thousands more vendors on Ethiopia's #1 marketplace</div>
+  </div>
+  <a href="https://qenagebeya.com/vendor/store/{{ vendor.slug }}/" target="_blank"
+     style="background:white;color:var(--primary);padding:10px 24px;border-radius:60px;font-weight:700;font-size:.85rem;white-space:nowrap;">
+    Visit on Qenagebeya →
+  </a>
+</div>
+
+{% endblock %}

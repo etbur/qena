@@ -1,0 +1,64 @@
+{% extends 'agents/base_agent.html' %}
+{% block title %}Proposals – Agent Portal{% endblock %}
+{% block breadcrumb %}Proposals{% endblock %}
+
+{% block agent_content %}
+<div class="page-header">
+    <h2>📋 Proposals · ፕሮፖዛሎች <span class="sub">({{ proposals.count }})</span></h2>
+</div>
+
+<!-- New proposal form -->
+<div style="background:white;border-radius:16px;padding:24px;border:1px solid #eef2f6;margin-bottom:24px;max-width:680px;">
+    <h3 style="font-size:.9rem;font-weight:700;margin-bottom:16px;">New Proposal · አዲስ ሀሳብ</h3>
+    <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="form-group">
+            <label>{{ field.label }}</label>{{ field }}
+        </div>
+        {% endfor %}
+        <button type="submit" class="btn-save"><i class="fas fa-paper-plane"></i> Create Proposal</button>
+    </form>
+</div>
+
+<div class="table-wrap">
+    <table>
+        <thead>
+            <tr><th>Proposal</th><th>Client</th><th>Value</th><th>Status</th><th>Created</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+            {% for p in proposals %}
+            <tr>
+                <td><strong>{{ p.title|truncatechars:35 }}</strong></td>
+                <td>{{ p.client.full_name }}</td>
+                <td>ETB {{ p.value }}</td>
+                <td>
+                    <span class="status
+                        {% if p.status == 'accepted' %}completed
+                        {% elif p.status == 'sent' %}assigned
+                        {% elif p.status == 'rejected' %}pending
+                        {% else %}on-hold{% endif %}">
+                        {{ p.get_status_display }}
+                    </span>
+                </td>
+                <td>{{ p.created_at|date:"M j, Y" }}</td>
+                <td>
+                    {% if p.status == 'draft' %}
+                    <form method="post" action="{% url 'agents:proposal_send' p.pk %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-sm" style="background:#e6f0fa;color:#1a4b8a;">
+                            <i class="fas fa-paper-plane"></i> Send
+                        </button>
+                    </form>
+                    {% else %}
+                    <span style="font-size:.72rem;color:#94a3b8;">{{ p.get_status_display }}</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" style="text-align:center;padding:32px;color:#94a3b8;">No proposals yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

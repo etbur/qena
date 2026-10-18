@@ -1,0 +1,82 @@
+# Python / Django
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+*.manifest
+*.spec
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.git
+.mypy_cache
+.pytest_cache
+.hypothesis
+
+# Django
+*.pot
+local_settings.py
+db.sqlite3
+media/
+staticfiles/
+.env
+.env.*
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Flutter
+qena_app/.dart_tool/
+qena_app/.flutter-plugins
+qena_app/.flutter-plugins-dependencies
+qena_app/build/
+qena_app/.packages
+qena_app/pubspec.lock
+qena_app/android/.gradle/
+qena_app/android/local.properties
+qena_app/ios/.symlinks/
+qena_app/ios/Pods/
+qena_app/ios/Flutter/Flutter.framework
+qena_app/ios/Flutter/Flutter.podspec
+qena_app/*.iml
+
+# Secrets
+*.key
+*.pem
+secret_key.txt
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temp scripts
+fix_*.py
+check_*.py
+write_migration.py
+generate_images.py
+add_categories.py
+create_admin.py
+compile_translations.py

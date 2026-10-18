@@ -1,0 +1,26 @@
+{% extends 'agents/base_agent.html' %}
+{% block title %}Respond to Inquiry{% endblock %}
+{% block breadcrumb %}Inquiries / Respond{% endblock %}
+
+{% block agent_content %}
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+    <h2 style="font-size:1.2rem;font-weight:700;">Inquiry: {{ inquiry.subject|truncatechars:40 }}</h2>
+    <a href="{% url 'agents:inquiries' %}" class="btn"><i class="fas fa-arrow-left"></i> Back</a>
+</div>
+<div class="form-wrap" style="max-width:700px;">
+    <div style="background:#f8fafc;border-radius:12px;padding:16px;margin-bottom:20px;border:1px solid #eef2f6;">
+        <div style="font-size:.78rem;color:#94a3b8;margin-bottom:6px;">Customer message</div>
+        <p style="font-size:.88rem;line-height:1.7;">{{ inquiry.message }}</p>
+    </div>
+    <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="form-group">
+            <label>{{ field.label }}</label>
+            {{ field }}
+        </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Send Response</button>
+    </form>
+</div>
+{% endblock %}

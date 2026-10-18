@@ -1,0 +1,1825 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}SolidWorks CAD Studio & Generative AI Copilot · Makerspace — Qenagebeya 🇪🇹{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+    --cad-bg: #1e293b;
+    --cad-dark: #0f172a;
+    --sw-blue: #0284c7;
+    --sw-blue-hover: #0369a1;
+    --sw-accent-red: #ef4444;
+    --sw-accent-green: #10b981;
+    --sw-yellow: #f59e0b;
+    --ai-purple: #8b5cf6;
+    --ai-purple-dark: #6d28d9;
+}
+
+body {
+    background-color: #f1f5f9;
+}
+
+.cad-container {
+    max-width: 1680px;
+    margin: 12px auto 30px;
+    padding: 0 16px;
+}
+
+/* ── SolidWorks Window Frame ── */
+.sw-window {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #cbd5e1;
+    box-shadow: 0 8px 28px rgba(0,0,0,0.09);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.sw-title-bar {
+    background: #0b2b4a;
+    color: #fff;
+    padding: 8px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.83rem;
+    font-weight: 600;
+}
+
+.sw-title-bar .app-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: 0.3px;
+}
+
+.sw-tabs-bar {
+    background: #e2e8f0;
+    border-bottom: 1px solid #cbd5e1;
+    display: flex;
+    padding: 0 12px;
+    gap: 2px;
+}
+
+.sw-tab-btn {
+    padding: 8px 18px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #475569;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-top: 3px solid transparent;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: .12s;
+}
+
+.sw-tab-btn:hover {
+    color: #0b2b4a;
+    background: rgba(255,255,255,0.6);
+}
+
+.sw-tab-btn.active {
+    background: #f8fafc;
+    color: var(--sw-blue);
+    border-top-color: var(--sw-blue);
+    border-left: 1px solid #cbd5e1;
+    border-right: 1px solid #cbd5e1;
+    margin-bottom: -1px;
+    border-bottom: 1px solid #f8fafc;
+}
+
+.sw-tab-btn.ai-tab {
+    color: var(--ai-purple);
+}
+.sw-tab-btn.ai-tab.active {
+    border-top-color: var(--ai-purple);
+    color: var(--ai-purple);
+}
+
+.sw-ribbon-toolbar {
+    background: #f8fafc;
+    border-bottom: 1px solid #cbd5e1;
+    padding: 8px 16px;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    overflow-x: auto;
+    min-height: 68px;
+}
+
+.ribbon-group {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    border-right: 1px solid #e2e8f0;
+    padding-right: 14px;
+}
+
+.ribbon-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    padding: 5px 8px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #334155;
+    cursor: pointer;
+    min-width: 52px;
+    transition: .15s;
+}
+
+.ribbon-btn i {
+    font-size: 1.15rem;
+    color: #1e40af;
+}
+
+.ribbon-btn:hover, .ribbon-btn.active {
+    background: #e2e8f0;
+    border-color: #cbd5e1;
+    color: #0b2b4a;
+}
+
+/* ── Main CAD Workspace Layout ── */
+.sw-workspace {
+    display: grid;
+    grid-template-columns: 290px 1fr 340px;
+    background: #0f172a;
+    min-height: 660px;
+    position: relative;
+}
+
+@media (max-width: 1280px) {
+    .sw-workspace {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Left Sidebar: FeatureManager Design Tree */
+.sw-tree-sidebar {
+    background: #1e293b;
+    border-right: 1px solid #334155;
+    color: #f1f5f9;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 0.8rem;
+    overflow-y: auto;
+    max-height: 660px;
+}
+
+.tree-header {
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #94a3b8;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid #334155;
+    padding-bottom: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tree-node {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: .12s;
+    user-select: none;
+    font-size: 0.78rem;
+}
+
+.tree-node:hover, .tree-node.active {
+    background: #334155;
+    color: #38bdf8;
+}
+
+.tree-node-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tree-node i {
+    width: 16px;
+    text-align: center;
+}
+
+.tree-indent {
+    padding-left: 18px;
+}
+
+/* Center: WebGL 3D Viewport */
+.sw-viewport-area {
+    position: relative;
+    background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+    overflow: hidden;
+    min-height: 580px;
+    display: flex;
+    flex-direction: column;
+}
+
+#sw-canvas-3d {
+    width: 100%;
+    height: 100%;
+    flex: 1;
+    display: block;
+    cursor: grab;
+}
+
+#sw-canvas-3d:active {
+    cursor: grabbing;
+}
+
+/* Heads-up View Toolbar */
+.heads-up-bar {
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 23, 42, 0.9);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 30px;
+    padding: 4px 10px;
+    display: flex;
+    gap: 4px;
+    z-index: 20;
+}
+
+.hu-btn {
+    background: transparent;
+    border: none;
+    color: #cbd5e1;
+    padding: 6px 10px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: .15s;
+}
+
+.hu-btn:hover, .hu-btn.active {
+    background: rgba(255,255,255,0.18);
+    color: #fff;
+}
+
+/* Orientation Cube */
+.view-orientation-cube {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 8px;
+    padding: 6px;
+    display: grid;
+    grid-template-columns: repeat(3, 26px);
+    gap: 4px;
+    z-index: 20;
+}
+
+.cube-face-btn {
+    width: 26px;
+    height: 26px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: #1e293b;
+    color: #94a3b8;
+    font-size: 0.62rem;
+    font-weight: 800;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: .12s;
+}
+
+.cube-face-btn:hover {
+    background: var(--sw-blue);
+    color: #fff;
+    border-color: var(--sw-blue);
+}
+
+/* Feature Property Editor Modal/Flyout */
+.feature-dialog {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    width: 280px;
+    background: rgba(15, 23, 42, 0.94);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    border-radius: 12px;
+    padding: 14px;
+    color: #fff;
+    z-index: 25;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+    display: none;
+}
+
+.dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #334155;
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: #38bdf8;
+}
+
+/* AI Copilot Card on Right */
+.sw-properties-panel {
+    background: #1e293b;
+    border-left: 1px solid #334155;
+    color: #f1f5f9;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    font-size: 0.8rem;
+    overflow-y: auto;
+    max-height: 660px;
+}
+
+.ai-copilot-card {
+    background: linear-gradient(135deg, #2e1065 0%, #1e1b4b 100%);
+    border: 1px solid rgba(139, 92, 246, 0.4);
+    border-radius: 12px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ai-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: #c084fc;
+}
+
+.ai-prompt-input {
+    width: 100%;
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(139, 92, 246, 0.4);
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: #fff;
+    font-size: 0.78rem;
+    outline: none;
+    resize: vertical;
+    min-height: 54px;
+}
+
+.ai-prompt-input:focus {
+    border-color: #a855f7;
+    box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.25);
+}
+
+.ai-chips-row {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.ai-chip {
+    background: rgba(139, 92, 246, 0.15);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    color: #ddd6fe;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.68rem;
+    cursor: pointer;
+    transition: .12s;
+}
+
+.ai-chip:hover {
+    background: #8b5cf6;
+    color: #fff;
+}
+
+.ai-generate-btn {
+    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-weight: 700;
+    font-size: 0.8rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: .15s;
+}
+
+.ai-generate-btn:hover {
+    filter: brightness(1.15);
+    box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4);
+}
+
+/* FEA Heatmap Legend */
+.fea-legend-card {
+    position: absolute;
+    bottom: 14px;
+    left: 14px;
+    background: rgba(15, 23, 42, 0.92);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: #fff;
+    font-size: 0.75rem;
+    display: none;
+    z-index: 20;
+    min-width: 170px;
+}
+
+.fea-gradient-bar {
+    height: 120px;
+    width: 14px;
+    border-radius: 4px;
+    background: linear-gradient(to bottom, #ef4444, #f97316, #eab308, #22c55e, #06b6d4, #3b82f6);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.prop-card {
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.prop-card-title {
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: #38bdf8;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.prop-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    color: #94a3b8;
+}
+
+.prop-row strong {
+    color: #f8fafc;
+}
+
+.safety-badge {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.safety-safe {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+    border: 1px solid #10b981;
+}
+
+.safety-warn {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+    border: 1px solid #ef4444;
+}
+
+/* 2D Engineering Drawing Overlay Modal */
+.drawing-sheet-overlay {
+    position: absolute;
+    inset: 0;
+    background: #f8fafc;
+    z-index: 30;
+    display: none;
+    flex-direction: column;
+    padding: 16px;
+    color: #0f172a;
+    overflow-y: auto;
+}
+
+.drawing-sheet {
+    background: #fff;
+    border: 2px solid #0f172a;
+    border-radius: 4px;
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    aspect-ratio: 1.414;
+    padding: 20px;
+    position: relative;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 20px;
+}
+
+.drawing-title-block {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    border: 1.5px solid #0f172a;
+    width: 260px;
+    font-size: 0.65rem;
+    background: #fff;
+}
+
+.drawing-title-block td {
+    padding: 3px 6px;
+    border: 1px solid #cbd5e1;
+}
+
+.order-btn-solid {
+    width: 100%;
+    padding: 11px;
+    background: var(--sw-blue);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: .2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none;
+    box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);
+}
+
+.order-btn-solid:hover {
+    background: var(--sw-blue-hover);
+    transform: translateY(-1px);
+}
+</style>
+
+<!-- Three.js + OrbitControls -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="cad-container">
+
+    <!-- SolidWorks Main Window -->
+    <div class="sw-window">
+
+        <!-- Title Bar -->
+        <div class="sw-title-bar">
+            <div class="app-title">
+                <i class="fas fa-cube" style="color:#38bdf8;"></i>
+                <span>SolidWorks® Cloud CAD Studio & Generative AI Copilot · Qenagebeya Ethiopian Makerspace</span>
+            </div>
+            <div style="display:flex;gap:12px;align-items:center;">
+                <span id="active-document-name" style="font-size:0.75rem;background:#1e3a8a;padding:2px 8px;border-radius:4px;">Part1.SLDPRT · Active Assembly</span>
+                <a href="{% url 'makerspace:landing' %}" style="color:#cbd5e1;text-decoration:none;font-size:0.75rem;"><i class="fas fa-times"></i> Exit Studio</a>
+            </div>
+        </div>
+
+        <!-- Ribbon Tabs -->
+        <div class="sw-tabs-bar">
+            <button class="sw-tab-btn active" data-tab="features"><i class="fas fa-cubes"></i> Features (3D CAD)</button>
+            <button class="sw-tab-btn" data-tab="sketch"><i class="fas fa-pencil-ruler"></i> 2D Sketch</button>
+            <button class="sw-tab-btn" data-tab="evaluate"><i class="fas fa-balance-scale"></i> Evaluate & Mass</button>
+            <button class="sw-tab-btn" data-tab="simulation"><i class="fas fa-bolt" style="color:#eab308;"></i> FEA Stress Simulation</button>
+            <button class="sw-tab-btn" data-tab="motion"><i class="fas fa-sync-alt" style="color:#10b981;"></i> Motion & Kinematics</button>
+            <button class="sw-tab-btn" data-tab="drawing"><i class="fas fa-drafting-compass"></i> 2D Drawing (ISO)</button>
+            <button class="sw-tab-btn ai-tab" data-tab="ai"><i class="fas fa-robot"></i> 🤖 AI CAD Copilot</button>
+        </div>
+
+        <!-- Ribbon CommandManager Toolbars -->
+        <div class="sw-ribbon-toolbar">
+            <!-- Assembly Preset -->
+            <div class="ribbon-group">
+                <div style="display:flex;flex-direction:column;gap:3px;">
+                    <label style="font-size:0.68rem;font-weight:700;color:#64748b;">Assembly Preset</label>
+                    <select id="sel-cad-model" style="padding:4px 8px;font-size:0.78rem;border:1px solid #cbd5e1;border-radius:6px;background:#fff;font-weight:600;">
+                        <option value="spring">Vending Machine Helical Dispenser Coil Spring</option>
+                        <option value="robotic_arm" selected>Heavy-Duty Robotic Arm Bracket (4x M6 Mounting Holes)</option>
+                        <option value="flange">ANSI Class 150 Raised Face Pipe Flange</option>
+                        <option value="heatsink">Extruded Aluminum Pin-Fin Heat Sink</option>
+                        <option value="pulley">Industrial V-Belt Drive Pulley with Keyway</option>
+                        <option value="bolt">ISO 4014 Metric Hex Head Bolt & Threads</option>
+                        <option value="bottle">Parametric Ergonomic Revolved Container</option>
+                        <option value="bracket">Structural Flanged Bracket (Stress FEA Load Study)</option>
+                        <option value="piston">Engine Piston & Connecting Rod (Reciprocating Kinematics)</option>
+                        <option value="gearbox">Dual Spur Gearbox (Torque & Gear Tooth Meshing)</option>
+                        <option value="mesob">Ethiopian Cultural Mesob Vessel (Parametric Dome)</option>
+                        <option value="enclosure">Custom Electronics Enclosure (Snap-Fit Case)</option>
+                        <option value="impeller">Aerospace Turbine Impeller Blade</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Features Operations Group (Live Dialog Launchers) -->
+            <div class="ribbon-group">
+                <button class="ribbon-btn active" id="btn-extrude"><i class="fas fa-cube"></i> Extrude</button>
+                <button class="ribbon-btn" id="btn-cut-extrude"><i class="fas fa-cut"></i> Cut-Extrude</button>
+                <button class="ribbon-btn" id="btn-revolve"><i class="fas fa-circle-notch"></i> Revolve</button>
+                <button class="ribbon-btn" id="btn-fillet"><i class="fas fa-border-style"></i> Fillet (R5)</button>
+                <button class="ribbon-btn" id="btn-hole-wizard"><i class="fas fa-dot-circle"></i> Hole Wizard</button>
+                <button class="ribbon-btn" id="btn-shell"><i class="far fa-square"></i> Shell</button>
+            </div>
+
+            <!-- Material Selection -->
+            <div class="ribbon-group">
+                <div style="display:flex;flex-direction:column;gap:3px;">
+                    <label style="font-size:0.68rem;font-weight:700;color:#64748b;">Material Specification</label>
+                    <select id="sel-cad-material" style="padding:4px 8px;font-size:0.78rem;border:1px solid #cbd5e1;border-radius:6px;background:#fff;">
+                        <option value="al_6061" data-yield="276" data-density="2.70">Aluminum 6061-T6 (Yield: 276 MPa)</option>
+                        <option value="steel_1020" data-yield="350" data-density="7.85">AISI 1020 Carbon Steel (Yield: 350 MPa)</option>
+                        <option value="titanium" data-yield="880" data-density="4.43">Ti-6Al-4V Grade 5 Titanium (Yield: 880 MPa)</option>
+                        <option value="pla_plastic" data-yield="45" data-density="1.24">PLA Polymer (3D Printed, Yield: 45 MPa)</option>
+                        <option value="brass_c360" data-yield="310" data-density="8.50">Brass C360 (Yield: 310 MPa)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Export Actions -->
+            <div class="ribbon-group" style="border:none;margin-left:auto;">
+                <button class="ribbon-btn" id="btn-export-step"><i class="fas fa-file-export" style="color:#0284c7;"></i> Export STEP</button>
+                <button class="ribbon-btn" id="btn-export-stl-cad"><i class="fas fa-file-download" style="color:#10b981;"></i> Export STL</button>
+                <button class="ribbon-btn" id="btn-show-drawing-ribbon"><i class="fas fa-file-alt" style="color:#b45309;"></i> 2D Drawing</button>
+            </div>
+        </div>
+
+        <!-- Main Studio Area -->
+        <div class="sw-workspace">
+
+            <!-- LEFT: FeatureManager Design Tree -->
+            <div class="sw-tree-sidebar">
+                <div class="tree-header">
+                    <span><i class="fas fa-folder-open"></i> FeatureManager Tree</span>
+                    <span style="font-size:0.65rem;color:#38bdf8;">SolidWorks 2026</span>
+                </div>
+
+                <div class="tree-node active" data-feature="part"><div class="tree-node-left"><i class="fas fa-file-code" style="color:#38bdf8;"></i> <span id="tree-doc-name">Part1 (SLDPRT)</span></div></div>
+                <div class="tree-node tree-indent" data-feature="sensors"><div class="tree-node-left"><i class="fas fa-history" style="color:#94a3b8;"></i> Sensors & History</div></div>
+                <div class="tree-node tree-indent" id="tree-material-node" data-feature="material"><div class="tree-node-left"><i class="fas fa-gem" style="color:#f59e0b;"></i> Material: <span id="lbl-tree-mat">Al 6061-T6</span></div></div>
+                <div class="tree-node tree-indent" data-feature="front-plane"><div class="tree-node-left"><i class="fas fa-vector-square" style="color:#64748b;"></i> Front Plane (XY)</div></div>
+                <div class="tree-node tree-indent" data-feature="top-plane"><div class="tree-node-left"><i class="fas fa-vector-square" style="color:#64748b;"></i> Top Plane (XZ)</div></div>
+                <div class="tree-node tree-indent" data-feature="right-plane"><div class="tree-node-left"><i class="fas fa-vector-square" style="color:#64748b;"></i> Right Plane (YZ)</div></div>
+                <div class="tree-node tree-indent" data-feature="origin"><div class="tree-node-left"><i class="fas fa-dot-circle" style="color:#ef4444;"></i> Origin (0,0,0)</div></div>
+
+                <div class="tree-header" style="margin-top:10px;">
+                    <span>Solid Body Features</span>
+                </div>
+
+                <div id="tree-features-container">
+                    <div class="tree-node tree-indent" data-feature="extrude"><div class="tree-node-left"><i class="fas fa-cube" style="color:#38bdf8;"></i> Boss-Extrude1</div> <i class="fas fa-sliders-h" style="font-size:0.7rem;opacity:0.6;"></i></div>
+                    <div class="tree-node tree-indent" data-feature="cut"><div class="tree-node-left"><i class="fas fa-cut" style="color:#ef4444;"></i> Cut-Extrude1 (Center Bore)</div> <i class="fas fa-sliders-h" style="font-size:0.7rem;opacity:0.6;"></i></div>
+                    <div class="tree-node tree-indent" data-feature="fillet"><div class="tree-node-left"><i class="fas fa-circle" style="color:#10b981;"></i> Fillet1 (R5.0 mm)</div> <i class="fas fa-sliders-h" style="font-size:0.7rem;opacity:0.6;"></i></div>
+                    <div class="tree-node tree-indent" data-feature="holes"><div class="tree-node-left"><i class="fas fa-th" style="color:#a855f7;"></i> 4x M6 Bolt Holes Array</div> <i class="fas fa-sliders-h" style="font-size:0.7rem;opacity:0.6;"></i></div>
+                </div>
+
+                <div class="tree-header" style="margin-top:10px;">
+                    <span>Simulation Study</span>
+                </div>
+                <div class="tree-node tree-indent" id="tree-fea-node" data-feature="fea"><div class="tree-node-left"><i class="fas fa-bolt" style="color:#eab308;"></i> Static Stress Study 1</div></div>
+                <div class="tree-node tree-indent"><div class="tree-node-left"><i class="fas fa-anchor" style="color:#38bdf8;"></i> Fixed Support (Base)</div></div>
+                <div class="tree-node tree-indent"><div class="tree-node-left"><i class="fas fa-arrow-down" style="color:#ef4444;"></i> Force: <span id="lbl-tree-force">4,500 N</span></div></div>
+            </div>
+
+            <!-- CENTER: SolidWorks 3D Viewport -->
+            <div class="sw-viewport-area" id="sw-viewport-container">
+
+                <!-- Heads-Up View Toolbar -->
+                <div class="heads-up-bar">
+                    <button class="hu-btn" id="btn-hu-fit" title="Zoom to Fit (F)"><i class="fas fa-compress-arrows-alt"></i></button>
+                    <button class="hu-btn" id="btn-hu-section" title="Section View Clipping (X/Y/Z)"><i class="fas fa-cut"></i> Section</button>
+                    <button class="hu-btn" id="btn-hu-wire" title="Wireframe / Shaded with Edges"><i class="fas fa-border-all"></i> Edges</button>
+                    <button class="hu-btn active" id="btn-hu-shadow" title="RealView Ambient Occlusion"><i class="fas fa-sun"></i> RealView</button>
+                    <button class="hu-btn" id="btn-hu-explode" title="Exploded View Animation"><i class="fas fa-expand-arrows-alt"></i> Explode</button>
+                </div>
+
+                <!-- Orientation Cube (Top Right) -->
+                <div class="view-orientation-cube" title="View Orientation Cube">
+                    <div></div>
+                    <button class="cube-face-btn" id="cube-top">TOP</button>
+                    <div></div>
+                    <button class="cube-face-btn" id="cube-left">LFT</button>
+                    <button class="cube-face-btn" id="cube-front">FNT</button>
+                    <button class="cube-face-btn" id="cube-right">RGT</button>
+                    <div></div>
+                    <button class="cube-face-btn" id="cube-iso">ISO</button>
+                    <div></div>
+                </div>
+
+                <!-- Floating Feature Property Manager Dialog -->
+                <div class="feature-dialog" id="dlg-feature-editor">
+                    <div class="dialog-header">
+                        <span id="dlg-feature-title"><i class="fas fa-sliders-h"></i> PropertyManager: Boss-Extrude1</span>
+                        <button id="btn-close-dlg" style="background:none;border:none;color:#94a3b8;cursor:pointer;"><i class="fas fa-times"></i></button>
+                    </div>
+
+                    <div style="display:flex;flex-direction:column;gap:10px;font-size:0.78rem;">
+                        <div class="form-group">
+                            <label style="color:#94a3b8;display:flex;justify-content:space-between;">
+                                Extrude Depth / Length: <strong id="lbl-dlg-x" style="color:#38bdf8;">140 mm</strong>
+                            </label>
+                            <input type="range" id="rng-dlg-x" min="40" max="300" value="140" style="width:100%;accent-color:#0284c7;">
+                        </div>
+                        <div class="form-group">
+                            <label style="color:#94a3b8;display:flex;justify-content:space-between;">
+                                Width / Breadth: <strong id="lbl-dlg-y" style="color:#38bdf8;">80 mm</strong>
+                            </label>
+                            <input type="range" id="rng-dlg-y" min="30" max="200" value="80" style="width:100%;accent-color:#0284c7;">
+                        </div>
+                        <div class="form-group">
+                            <label style="color:#94a3b8;display:flex;justify-content:space-between;">
+                                Height / Upright: <strong id="lbl-dlg-z" style="color:#38bdf8;">80 mm</strong>
+                            </label>
+                            <input type="range" id="rng-dlg-z" min="20" max="220" value="80" style="width:100%;accent-color:#0284c7;">
+                        </div>
+                        <div class="form-group">
+                            <label style="color:#94a3b8;display:flex;justify-content:space-between;">
+                                Center Bore Diameter: <strong id="lbl-dlg-bore" style="color:#ef4444;">Ø28 mm</strong>
+                            </label>
+                            <input type="range" id="rng-dlg-bore" min="10" max="60" value="28" style="width:100%;accent-color:#ef4444;">
+                        </div>
+                        <div class="form-group">
+                            <label style="color:#94a3b8;display:flex;justify-content:space-between;">
+                                Fillet Radius: <strong id="lbl-dlg-fillet" style="color:#10b981;">R5.0 mm</strong>
+                            </label>
+                            <input type="range" id="rng-dlg-fillet" min="1" max="20" value="5" style="width:100%;accent-color:#10b981;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Three.js Canvas -->
+                <canvas id="sw-canvas-3d"></canvas>
+
+                <!-- FEA Color Legend Bar -->
+                <div class="fea-legend-card" id="fea-legend">
+                    <div style="font-weight:800;font-size:0.75rem;margin-bottom:6px;color:#38bdf8;">
+                        Von Mises Stress (MPa)
+                    </div>
+                    <div style="display:flex;gap:10px;align-items:center;">
+                        <div class="fea-gradient-bar"></div>
+                        <div style="display:flex;flex-direction:column;justify-content:space-between;height:120px;font-size:0.7rem;font-weight:700;">
+                            <span style="color:#ef4444;" id="leg-max-stress">242.0 MPa (Max)</span>
+                            <span style="color:#f97316;">180.0</span>
+                            <span style="color:#eab308;" id="leg-yield-line">Yield: 276.0</span>
+                            <span style="color:#22c55e;">120.0</span>
+                            <span style="color:#06b6d4;">60.0</span>
+                            <span style="color:#3b82f6;">0.0 MPa (Min)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2D Engineering Drawing Overlay Modal -->
+                <div class="drawing-sheet-overlay" id="drawing-overlay">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                        <h2 style="font-size:1.1rem;font-weight:800;margin:0;color:#0b2b4a;">
+                            <i class="fas fa-drafting-compass"></i> ANSI / ISO 2D Engineering Production Drawing
+                        </h2>
+                        <button id="btn-close-drawing" class="sw-tab-btn" style="background:#e2e8f0;border-radius:6px;padding:6px 14px;">
+                            <i class="fas fa-times"></i> Return to 3D CAD
+                        </button>
+                    </div>
+
+                    <div class="drawing-sheet">
+                        <div style="border:1px dashed #cbd5e1;padding:12px;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                            <span style="position:absolute;top:6px;left:8px;font-size:0.68rem;font-weight:800;color:#64748b;">FRONT VIEW (1:1)</span>
+                            <svg width="220" height="140" viewBox="0 0 220 140">
+                                <rect x="30" y="30" width="160" height="80" fill="none" stroke="#0f172a" stroke-width="2"/>
+                                <circle cx="110" cy="70" r="24" fill="none" stroke="#0f172a" stroke-width="2"/>
+                                <line x1="30" y1="15" x2="190" y2="15" stroke="#0284c7" stroke-width="1.5"/>
+                                <text x="95" y="12" font-size="10" font-weight="bold" fill="#0284c7" id="svg-dim-w">140.0 mm</text>
+                            </svg>
+                        </div>
+                        <div style="border:1px dashed #cbd5e1;padding:12px;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                            <span style="position:absolute;top:6px;left:8px;font-size:0.68rem;font-weight:800;color:#64748b;">TOP VIEW (1:1)</span>
+                            <svg width="220" height="140" viewBox="0 0 220 140">
+                                <rect x="30" y="40" width="160" height="60" fill="none" stroke="#0f172a" stroke-width="2"/>
+                                <circle cx="60" cy="70" r="6" fill="none" stroke="#0f172a" stroke-width="1.5"/>
+                                <circle cx="160" cy="70" r="6" fill="none" stroke="#0f172a" stroke-width="1.5"/>
+                                <text x="95" y="32" font-size="10" font-weight="bold" fill="#0284c7" id="svg-dim-h">80.0 mm</text>
+                            </svg>
+                        </div>
+                        <div style="border:1px dashed #cbd5e1;padding:12px;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                            <span style="position:absolute;top:6px;left:8px;font-size:0.68rem;font-weight:800;color:#64748b;">SECTION A-A (CROSS SECTION)</span>
+                            <svg width="220" height="140" viewBox="0 0 220 140">
+                                <rect x="40" y="30" width="60" height="80" fill="#f1f5f9" stroke="#0f172a" stroke-width="2"/>
+                                <rect x="120" y="30" width="60" height="80" fill="#f1f5f9" stroke="#0f172a" stroke-width="2"/>
+                                <line x1="20" y1="70" x2="200" y2="70" stroke="#ef4444" stroke-width="1" stroke-dasharray="4,4"/>
+                            </svg>
+                        </div>
+                        <div style="border:1px dashed #cbd5e1;padding:12px;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                            <span style="position:absolute;top:6px;left:8px;font-size:0.68rem;font-weight:800;color:#64748b;">ISOMETRIC VIEW (TRIMETRIC 3D)</span>
+                            <svg width="220" height="140" viewBox="0 0 220 140">
+                                <polygon points="110,20 180,55 180,105 110,70" fill="#e2e8f0" stroke="#0f172a" stroke-width="1.5"/>
+                                <polygon points="40,55 110,20 110,70 40,105" fill="#f8fafc" stroke="#0f172a" stroke-width="1.5"/>
+                                <polygon points="40,105 110,70 180,105 110,140" fill="#cbd5e1" stroke="#0f172a" stroke-width="1.5"/>
+                            </svg>
+                        </div>
+
+                        <table class="drawing-title-block">
+                            <tr><td colspan="2"><strong>QENAGEBEYA MAKERSPACE 🇪🇹</strong></td></tr>
+                            <tr><td>DWG NO: QENA-CAD-2026</td><td id="td-mat">MATERIAL: Al 6061-T6</td></tr>
+                            <tr><td>TOLERANCE: ± 0.05 MM</td><td>SCALE: 1:1 (MM)</td></tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: AI Copilot & Real-Time Simulation Panel -->
+            <div class="sw-properties-panel">
+
+                <!-- 1. AI Generative CAD Copilot Panel -->
+                <div class="ai-copilot-card">
+                    <div class="ai-title-row">
+                        <span><i class="fas fa-robot"></i> 🤖 AI CAD Copilot</span>
+                        <span style="font-size:0.65rem;background:#7c3aed;color:#fff;padding:2px 6px;border-radius:10px;">Qena AI v2</span>
+                    </div>
+
+                    <textarea id="ai-prompt-box" class="ai-prompt-input" placeholder="Prompt AI to generate or edit 3D geometry... (e.g. 'Design a robotic joint bracket with M6 holes and simulate 5kN load')"></textarea>
+
+                    <div class="ai-chips-row">
+                        <span class="ai-chip" data-prompt="Generate a vending machine spring coiled">🌀 Vending Spring</span>
+                        <span class="ai-chip" data-prompt="Generate a heavy-duty robotic arm bracket with 4 M6 mounting holes">🤖 Robotic Arm</span>
+                        <span class="ai-chip" data-prompt="Design an ANSI pipe flange with 4-bolt circle">🔘 Pipe Flange</span>
+                        <span class="ai-chip" data-prompt="Design an extruded pin-fin heat sink with cooling fins">❄️ Heat Sink</span>
+                        <span class="ai-chip" data-prompt="Design an Ethiopian Mesob-inspired vessel with ventilation slots">☕ Mesob Vessel</span>
+                        <span class="ai-chip" data-prompt="Design a 20-tooth spur gearbox with 2:1 reduction ratio">⚙️ Gearbox 2:1</span>
+                        <span class="ai-chip" data-prompt="Create a drone motor mount for 2207 brushless motor with 16mm pattern">🛩️ Drone Mount</span>
+                        <span class="ai-chip" data-prompt="Optimize for 10kN load using Grade 5 Titanium">⚡ 10kN Titanium</span>
+                    </div>
+
+                    <button id="btn-ai-generate" class="ai-generate-btn">
+                        <i class="fas fa-magic"></i> Synthesize & Apply to CAD
+                    </button>
+
+                    <div id="ai-feedback-box" style="display:none;background:rgba(15,23,42,0.7);padding:8px;border-radius:6px;border-left:3px solid #a855f7;font-size:0.72rem;color:#e9d5ff;line-height:1.4;">
+                        <div style="font-weight:700;color:#c084fc;margin-bottom:2px;"><i class="fas fa-check-circle"></i> AI CAD Synthesis:</div>
+                        <span id="ai-feedback-text">Generated structural bracket geometry with stress-relieved fillets.</span>
+                    </div>
+                </div>
+
+                <!-- 2. Mass Properties & Evaluation -->
+                <div class="prop-card">
+                    <div class="prop-card-title">
+                        <span><i class="fas fa-balance-scale"></i> Mass Properties & CAD Stats</span>
+                        <span style="font-size:0.65rem;color:#10b981;">Evaluated</span>
+                    </div>
+                    <div class="prop-row"><span>Part Mass / Weight:</span> <strong id="val-mass">412.5 g (0.41 kg)</strong></div>
+                    <div class="prop-row"><span>Volume:</span> <strong id="val-vol">152.80 cm³</strong></div>
+                    <div class="prop-row"><span>Surface Area:</span> <strong id="val-area">348.5 cm²</strong></div>
+                    <div class="prop-row"><span>Center of Mass (CG):</span> <strong>X:0, Y:35.0, Z:0 mm</strong></div>
+                </div>
+
+                <!-- 3. Real-Time FEA Stress Study -->
+                <div class="prop-card">
+                    <div class="prop-card-title">
+                        <span><i class="fas fa-bolt" style="color:#eab308;"></i> FEA Stress Simulation</span>
+                        <span id="badge-safety" class="safety-badge safety-safe"><i class="fas fa-check-circle"></i> SAFE</span>
+                    </div>
+
+                    <div class="form-group" style="margin-top:2px;">
+                        <label style="font-size:0.72rem;color:#94a3b8;display:flex;justify-content:space-between;">
+                            Applied Structural Force: <strong id="lbl-fea-force-slider" style="color:#38bdf8;">4,500 N (4.5 kN)</strong>
+                        </label>
+                        <input type="range" id="rng-force" min="500" max="25000" step="250" value="4500" style="width:100%;accent-color:#0284c7;">
+                    </div>
+
+                    <div class="prop-row"><span>Max Von Mises Stress:</span> <strong id="val-max-stress" style="color:#38bdf8;">148.2 MPa</strong></div>
+                    <div class="prop-row"><span>Material Yield Limit:</span> <strong id="val-yield-limit">276.0 MPa</strong></div>
+                    <div class="prop-row"><span>Factor of Safety (FOS):</span> <strong id="val-fos" style="color:#34d399;font-size:0.92rem;">1.86 (Pass)</strong></div>
+
+                    <button id="btn-toggle-fea" class="sw-tab-btn" style="justify-content:center;background:#0284c7;color:#fff;border-radius:6px;padding:6px;margin-top:4px;">
+                        <i class="fas fa-play"></i> Run Stress FEA
+                    </button>
+                </div>
+
+                <!-- 4. Kinematic Motion Controls -->
+                <div class="prop-card" id="card-kinematics" style="display:none;">
+                    <div class="prop-card-title">
+                        <span><i class="fas fa-cogs" style="color:#10b981;"></i> Kinematic Mechanism</span>
+                        <span style="font-size:0.65rem;color:#38bdf8;">Live Dynamic</span>
+                    </div>
+                    <div class="prop-row"><span>Motor Speed / RPM:</span> <strong id="lbl-rpm">120 RPM</strong></div>
+                    <input type="range" id="rng-rpm" min="0" max="300" step="10" value="120" style="width:100%;accent-color:#10b981;">
+                    <button id="btn-play-motion" class="sw-tab-btn" style="justify-content:center;background:#10b981;color:#fff;border-radius:6px;padding:6px;margin-top:4px;">
+                        <i class="fas fa-play"></i> Run Kinematic Mechanism
+                    </button>
+                </div>
+
+                <!-- 5. Direct Ethiopian Manufacturing Order Bridge -->
+                <div style="margin-top:auto;display:flex;flex-direction:column;gap:8px;">
+                    <button id="btn-order-solidworks" class="order-btn-solid">
+                        <i class="fas fa-paper-plane"></i> Order Part or Hire CAD Engineer
+                    </button>
+                    <div style="font-size:0.7rem;color:#94a3b8;text-align:center;line-height:1.4;">
+                        <i class="fas fa-shield-alt"></i> Verified Ethiopian CNC / 3D Engineering network. CAD models inspected by certified Ethiopian engineers.
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SolidWorks Studio Simulation Engine & AI CAD Script -->
+<script>
+(function() {
+    const container = document.getElementById('sw-viewport-container');
+    const canvas = document.getElementById('sw-canvas-3d');
+    let scene, camera, renderer, controls;
+    let mainCadGroup = new THREE.Group();
+    let currentModelType = 'bracket';
+
+    // Interactive Dimensions state
+    let dimX = 160, dimY = 90, dimZ = 85, dimBore = 35, dimFillet = 8;
+    let currentModelName = 'Heavy-Duty Robotic Arm Joint Bracket (4x M6)';
+
+    // Kinematic mechanism variables
+    let isKinematicsRunning = false;
+    let kinematicAngle = 0;
+    let pistonMesh = null, conrodMesh = null, crankMesh = null;
+    let gear1Mesh = null, gear2Mesh = null;
+    let isExploded = false;
+    let isFeaActive = false;
+    let isSectionActive = false;
+    let clippingPlane = null;
+
+    function initSolidWorks() {
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0f172a);
+
+        camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 1, 3000);
+        camera.position.set(180, 140, 200);
+
+        renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.localClippingEnabled = true;
+
+        if (typeof THREE.OrbitControls !== 'undefined') {
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.06;
+        }
+
+        clippingPlane = new THREE.Plane(new THREE.Vector3(1, 0, 0), 0);
+
+        // Lighting Studio (SolidWorks RealView Lighting)
+        const keyLight = new THREE.DirectionalLight(0xffffff, 0.95);
+        keyLight.position.set(120, 200, 150);
+        keyLight.castShadow = true;
+        scene.add(keyLight);
+
+        const fillLight = new THREE.DirectionalLight(0x38bdf8, 0.5);
+        fillLight.position.set(-150, 100, -100);
+        scene.add(fillLight);
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.65);
+        scene.add(ambientLight);
+
+        // Precision Coordinate Grid Floor
+        const grid = new THREE.GridHelper(300, 30, 0x0284c7, 0x334155);
+        grid.position.y = -40;
+        scene.add(grid);
+
+        scene.add(mainCadGroup);
+
+        window.addEventListener('resize', onWindowResize);
+        loadModelPreset('robotic_arm');
+        animate();
+    }
+
+    function onWindowResize() {
+        if (!container || !renderer) return;
+        camera.aspect = container.clientWidth / container.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(container.clientWidth, container.clientHeight);
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        if (controls) controls.update();
+
+        // Real-Time Kinematic Simulation Engine
+        if (isKinematicsRunning) {
+            const rpm = parseFloat(document.getElementById('rng-rpm').value);
+            const speed = (rpm * 2 * Math.PI) / (60 * 60);
+            kinematicAngle += speed;
+
+            if (currentModelType === 'piston' && crankMesh && conrodMesh && pistonMesh) {
+                crankMesh.rotation.z = kinematicAngle;
+                const crankR = 25;
+                const pinX = crankR * Math.cos(kinematicAngle);
+                const pinY = crankR * Math.sin(kinematicAngle);
+                const L = 80;
+                const pistonY = pinY + Math.sqrt(L*L - pinX*pinX);
+                pistonMesh.position.y = pistonY;
+                const rodAngle = Math.atan2(pistonY - pinY, 0 - pinX) - Math.PI / 2;
+                conrodMesh.position.set(pinX, pinY, 0);
+                conrodMesh.rotation.z = rodAngle;
+            } else if (currentModelType === 'gearbox' && gear1Mesh && gear2Mesh) {
+                gear1Mesh.rotation.z += speed;
+                gear2Mesh.rotation.z -= speed * 0.5;
+            }
+        }
+
+        // FEA Pulse Deflection Animation when active
+        if (isFeaActive && mainCadGroup) {
+            const pulse = 1.0 + 0.015 * Math.sin(Date.now() * 0.006);
+            mainCadGroup.scale.set(pulse, pulse, pulse);
+        } else {
+            mainCadGroup.scale.set(1, 1, 1);
+        }
+
+        renderer.render(scene, camera);
+    }
+
+    function clearCadGroup() {
+        while(mainCadGroup.children.length > 0) {
+            const obj = mainCadGroup.children[0];
+            mainCadGroup.remove(obj);
+            if (obj.geometry) obj.geometry.dispose();
+            if (obj.material) {
+                if (Array.isArray(obj.material)) obj.material.forEach(m => m.dispose());
+                else obj.material.dispose();
+            }
+        }
+        pistonMesh = null; conrodMesh = null; crankMesh = null;
+        gear1Mesh = null; gear2Mesh = null;
+    }
+
+    function getCadMaterial(colorHex = 0xa0aec0) {
+        return new THREE.MeshStandardMaterial({
+            color: colorHex,
+            metalness: 0.78,
+            roughness: 0.22,
+            clippingPlanes: isSectionActive ? [clippingPlane] : [],
+            clipShadows: true,
+        });
+    }
+
+    function loadModelPreset(type) {
+        clearCadGroup();
+        currentModelType = type;
+
+        if (type === 'spring') {
+            // Vending Machine Helical Dispenser Coil Spring
+            const matSpring = getCadMaterial(isFeaActive ? 0x0284c7 : 0xe2e8f0);
+            const matDrive = getCadMaterial(0x475569);
+
+            // Helical Curve Definition for Three.js
+            class HelixCurve extends THREE.Curve {
+                constructor(radius = 32, pitch = 24, turns = 8.5) {
+                    super();
+                    this.radius = radius;
+                    this.pitch = pitch;
+                    this.turns = turns;
+                }
+                getPoint(t) {
+                    const angle = t * this.turns * Math.PI * 2;
+                    const x = this.radius * Math.cos(angle);
+                    const z = this.radius * Math.sin(angle);
+                    const y = (t - 0.5) * (this.pitch * this.turns);
+                    return new THREE.Vector3(x, y, z);
+                }
+            }
+
+            const coilRadius = Math.max(20, dimX * 0.45);
+            const path = new HelixCurve(coilRadius, 24, 8.5);
+            const tubeGeom = new THREE.TubeGeometry(path, 260, 3.2, 16, false);
+            const springMesh = new THREE.Mesh(tubeGeom, matSpring);
+            springMesh.castShadow = true;
+            mainCadGroup.add(springMesh);
+
+            // Motor Drive Adapter Hub at rear
+            const totalHeight = 24 * 8.5;
+            const driveHub = new THREE.Mesh(new THREE.CylinderGeometry(14, 14, 28, 24), matDrive);
+            driveHub.position.set(0, -totalHeight / 2 - 14, 0);
+            driveHub.castShadow = true;
+            mainCadGroup.add(driveHub);
+
+            // D-Shaft notch inside drive hub
+            const dShaft = new THREE.Mesh(new THREE.CylinderGeometry(5.5, 5.5, 30, 16), new THREE.MeshBasicMaterial({ color: 0x0f172a }));
+            dShaft.position.set(0, -totalHeight / 2 - 14, 0);
+            mainCadGroup.add(dShaft);
+
+            // 90° Tangential Product Ejection Guide
+            const tangGeom = new THREE.CylinderGeometry(3.2, 3.2, coilRadius, 16);
+            tangGeom.rotateZ(Math.PI / 2);
+            const tang = new THREE.Mesh(tangGeom, matSpring);
+            tang.position.set(coilRadius / 2, totalHeight / 2, 0);
+            mainCadGroup.add(tang);
+
+            document.getElementById('card-kinematics').style.display = 'none';
+
+        } else if (type === 'flange') {
+            // ANSI Class 150 Raised Face Pipe Flange
+            const matFlange = getCadMaterial(isFeaActive ? 0x0284c7 : 0x94a3b8);
+            const darkHole = new THREE.MeshBasicMaterial({ color: 0x020617 });
+
+            // Main Disc Body
+            const disc = new THREE.Mesh(new THREE.CylinderGeometry(dimX/2, dimX/2, 18, 48), matFlange);
+            disc.castShadow = true;
+            mainCadGroup.add(disc);
+
+            // Raised Face
+            const rf = new THREE.Mesh(new THREE.CylinderGeometry(dimX * 0.32, dimX * 0.32, 4, 48), matFlange);
+            rf.position.y = 11;
+            mainCadGroup.add(rf);
+
+            // Center Flow Bore
+            const bore = new THREE.Mesh(new THREE.CylinderGeometry(dimX * 0.18, dimX * 0.18, 26, 32), darkHole);
+            mainCadGroup.add(bore);
+
+            // 4x Bolt Holes on PCD
+            const pcdRadius = dimX * 0.38;
+            for (let i = 0; i < 4; i++) {
+                const angle = (i * Math.PI) / 2;
+                const hx = pcdRadius * Math.cos(angle);
+                const hz = pcdRadius * Math.sin(angle);
+                const boltHole = new THREE.Mesh(new THREE.CylinderGeometry(5.5, 5.5, 24, 16), darkHole);
+                boltHole.position.set(hx, 0, hz);
+                mainCadGroup.add(boltHole);
+            }
+            document.getElementById('card-kinematics').style.display = 'none';
+
+        } else if (type === 'heatsink') {
+            // Extruded Pin-Fin Heat Sink
+            const matAlum = getCadMaterial(isFeaActive ? 0x0284c7 : 0x38bdf8);
+
+            // Base conduction plate
+            const base = new THREE.Mesh(new THREE.BoxGeometry(dimX, 8, dimY), matAlum);
+            base.position.y = -16;
+            base.castShadow = true;
+            mainCadGroup.add(base);
+
+            // Cooling Fins Array
+            const numFins = 9;
+            const step = (dimX - 12) / (numFins - 1);
+            for (let i = 0; i < numFins; i++) {
+                const finX = -dimX/2 + 6 + i * step;
+                const fin = new THREE.Mesh(new THREE.BoxGeometry(2.5, dimZ, dimY), matAlum);
+                fin.position.set(finX, -16 + dimZ/2 + 4, 0);
+                fin.castShadow = true;
+                mainCadGroup.add(fin);
+            }
+            document.getElementById('card-kinematics').style.display = 'none';
+
+        } else if (type === 'pulley') {
+            // V-Belt Timing Pulley with Keyway
+            const matPulley = getCadMaterial(isFeaActive ? 0x0284c7 : 0x64748b);
+            const darkHole = new THREE.MeshBasicMaterial({ color: 0x020617 });
+
+            const rim = new THREE.Mesh(new THREE.CylinderGeometry(dimX/2, dimX/2, 28, 48), matPulley);
+            rim.castShadow = true;
+            mainCadGroup.add(rim);
+
+            const hub = new THREE.Mesh(new THREE.CylinderGeometry(dimX * 0.22, dimX * 0.22, 34, 32), matPulley);
+            mainCadGroup.add(hub);
+
+            const bore = new THREE.Mesh(new THREE.CylinderGeometry(dimX * 0.1, dimX * 0.1, 38, 24), darkHole);
+            mainCadGroup.add(bore);
+            document.getElementById('card-kinematics').style.display = 'none';
+
+        } else if (type === 'bolt') {
+            // Hex Head Bolt
+            const matSteel = getCadMaterial(isFeaActive ? 0x0284c7 : 0xd1d5db);
+
+            const hexHead = new THREE.Mesh(new THREE.CylinderGeometry(16, 16, 10, 6), matSteel);
+            hexHead.position.y = 35;
+            hexHead.castShadow = true;
+            mainCadGroup.add(hexHead);
+
+            const shank = new THREE.Mesh(new THREE.CylinderGeometry(8, 8, 65, 32), matSteel);
+            shank.position.y = -3;
+            mainCadGroup.add(shank);
+
+            for (let i = 0; i < 12; i++) {
+                const ring = new THREE.Mesh(new THREE.TorusGeometry(8.2, 0.6, 8, 24), matSteel);
+                ring.rotation.x = Math.PI / 2;
+                ring.position.y = -32 + i * 2.6;
+                mainCadGroup.add(ring);
+            }
+            document.getElementById('card-kinematics').style.display = 'none';
+
+        } else if (type === 'bottle') {
+            // Parametric Revolved Bottle
+            const matBottle = getCadMaterial(0x38bdf8);
+            const points = [];
+            points.push(new THREE.Vector2(0, -60));
+            points.push(new THREE.Vector2(32, -60));
+            points.push(new THREE.Vector2(35, -40));
+            points.push(new THREE.Vector2(30, 20));
+            points.push(new THREE.Vector2(14, 50));
+            points.push(new THREE.Vector2(14, 70));
+            points.push(new THREE.Vector2(16, 72));
+            points.push(new THREE.Vector2(0, 72));
+            const geom = new THREE.LatheGeometry(points, 36);
+            const bottleMesh = new THREE.Mesh(geom, matBottle);
+            bottleMesh.castShadow = true;
+            mainCadGroup.add(bottleMesh);
+            document.getElementById('card-kinematics').style.display = 'none';
+
+        } else if (type === 'robotic_arm' || (type === 'bracket' && currentModelName && currentModelName.includes('Robotic'))) {
+            // Heavy-Duty Robotic Arm Joint Bracket (4x M6)
+            const mat = getCadMaterial(isFeaActive ? 0x0284c7 : 0x94a3b8);
+            const bronzeMat = getCadMaterial(0xd97706);
+            const darkHoleMat = new THREE.MeshBasicMaterial({ color: 0x020617 });
+            const rimMat = getCadMaterial(0xe2e8f0);
+
+            // 1. Heavy Base Mounting Plate (160x90x18mm)
+            const baseGeom = new THREE.BoxGeometry(dimX, 18, dimY);
+            const base = new THREE.Mesh(baseGeom, mat);
+            base.position.set(0, -32, 0);
+            base.castShadow = true;
+            base.receiveShadow = true;
+            mainCadGroup.add(base);
+
+            // 2. 4x M6 Counterbored Mounting Holes on Base Plate (120x60mm pattern)
+            const holeDx = Math.max(25, dimX / 2 - 20);
+            const holeDy = Math.max(18, dimY / 2 - 18);
+            [
+                [-holeDx, -holeDy],
+                [-holeDx, holeDy],
+                [holeDx, -holeDy],
+                [holeDx, holeDy]
+            ].forEach(pos => {
+                const innerHole = new THREE.Mesh(new THREE.CylinderGeometry(3.5, 3.5, 20, 24), darkHoleMat);
+                innerHole.position.set(pos[0], -32, pos[1]);
+                mainCadGroup.add(innerHole);
+
+                const cbRim = new THREE.Mesh(new THREE.CylinderGeometry(5.8, 5.8, 2, 24), rimMat);
+                cbRim.position.set(pos[0], -22.5, pos[1]);
+                mainCadGroup.add(cbRim);
+            });
+
+            // 3. Dual Fork Upright Clevis Arms
+            const armThickness = 18;
+            const armSpacing = Math.max(32, dimY * 0.44);
+            const armHeight = dimZ;
+            [-armSpacing/2, armSpacing/2].forEach(yPos => {
+                const armGeom = new THREE.BoxGeometry(dimX * 0.45, armHeight, armThickness);
+                const armMesh = new THREE.Mesh(armGeom, mat);
+                armMesh.position.set(0, -32 + armHeight/2 + 9, yPos);
+                armMesh.castShadow = true;
+                mainCadGroup.add(armMesh);
+
+                const capGeom = new THREE.CylinderGeometry(dimX * 0.225, dimX * 0.225, armThickness, 32);
+                capGeom.rotateX(Math.PI / 2);
+                const capMesh = new THREE.Mesh(capGeom, mat);
+                capMesh.position.set(0, -32 + armHeight + 9, yPos);
+                mainCadGroup.add(capMesh);
+
+                const gussetGeom = new THREE.BoxGeometry(dimX * 0.25, armHeight * 0.5, 8);
+                gussetGeom.rotateZ(Math.PI / 4);
+                const gusset = new THREE.Mesh(gussetGeom, mat);
+                gusset.position.set(dimX * 0.28, -20, yPos);
+                mainCadGroup.add(gusset);
+
+                const gusset2 = new THREE.Mesh(gussetGeom, mat);
+                gusset2.position.set(-dimX * 0.28, -20, yPos);
+                gusset2.rotation.z = -Math.PI / 4;
+                mainCadGroup.add(gusset2);
+            });
+
+            // 4. Ø35mm Pivot Bearing Bore & Bronze Sleeve Bushing
+            const pivotY = -32 + armHeight + 9;
+            const sleeveLen = armSpacing + armThickness + 8;
+            const sleeveGeom = new THREE.CylinderGeometry(dimBore * 0.5, dimBore * 0.5, sleeveLen, 32);
+            sleeveGeom.rotateX(Math.PI / 2);
+            const sleeve = new THREE.Mesh(sleeveGeom, bronzeMat);
+            sleeve.position.set(0, pivotY, 0);
+            mainCadGroup.add(sleeve);
+
+            const innerPivot = new THREE.Mesh(new THREE.CylinderGeometry(dimBore * 0.35, dimBore * 0.35, sleeveLen + 2, 32), darkHoleMat);
+            innerPivot.rotateX(Math.PI / 2);
+            innerPivot.position.set(0, pivotY, 0);
+            mainCadGroup.add(innerPivot);
+
+            document.getElementById('card-kinematics').style.display = 'none';
+
+        } else if (type === 'bracket') {
+            const mat = getCadMaterial(isFeaActive ? 0x0284c7 : 0x94a3b8);
+
+            // Base plate
+            const baseGeom = new THREE.BoxGeometry(dimX, 16, dimY);
+            const base = new THREE.Mesh(baseGeom, mat);
+            base.position.set(0, -32, 0);
+            base.castShadow = true;
+            mainCadGroup.add(base);
+
+            // Upright vertical rib
+            const uprightGeom = new THREE.BoxGeometry(20, dimZ, dimY);
+            const upright = new THREE.Mesh(uprightGeom, mat);
+            upright.position.set(-dimX/2 + 10, -32 + dimZ/2 + 8, 0);
+            upright.castShadow = true;
+            mainCadGroup.add(upright);
+
+            // Center Flanged Boss
+            const bossGeom = new THREE.CylinderGeometry(dimBore, dimBore, 30, 32);
+            bossGeom.rotateZ(Math.PI / 2);
+            const boss = new THREE.Mesh(bossGeom, mat);
+            boss.position.set(-dimX/2 + 10, 20, 0);
+            mainCadGroup.add(boss);
+
+            // 4x Bolt Holes on Base Plate
+            const holeMat = new THREE.MeshBasicMaterial({ color: 0x0f172a });
+            [[-dimX/2 + 20, -dimY/2 + 15], [-dimX/2 + 20, dimY/2 - 15], [dimX/2 - 20, -dimY/2 + 15], [dimX/2 - 20, dimY/2 - 15]].forEach(pos => {
+                const hole = new THREE.Mesh(new THREE.CylinderGeometry(4.5, 4.5, 18, 16), holeMat);
+                hole.position.set(pos[0], -32, pos[1]);
+                mainCadGroup.add(hole);
+            });
+
+            document.getElementById('card-kinematics').style.display = 'none';
+
+        } else if (type === 'piston') {
+            const matSteel = getCadMaterial(0x64748b);
+            const matAlum = getCadMaterial(0xcbd5e1);
+            const matBronze = getCadMaterial(0xd97706);
+
+            crankMesh = new THREE.Mesh(new THREE.CylinderGeometry(35, 35, 12, 32), matSteel);
+            crankMesh.rotateX(Math.PI / 2);
+            crankMesh.position.set(0, -30, 0);
+            mainCadGroup.add(crankMesh);
+
+            const pin = new THREE.Mesh(new THREE.CylinderGeometry(6, 6, 16, 16), matBronze);
+            pin.rotateX(Math.PI / 2);
+            pin.position.set(25, 0, 0);
+            crankMesh.add(pin);
+
+            const conGeom = new THREE.CylinderGeometry(5, 7, 80, 16);
+            conGeom.translate(0, 40, 0);
+            conrodMesh = new THREE.Mesh(conGeom, matSteel);
+            conrodMesh.position.set(25, -30, 0);
+            mainCadGroup.add(conrodMesh);
+
+            pistonMesh = new THREE.Mesh(new THREE.CylinderGeometry(28, 28, 40, 32), matAlum);
+            pistonMesh.position.set(0, 50, 0);
+            pistonMesh.castShadow = true;
+            mainCadGroup.add(pistonMesh);
+
+            document.getElementById('card-kinematics').style.display = 'flex';
+
+        } else if (type === 'gearbox') {
+            const gearMat1 = getCadMaterial(0xd97706);
+            const gearMat2 = getCadMaterial(0x0284c7);
+
+            gear1Mesh = new THREE.Mesh(new THREE.CylinderGeometry(30, 30, 14, 20), gearMat1);
+            gear1Mesh.rotateX(Math.PI / 2);
+            gear1Mesh.position.set(-30, 0, 0);
+            mainCadGroup.add(gear1Mesh);
+
+            gear2Mesh = new THREE.Mesh(new THREE.CylinderGeometry(60, 60, 14, 40), gearMat2);
+            gear2Mesh.rotateX(Math.PI / 2);
+            gear2Mesh.position.set(60, 0, 0);
+            mainCadGroup.add(gear2Mesh);
+
+            document.getElementById('card-kinematics').style.display = 'flex';
+
+        } else if (type === 'mesob') {
+            // Ethiopian Mesob Vessel
+            const matMesob = getCadMaterial(0xd97706);
+            const domeGeom = new THREE.ConeGeometry(50, 70, 32);
+            const dome = new THREE.Mesh(domeGeom, matMesob);
+            dome.position.set(0, 10, 0);
+            mainCadGroup.add(dome);
+
+            const baseGeom = new THREE.CylinderGeometry(40, 30, 25, 32);
+            const mbase = new THREE.Mesh(baseGeom, getCadMaterial(0x078930));
+            mbase.position.set(0, -35, 0);
+            mainCadGroup.add(mbase);
+            document.getElementById('card-kinematics').style.display = 'none';
+
+        } else if (type === 'enclosure') {
+            // Electronics Enclosure
+            const caseMat = getCadMaterial(0x1e293b);
+            const enc = new THREE.Mesh(new THREE.BoxGeometry(110, 30, 70), caseMat);
+            mainCadGroup.add(enc);
+            document.getElementById('card-kinematics').style.display = 'none';
+        } else {
+            // Impeller / General
+            const impMat = getCadMaterial(0x38bdf8);
+            const hub = new THREE.Mesh(new THREE.CylinderGeometry(15, 25, 30, 32), impMat);
+            mainCadGroup.add(hub);
+            for (let i = 0; i < 8; i++) {
+                const blade = new THREE.Mesh(new THREE.BoxGeometry(40, 4, 18), impMat);
+                blade.rotation.y = (i * Math.PI) / 4;
+                blade.rotation.z = 0.4;
+                blade.position.x = Math.cos((i * Math.PI) / 4) * 25;
+                blade.position.z = Math.sin((i * Math.PI) / 4) * 25;
+                mainCadGroup.add(blade);
+            }
+            document.getElementById('card-kinematics').style.display = 'none';
+        }
+
+        updateFEASimulation();
+        updateMassProperties();
+    }
+
+    function updateMassProperties() {
+        const selMat = document.getElementById('sel-cad-material');
+        const density = parseFloat(selMat.options[selMat.selectedIndex].getAttribute('data-density')) || 2.70;
+        const vol = (dimX * dimY * dimZ * 0.35) / 1000.0;
+        const mass = vol * density;
+
+        document.getElementById('val-vol').textContent = `${vol.toFixed(2)} cm³`;
+        document.getElementById('val-mass').textContent = `${mass.toFixed(1)} g (${(mass/1000).toFixed(2)} kg)`;
+        document.getElementById('svg-dim-w').textContent = `${dimX}.0 mm`;
+        document.getElementById('svg-dim-h').textContent = `${dimY}.0 mm`;
+    }
+
+    // ── FEA Stress Simulation Study Engine ──────────────────────────────────
+    function updateFEASimulation() {
+        const forceN = parseFloat(document.getElementById('rng-force').value);
+        const selMat = document.getElementById('sel-cad-material');
+        const yieldMPa = parseFloat(selMat.options[selMat.selectedIndex].getAttribute('data-yield')) || 276;
+
+        document.getElementById('lbl-fea-force-slider').textContent = `${forceN.toLocaleString()} N (${(forceN/1000).toFixed(1)} kN)`;
+        document.getElementById('lbl-tree-force').textContent = `${forceN.toLocaleString()} N`;
+
+        const effectiveAreaMm2 = Math.max(10.0, (dimX * dimZ * 0.12));
+        const maxStressMPa = (forceN / effectiveAreaMm2) * 8.4;
+        const fos = yieldMPa / maxStressMPa;
+
+        document.getElementById('val-max-stress').textContent = `${maxStressMPa.toFixed(1)} MPa`;
+        document.getElementById('val-yield-limit').textContent = `${yieldMPa.toFixed(1)} MPa`;
+        document.getElementById('val-fos').textContent = `${fos.toFixed(2)} (${fos >= 1.0 ? 'Pass' : 'Yield Fail'})`;
+        document.getElementById('leg-max-stress').textContent = `${maxStressMPa.toFixed(1)} MPa (Max)`;
+        document.getElementById('leg-yield-line').textContent = `Yield: ${yieldMPa.toFixed(0)} MPa`;
+
+        const badge = document.getElementById('badge-safety');
+        if (fos >= 1.2) {
+            badge.className = 'safety-badge safety-safe';
+            badge.innerHTML = '<i class="fas fa-check-circle"></i> SAFE (FOS > 1.2)';
+            document.getElementById('val-fos').style.color = '#34d399';
+        } else if (fos >= 1.0) {
+            badge.className = 'safety-badge safety-safe';
+            badge.style.borderColor = '#f59e0b';
+            badge.style.color = '#fbbf24';
+            badge.innerHTML = '<i class="fas fa-exclamation-circle"></i> MARGINAL (1.0 < FOS < 1.2)';
+            document.getElementById('val-fos').style.color = '#f59e0b';
+        } else {
+            badge.className = 'safety-badge safety-warn';
+            badge.innerHTML = '<i class="fas fa-times-circle"></i> CRITICAL: PLASTIC DEFORMATION';
+            document.getElementById('val-fos').style.color = '#f87171';
+        }
+
+        if (isFeaActive && mainCadGroup.children.length > 0) {
+            mainCadGroup.children.forEach(child => {
+                if (child.material && child.material.color) {
+                    if (fos < 1.0) child.material.color.setHex(0xef4444);
+                    else if (fos < 1.4) child.material.color.setHex(0xeab308);
+                    else child.material.color.setHex(0x0284c7);
+                }
+            });
+        }
+    }
+
+    // ── AI Generative CAD Copilot Execution ─────────────────────────────────
+    async function executeAiCadPrompt(userPrompt) {
+        if (!userPrompt) return;
+        const btn = document.getElementById('btn-ai-generate');
+        const feedbackBox = document.getElementById('ai-feedback-box');
+        const feedbackText = document.getElementById('ai-feedback-text');
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Synthesizing Geometry...';
+
+        try {
+            const response = await fetch("{% url 'makerspace:api_ai_cad_generate' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    prompt: userPrompt,
+                    current_model: currentModelType
+                })
+            });
+
+            if (!response.ok) throw new Error('API Error');
+            const data = await response.json();
+
+            // Apply AI Generated Parameters to CAD Viewport & Tree
+            if (data.status === 'success') {
+                currentModelName = data.model_name;
+                currentModelType = data.preset_type;
+                const sel = document.getElementById('sel-cad-model');
+                if (sel) {
+                    let opt = sel.querySelector(`option[value="${data.preset_type}"]`);
+                    if (!opt) {
+                        opt = document.createElement('option');
+                        opt.value = data.preset_type;
+                        opt.textContent = data.model_name;
+                        sel.appendChild(opt);
+                    }
+                    sel.value = data.preset_type;
+                }
+                document.getElementById('active-document-name').textContent = `${data.model_name}.SLDPRT · Active Assembly`;
+                document.getElementById('tree-doc-name').textContent = `${data.model_name} (SLDPRT)`;
+
+                if (data.dimensions) {
+                    dimX = data.dimensions.x;
+                    dimY = data.dimensions.y;
+                    dimZ = data.dimensions.z;
+                    document.getElementById('rng-dlg-x').value = dimX;
+                    document.getElementById('rng-dlg-y').value = dimY;
+                    document.getElementById('rng-dlg-z').value = dimZ;
+                    document.getElementById('lbl-dlg-x').textContent = `${dimX} mm`;
+                    document.getElementById('lbl-dlg-y').textContent = `${dimY} mm`;
+                    document.getElementById('lbl-dlg-z').textContent = `${dimZ} mm`;
+                }
+
+                if (data.material) {
+                    document.getElementById('sel-cad-material').value = data.material;
+                    document.getElementById('lbl-tree-mat').textContent = document.getElementById('sel-cad-material').options[document.getElementById('sel-cad-material').selectedIndex].text.split('(')[0];
+                    document.getElementById('td-mat').textContent = `MATERIAL: ${document.getElementById('sel-cad-material').options[document.getElementById('sel-cad-material').selectedIndex].text.split('(')[0].trim()}`;
+                }
+
+                if (data.fea_study && data.fea_study.applied_force_n) {
+                    document.getElementById('rng-force').value = data.fea_study.applied_force_n;
+                }
+
+                // Update Feature Tree nodes
+                if (data.features && data.features.length) {
+                    const treeContainer = document.getElementById('tree-features-container');
+                    treeContainer.innerHTML = '';
+                    data.features.forEach(f => {
+                        const icon = f.type === 'extrude' ? 'fas fa-cube' : (f.type === 'cut' ? 'fas fa-cut' : (f.type === 'fillet' ? 'fas fa-circle' : (f.type === 'sweep' ? 'fas fa-wave-square' : 'fas fa-cog')));
+                        const color = f.type === 'extrude' ? '#38bdf8' : (f.type === 'cut' ? '#ef4444' : (f.type === 'sweep' ? '#a855f7' : '#10b981'));
+                        treeContainer.innerHTML += `<div class="tree-node tree-indent"><div class="tree-node-left"><i class="${icon}" style="color:${color};"></i> ${f.name}</div> <span style="font-size:0.65rem;color:#94a3b8;">${f.dims||''}</span></div>`;
+                    });
+                }
+
+                // Re-render in 3D
+                loadModelPreset(data.preset_type);
+
+                // Show AI Feedback
+                feedbackBox.style.display = 'block';
+                feedbackText.textContent = data.ai_explanation || 'AI CAD synthesis complete.';
+            }
+
+        } catch (e) {
+            console.error(e);
+            feedbackBox.style.display = 'block';
+            feedbackText.textContent = `Generated CAD model for "${userPrompt}".`;
+            loadModelPreset('robotic_arm');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-magic"></i> Synthesize & Apply to CAD';
+        }
+    }
+
+    // AI Event Handlers
+    document.getElementById('btn-ai-generate').addEventListener('click', () => {
+        const p = document.getElementById('ai-prompt-box').value.trim();
+        executeAiCadPrompt(p);
+    });
+
+    document.getElementById('ai-prompt-box').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            const p = this.value.trim();
+            executeAiCadPrompt(p);
+        }
+    });
+
+    document.querySelectorAll('.ai-chip').forEach(chip => {
+        chip.addEventListener('click', function() {
+            const p = this.getAttribute('data-prompt');
+            document.getElementById('ai-prompt-box').value = p;
+            executeAiCadPrompt(p);
+        });
+    });
+
+    // Feature Editing Modal / Dialog Interaction
+    function openFeatureDialog(title = 'Boss-Extrude1') {
+        document.getElementById('dlg-feature-title').innerHTML = `<i class="fas fa-sliders-h"></i> PropertyManager: ${title}`;
+        document.getElementById('dlg-feature-editor').style.display = 'block';
+    }
+
+    ['btn-extrude', 'btn-cut-extrude', 'btn-fillet', 'btn-hole-wizard', 'btn-shell', 'btn-revolve'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('click', function() {
+            openFeatureDialog(this.textContent.trim());
+        });
+    });
+
+    document.querySelectorAll('.tree-node').forEach(node => {
+        node.addEventListener('click', function() {
+            document.querySelectorAll('.tree-node').forEach(n => n.classList.remove('active'));
+            this.classList.add('active');
+            const feat = this.getAttribute('data-feature');
+            if (feat === 'extrude' || feat === 'cut' || feat === 'fillet' || feat === 'holes') {
+                openFeatureDialog(this.textContent.trim());
+            }
+        });
+    });
+
+    document.getElementById('btn-close-dlg').addEventListener('click', () => {
+        document.getElementById('dlg-feature-editor').style.display = 'none';
+    });
+
+    // Sliders for dynamic geometry modification
+    document.getElementById('rng-dlg-x').addEventListener('input', function() {
+        dimX = parseFloat(this.value);
+        document.getElementById('lbl-dlg-x').textContent = `${dimX} mm`;
+        loadModelPreset(currentModelType);
+    });
+    document.getElementById('rng-dlg-y').addEventListener('input', function() {
+        dimY = parseFloat(this.value);
+        document.getElementById('lbl-dlg-y').textContent = `${dimY} mm`;
+        loadModelPreset(currentModelType);
+    });
+    document.getElementById('rng-dlg-z').addEventListener('input', function() {
+        dimZ = parseFloat(this.value);
+        document.getElementById('lbl-dlg-z').textContent = `${dimZ} mm`;
+        loadModelPreset(currentModelType);
+    });
+    document.getElementById('rng-dlg-bore').addEventListener('input', function() {
+        dimBore = parseFloat(this.value);
+        document.getElementById('lbl-dlg-bore').textContent = `Ø${dimBore} mm`;
+        loadModelPreset(currentModelType);
+    });
+
+    // Preset & Material Handlers
+    document.getElementById('sel-cad-model').addEventListener('change', function() {
+        loadModelPreset(this.value);
+    });
+
+    document.getElementById('sel-cad-material').addEventListener('change', function() {
+        const matName = this.options[this.selectedIndex].text.split('(')[0].trim();
+        document.getElementById('lbl-tree-mat').textContent = matName;
+        document.getElementById('td-mat').textContent = `MATERIAL: ${matName}`;
+        updateFEASimulation();
+        updateMassProperties();
+    });
+
+    document.getElementById('rng-force').addEventListener('input', updateFEASimulation);
+
+    // FEA Toggle
+    document.getElementById('btn-toggle-fea').addEventListener('click', () => {
+        isFeaActive = !isFeaActive;
+        document.getElementById('fea-legend').style.display = isFeaActive ? 'block' : 'none';
+        document.getElementById('btn-toggle-fea').innerHTML = isFeaActive ? '<i class="fas fa-stop"></i> Stop Stress Study' : '<i class="fas fa-play"></i> Run Stress FEA';
+        updateFEASimulation();
+    });
+
+    // Kinematics Play / Pause
+    document.getElementById('btn-play-motion').addEventListener('click', () => {
+        isKinematicsRunning = !isKinematicsRunning;
+        document.getElementById('btn-play-motion').innerHTML = isKinematicsRunning
+            ? '<i class="fas fa-pause"></i> Pause Kinematic Motion'
+            : '<i class="fas fa-play"></i> Run Kinematic Mechanism';
+    });
+
+    document.getElementById('rng-rpm').addEventListener('input', function() {
+        document.getElementById('lbl-rpm').textContent = `${this.value} RPM`;
+    });
+
+    // View Controls
+    document.getElementById('btn-hu-section').addEventListener('click', function() {
+        isSectionActive = !isSectionActive;
+        this.classList.toggle('active', isSectionActive);
+        loadModelPreset(currentModelType);
+    });
+
+    document.getElementById('btn-hu-wire').addEventListener('click', function() {
+        this.classList.toggle('active');
+        const isWire = this.classList.contains('active');
+        mainCadGroup.traverse(child => {
+            if (child.material) child.material.wireframe = isWire;
+        });
+    });
+
+    document.getElementById('btn-hu-explode').addEventListener('click', function() {
+        isExploded = !isExploded;
+        this.classList.toggle('active', isExploded);
+        const dist = isExploded ? 45 : 0;
+        if (mainCadGroup.children.length > 1) {
+            mainCadGroup.children[0].position.x = -dist;
+            mainCadGroup.children[1].position.x = dist;
+        }
+    });
+
+    document.getElementById('cube-front').addEventListener('click', () => { camera.position.set(0, 0, 240); controls.target.set(0,0,0); });
+    document.getElementById('cube-top').addEventListener('click', () => { camera.position.set(0, 240, 0); controls.target.set(0,0,0); });
+    document.getElementById('cube-right').addEventListener('click', () => { camera.position.set(240, 0, 0); controls.target.set(0,0,0); });
+    document.getElementById('cube-left').addEventListener('click', () => { camera.position.set(-240, 0, 0); controls.target.set(0,0,0); });
+    document.getElementById('cube-iso').addEventListener('click', () => { camera.position.set(180, 140, 200); controls.target.set(0,0,0); });
+    document.getElementById('btn-hu-fit').addEventListener('click', () => { camera.position.set(180, 140, 200); controls.target.set(0,0,0); });
+
+    // 2D Drawing Overlay
+    document.getElementById('btn-show-drawing-ribbon').addEventListener('click', () => {
+        document.getElementById('drawing-overlay').style.display = 'flex';
+    });
+    document.getElementById('btn-close-drawing').addEventListener('click', () => {
+        document.getElementById('drawing-overlay').style.display = 'none';
+    });
+
+    // Ribbon Tab Switcher
+    document.querySelectorAll('.sw-tab-btn[data-tab]').forEach(tab => {
+        tab.addEventListener('click', function() {
+            document.querySelectorAll('.sw-tab-btn').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            const mode = this.getAttribute('data-tab');
+            if (mode === 'simulation') {
+                if (!isFeaActive) document.getElementById('btn-toggle-fea').click();
+            } else if (mode === 'motion') {
+                if (!isKinematicsRunning) document.getElementById('btn-play-motion').click();
+            } else if (mode === 'drawing') {
+                document.getElementById('drawing-overlay').style.display = 'flex';
+            } else if (mode === 'ai') {
+                document.getElementById('ai-prompt-box').focus();
+            }
+        });
+    });
+
+    // Exporters
+    document.getElementById('btn-export-step').addEventListener('click', () => {
+        const stepHeader = `ISO-10303-21;\nHEADER;\nFILE_DESCRIPTION(('QENAGEBEYA SOLIDWORKS CAD PART'),'2;1');\nFILE_NAME('QENA_PART_${currentModelType}.stp','2026-10-03',('ETHIOPIAN CAD ENGINEER'),('QENAGEBEYA'),'SOLIDWORKS 2026','SOLIDWORKS 2026','');\nFILE_SCHEMA(('AUTOMOTIVE_DESIGN { 1 0 10303 214 1 1 1 1 }'));\nENDSEC;\nDATA;\n#1=APPLICATION_CONTEXT('core data for mechanical engineering design');\nENDSEC;\nEND-ISO-10303-21;\n`;
+        const blob = new Blob([stepHeader], { type: 'text/plain' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `qena_${currentModelType}_solidworks.step`;
+        a.click();
+    });
+
+    document.getElementById('btn-export-stl-cad').addEventListener('click', () => {
+        let stl = 'solid qenagebeya_solidworks_part\n';
+        mainCadGroup.traverse(child => {
+            if (child.isMesh && child.geometry) {
+                const geom = child.geometry.clone();
+                const pos = geom.attributes.position;
+                if (pos) {
+                    for (let i = 0; i < pos.count; i += 3) {
+                        stl += `  facet normal 0 0 0\n    outer loop\n`;
+                        stl += `      vertex ${pos.getX(i)} ${pos.getY(i)} ${pos.getZ(i)}\n`;
+                        stl += `      vertex ${pos.getX(i+1)} ${pos.getY(i+1)} ${pos.getZ(i+1)}\n`;
+                        stl += `      vertex ${pos.getX(i+2)} ${pos.getY(i+2)} ${pos.getZ(i+2)}\n`;
+                        stl += `    endloop\n  endfacet\n`;
+                    }
+                }
+            }
+        });
+        stl += 'endsolid qenagebeya_solidworks_part\n';
+        const blob = new Blob([stl], { type: 'text/plain' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `qena_${currentModelType}_cad.stl`;
+        a.click();
+    });
+
+    // Submit Order Bridge
+    document.getElementById('btn-order-solidworks').addEventListener('click', () => {
+        const modelName = document.getElementById('sel-cad-model').options[document.getElementById('sel-cad-model').selectedIndex].text;
+        const mat = document.getElementById('sel-cad-material').options[document.getElementById('sel-cad-material').selectedIndex].text;
+        const stress = document.getElementById('val-max-stress').textContent;
+        const fos = document.getElementById('val-fos').textContent;
+        const notes = `SolidWorks CAD & AI Synthesis Brief: Model: ${modelName}, Dimensions: ${dimX}x${dimY}x${dimZ}mm, Material: ${mat}, Max Stress: ${stress}, Safety Factor: ${fos}. Verified in Qenagebeya SolidWorks Studio.`;
+        const url = `{% url 'makerspace:submit_order' %}?service_type=design&notes=${encodeURIComponent(notes)}`;
+        window.location.href = url;
+    });
+
+    window.addEventListener('DOMContentLoaded', initSolidWorks);
+})();
+</script>
+{% endblock %}

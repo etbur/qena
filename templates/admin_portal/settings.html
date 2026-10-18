@@ -1,0 +1,133 @@
+{% extends 'admin_portal/base_admin.html' %}
+{% block title %}Settings – Admin Portal · Qenagebeya 🇪🇹{% endblock %}
+{% block breadcrumb %}Settings{% endblock %}
+
+{% block admin_content %}
+<div class="page-header">
+    <h2>⚙️ Platform Settings · ቅንብሮች · Qindaa'ina</h2>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:900px;">
+
+    <!-- Platform Info -->
+    <div style="background:white;border-radius:16px;padding:24px;border:1px solid #eef2f6;box-shadow:0 2px 6px rgba(0,0,0,0.02);">
+        <h3 style="font-size:.95rem;font-weight:700;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid #eef2f6;">
+            <i class="fas fa-store-alt" style="color:#078930;margin-right:8px;"></i>Platform Info
+        </h3>
+        <div style="font-size:.85rem;color:#475569;">
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f4f9;">
+                <span>Platform Name</span><strong>Qenagebeya 🇪🇹</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f4f9;">
+                <span>Currency · ምንዛሬ</span><strong>ETB (Ethiopian Birr · ብር)</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f4f9;">
+                <span>Timezone</span><strong>Africa/Addis_Ababa (EAT UTC+3)</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f4f9;">
+                <span>Languages · ቋንቋዎች</span><strong>EN · አማርኛ · Afaan Oromoo</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f4f9;">
+                <span>Free Shipping from</span><strong>ETB 500</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;">
+                <span>Version</span><strong>v2.4.0 · Ethiopia</strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div style="background:white;border-radius:16px;padding:24px;border:1px solid #eef2f6;box-shadow:0 2px 6px rgba(0,0,0,0.02);">
+        <h3 style="font-size:.95rem;font-weight:700;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid #eef2f6;">
+            <i class="fas fa-chart-bar" style="color:#078930;margin-right:8px;"></i>Quick Stats
+        </h3>
+        <div style="font-size:.85rem;color:#475569;">
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f4f9;">
+                <span>Total Users · ተጠቃሚዎች</span><strong>{{ total_users }}</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f4f9;">
+                <span>Active Products</span><strong>{{ total_products }}</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f4f9;">
+                <span>Total Vendors</span><strong>{{ total_vendors }}</strong>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1f4f9;">
+                <span>Django Admin</span>
+                <a href="/admin/" target="_blank" style="color:#078930;font-weight:600;font-size:.82rem;">
+                    Open <i class="fas fa-external-link-alt"></i>
+                </a>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;">
+                <span>Debug Mode</span>
+                <span style="background:#fff4e6;color:#b85a1a;padding:2px 10px;border-radius:40px;font-size:.7rem;font-weight:600;">ON (Dev)</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Language Settings -->
+<div style="margin-top:20px;background:white;border-radius:16px;padding:24px;border:1px solid #eef2f6;max-width:900px;">
+    <h3 style="font-size:.95rem;font-weight:700;margin-bottom:16px;">
+        <i class="fas fa-language" style="color:#078930;margin-right:8px;"></i>
+        Languages · ቋንቋዎች · Afaan
+    </h3>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;">
+        <div style="background:#f8fafc;border-radius:12px;padding:16px 24px;border:1px solid #eef2f6;text-align:center;min-width:140px;">
+            <div style="font-size:1.5rem;">🇬🇧</div>
+            <div style="font-weight:700;margin-top:6px;">English</div>
+            <div style="font-size:.75rem;color:#94a3b8;">Default</div>
+            <a href="/" style="display:inline-block;margin-top:8px;font-size:.75rem;color:#078930;font-weight:600;">Switch</a>
+        </div>
+        <div style="background:#f8fafc;border-radius:12px;padding:16px 24px;border:1px solid #eef2f6;text-align:center;min-width:140px;">
+            <div style="font-size:1.5rem;">🇪🇹</div>
+            <div style="font-weight:700;margin-top:6px;">አማርኛ</div>
+            <div style="font-size:.75rem;color:#94a3b8;">Amharic</div>
+            <a href="/am/" style="display:inline-block;margin-top:8px;font-size:.75rem;color:#078930;font-weight:600;">Switch</a>
+        </div>
+        <div style="background:#f8fafc;border-radius:12px;padding:16px 24px;border:1px solid #eef2f6;text-align:center;min-width:140px;">
+            <div style="font-size:1.5rem;">🇪🇹</div>
+            <div style="font-weight:700;margin-top:6px;">Afaan Oromoo</div>
+            <div style="font-size:.75rem;color:#94a3b8;">Oromiffa</div>
+            <a href="/om/" style="display:inline-block;margin-top:8px;font-size:.75rem;color:#078930;font-weight:600;">Switch</a>
+        </div>
+    </div>
+</div>
+
+<!-- Security & Access -->
+<div style="margin-top:20px;background:white;border-radius:16px;padding:24px;border:1px solid #eef2f6;max-width:900px;">
+    <h3 style="font-size:.95rem;font-weight:700;margin-bottom:16px;">
+        <i class="fas fa-shield-alt" style="color:#078930;margin-right:8px;"></i>Security & Access · ደህንነት
+    </h3>
+    <div style="display:flex;flex-wrap:wrap;gap:12px;">
+        <a href="/admin/" target="_blank" class="btn btn-primary" style="text-decoration:none;">
+            <i class="fas fa-lock"></i> Django Admin Panel
+        </a>
+        <a href="{% url 'admin_portal:audit_logs' %}" class="btn" style="text-decoration:none;">
+            <i class="fas fa-file-alt"></i> Audit Logs · ምዝገባ
+        </a>
+        <a href="{% url 'admin_portal:users' %}" class="btn" style="text-decoration:none;">
+            <i class="fas fa-users"></i> Manage Users · ተጠቃሚዎች
+        </a>
+        <a href="{% url 'admin_portal:vendors' %}?status=pending" class="btn" style="text-decoration:none;">
+            <i class="fas fa-store"></i> Pending Vendors · በመጠባበቅ
+        </a>
+    </div>
+</div>
+
+<!-- Payment Methods -->
+<div style="margin-top:20px;background:white;border-radius:16px;padding:24px;border:1px solid #eef2f6;max-width:900px;">
+    <h3 style="font-size:.95rem;font-weight:700;margin-bottom:16px;">
+        <i class="fas fa-money-bill-wave" style="color:#078930;margin-right:8px;"></i>
+        Ethiopian Payment Methods · የኢትዮጵያ የክፍያ ዘዴዎች
+    </h3>
+    <div style="display:flex;flex-wrap:wrap;gap:12px;">
+        {% for pm, label, color in payment_methods %}
+        <div style="background:#f8fafc;border-radius:10px;padding:10px 18px;border:1px solid #eef2f6;font-size:.82rem;font-weight:600;color:{{ color }};">
+            {{ label }}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}

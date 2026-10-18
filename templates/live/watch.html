@@ -1,0 +1,1582 @@
+{% extends 'base.html' %}
+{% block title %}{{ stream.title }} · Live – Qenagebeya 🇪🇹{% endblock %}
+{% block extra_css %}
+<style>
+body { background: #0b1017; }
+.live-page {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  height: calc(100vh - 65px);
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 8px 12px;
+  gap: 12px;
+}
+.stream-area {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow: hidden;
+  height: 100%;
+}
+.video-box {
+  background: #000;
+  border-radius: 20px;
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  min-height: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+#local-video, #remote-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 20px;
+  display: none;
+  background: #000;
+}
+#local-video { z-index: 10; }
+#remote-video { z-index: 9; }
+
+#host-pip {
+  position: absolute;
+  bottom: 110px;
+  right: 14px;
+  width: 120px;
+  height: 90px;
+  border-radius: 12px;
+  border: 2px solid rgba(255,255,255,0.4);
+  overflow: hidden;
+  z-index: 15;
+  display: none;
+  background: #000;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+}
+#host-pip video { width: 100%; height: 100%; object-fit: cover; }
+
+/* Stream Placeholder before live video connects */
+.stream-placeholder {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  color: rgba(255,255,255,0.4);
+  text-align: center;
+  padding: 24px;
+  background: radial-gradient(circle at center, #131b26 0%, #080c12 100%);
+}
+.sp-title { font-size: 1.15rem; font-weight: 800; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.6); }
+.sp-sub { font-size: 0.88rem; color: rgba(255,255,255,0.7); max-width: 440px; line-height: 1.4; }
+
+/* Pause Overlay */
+#pause-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 28;
+  background: rgba(11, 16, 23, 0.88);
+  backdrop-filter: blur(12px);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  color: #fff;
+  border-radius: 20px;
+  animation: fadeIn 0.3s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.pause-icon-badge {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(245, 158, 11, 0.15);
+  border: 2px solid rgba(245, 158, 11, 0.5);
+  color: #f59e0b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  box-shadow: 0 0 24px rgba(245, 158, 11, 0.3);
+}
+
+/* HUD elements */
+.hud-top {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  z-index: 20;
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, transparent 100%);
+  pointer-events: none;
+}
+.hud-top > * { pointer-events: auto; }
+.hud-bottom {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  z-index: 20;
+  padding: 14px 16px;
+  background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+.hud-bottom > * { pointer-events: auto; }
+
+.live-pill {
+  background: #d42e2e;
+  color: #fff;
+  padding: 5px 14px;
+  border-radius: 40px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 10px rgba(212,46,46,0.5);
+}
+.live-pill.paused {
+  background: #f59e0b;
+  color: #000;
+  box-shadow: 0 2px 10px rgba(245,158,11,0.5);
+}
+.live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fff;
+  animation: blink 1.2s infinite;
+}
+@keyframes blink { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(1.3)} }
+.pill {
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(6px);
+  color: #fff;
+  padding: 4px 11px;
+  border-radius: 40px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid rgba(255,255,255,0.15);
+}
+
+/* Cam & Broadcast controls */
+.cam-controls {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  z-index: 30;
+  flex-wrap: nowrap;
+}
+.cam-btn {
+  padding: 8px 16px;
+  border-radius: 60px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  backdrop-filter: blur(8px);
+}
+.cam-go {
+  background: #d42e2e;
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(212,46,46,0.6);
+}
+.cam-go:hover { background: #b91c1c; transform: translateY(-1px); }
+
+.cam-pause {
+  background: rgba(245, 158, 11, 0.9);
+  color: #000;
+  box-shadow: 0 4px 14px rgba(245,158,11,0.4);
+}
+.cam-pause:hover { background: #d97706; color: #fff; }
+
+.cam-resume {
+  background: #078930;
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(7,137,48,0.5);
+  animation: pulse-ring 1.5s infinite;
+}
+.cam-resume:hover { background: #056824; }
+
+.cam-stop { background: rgba(239,68,68,0.25); color: #fca5a5; border: 1px solid rgba(239,68,68,0.5); }
+.cam-mute { background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
+.cam-switch { background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.2); width: 36px; padding: 8px; justify-content: center; border-radius: 50%; }
+
+#cam-toast {
+  position: absolute;
+  top: 64px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(8px);
+  color: #fff;
+  padding: 8px 20px;
+  border-radius: 40px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  z-index: 40;
+  white-space: nowrap;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  opacity: 0;
+  border: 1px solid rgba(255,255,255,0.15);
+}
+
+/* Pinned product */
+.pinned-product {
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(12px);
+  border-radius: 16px;
+  padding: 10px 14px;
+  border: 1px solid rgba(255,255,255,0.2);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 6px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+.pinned-product:hover {
+  background: rgba(255,255,255,0.2);
+  transform: translateY(-2px);
+}
+.pinned-product img {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.pp-name { font-weight: 800; font-size: 0.85rem; color: #fff; }
+.pp-price { font-size: 0.82rem; color: #78e8a4; font-weight: 800; }
+.pp-add {
+  margin-left: auto;
+  background: #078930;
+  color: #fff;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 40px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(7,137,48,0.4);
+}
+
+/* Reactions */
+#reaction-burst {
+  position: absolute;
+  bottom: 110px;
+  right: 16px;
+  pointer-events: none;
+  z-index: 25;
+  width: 80px;
+}
+.burst-emoji {
+  position: absolute;
+  font-size: 2rem;
+  animation: floatUp 2.4s ease-out forwards;
+}
+@keyframes floatUp {
+  0% { transform: translateY(0) scale(0.8); opacity: 1; }
+  100% { transform: translateY(-180px) scale(1.5); opacity: 0; }
+}
+.reaction-bar { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.r-btn {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 40px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: 0.15s ease;
+}
+.r-btn:hover { background: rgba(255,255,255,0.22); transform: scale(1.18); }
+
+/* Ended overlay */
+.ended-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.92);
+  backdrop-filter: blur(10px);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  border-radius: 20px;
+  z-index: 50;
+}
+.ended-overlay h2 { color: #fff; font-size: 1.5rem; font-weight: 800; }
+
+/* ── RIGHT PANEL ── */
+.right-panel {
+  background: #111922;
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.08);
+  height: 100%;
+}
+.panel-tabs { display: flex; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.ptab {
+  flex: 1;
+  padding: 12px 8px;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.45);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+  border-bottom: 2px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.ptab.active { color: #fff; border-bottom-color: #d42e2e; background: rgba(255,255,255,0.02); }
+.ptab .badge {
+  background: #d42e2e;
+  color: #fff;
+  font-size: 0.65rem;
+  padding: 1px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+}
+.tab-pane { display: none; flex: 1; overflow: hidden; flex-direction: column; }
+.tab-pane.active { display: flex; }
+
+/* Chat */
+.chat-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  scroll-behavior: smooth;
+}
+.chat-body::-webkit-scrollbar { width: 4px; }
+.chat-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 4px; }
+.msg { display: flex; gap: 8px; align-items: flex-start; }
+.msg-av {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #1a4b8a;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+.msg-av.host { background: #d42e2e; }
+.msg-av.sys { background: #078930; font-size: 0.85rem; }
+.msg-name { font-size: 0.72rem; font-weight: 700; color: #64748b; margin-bottom: 2px; }
+.msg-name.host { color: #f59e0b; }
+.msg-text { font-size: 0.85rem; color: #e2e8f0; line-height: 1.4; word-break: break-word; }
+.msg.sys .msg-text { color: #94a3b8; font-style: italic; font-size: 0.78rem; }
+.msg.q .msg-text { color: #93c5fd; }
+
+.chat-input-row { padding: 10px 12px; border-top: 1px solid rgba(255,255,255,0.08); display: flex; gap: 8px; }
+.chat-in {
+  flex: 1;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 40px;
+  padding: 8px 16px;
+  color: #fff;
+  font-size: 0.85rem;
+  outline: none;
+  transition: 0.2s ease;
+}
+.chat-in:focus { border-color: #d42e2e; background: rgba(255,255,255,0.1); }
+.send-btn {
+  background: #078930;
+  border: none;
+  color: #fff;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  transition: 0.2s ease;
+}
+.send-btn:hover { background: #d42e2e; }
+.q-btn {
+  background: rgba(59,130,246,0.2);
+  border: 1px solid rgba(59,130,246,0.3);
+  color: #93c5fd;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: 0.82rem;
+}
+
+/* Viewers tab */
+.viewer-list { flex: 1; overflow-y: auto; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; }
+.viewer-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.04);
+}
+.v-av {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #1a4b8a;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.82rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.v-name { font-size: 0.85rem; font-weight: 600; color: #e2e8f0; flex: 1; }
+.v-btn {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+.v-btn.grant { background: rgba(7,137,48,0.25); border-color: rgba(7,137,48,0.5); color: #78e8a4; }
+.v-btn.revoke { background: rgba(212,46,46,0.25); border-color: rgba(212,46,46,0.5); color: #fca5a5; }
+
+/* Control panel */
+.host-panel-card {
+  background: rgba(255,255,255,0.04);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 12px;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.host-panel-title {
+  color: rgba(255,255,255,0.5);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 10px;
+}
+.pin-select {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: #fff;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 0.82rem;
+  outline: none;
+  width: 100%;
+}
+.pin-btn {
+  width: 100%;
+  margin-top: 8px;
+  padding: 8px;
+  background: #d42e2e;
+  border: none;
+  color: #fff;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 0.82rem;
+}
+.end-btn {
+  width: 100%;
+  margin-top: 8px;
+  padding: 8px;
+  background: transparent;
+  border: 1px solid rgba(239,68,68,0.4);
+  color: #fca5a5;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.end-btn:hover { background: rgba(239,68,68,0.2); }
+
+.hand-btn {
+  background: rgba(245,158,11,0.15);
+  border: 1px solid rgba(245,158,11,0.4);
+  color: #f59e0b;
+  padding: 7px 14px;
+  border-radius: 40px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: 0.2s;
+}
+
+@media (max-width: 900px) {
+  .live-page { grid-template-columns: 1fr; height: auto; }
+  .right-panel { height: 420px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="live-page">
+
+<!-- ═══ LEFT: Video Broadcast Area ═══ -->
+<div class="stream-area">
+  <div class="video-box" id="video-box">
+
+    <!-- Stream Placeholder before camera start -->
+    <div class="stream-placeholder" id="placeholder">
+      {% if stream.thumbnail %}
+        <img src="{{ stream.thumbnail.url }}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:20px;opacity:.25;" id="thumb-img" alt=""/>
+      {% endif %}
+      <i class="fas fa-video" id="placeholder-icon" style="font-size:3.5rem;color:#d42e2e;"></i>
+      <div class="sp-title">{{ stream.title }}</div>
+      <div class="sp-sub" id="placeholder-sub">
+        {% if stream.status == 'live' %}
+          {% if is_host %}
+            Vendor Host: Click <strong style="color:#d42e2e;">Start Camera</strong> to broadcast live video to customers!
+          {% else %}
+            Connecting to live broadcast... Waiting for vendor video stream.
+          {% endif %}
+        {% elif stream.status == 'ended' %}
+          This live broadcast has ended.
+        {% else %}
+          Scheduled broadcast · Not started yet.
+        {% endif %}
+      </div>
+      {% if is_host and stream.status == 'live' %}
+      <div style="display:flex;gap:10px;margin-top:8px;">
+        <button class="cam-btn cam-go" onclick="startCamera()"><i class="fas fa-video"></i> Start Camera</button>
+        <button class="cam-btn" onclick="startScreenShare()" style="background:rgba(255,255,255,.15);color:#fff;"><i class="fas fa-desktop"></i> Share Screen</button>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Live Video Feeds -->
+    <video id="local-video"  autoplay muted playsinline></video>
+    <video id="remote-video" autoplay       playsinline></video>
+    <div id="host-pip"><video id="pip-video" autoplay muted playsinline></video></div>
+
+    <!-- Pause Screen Overlay -->
+    <div id="pause-overlay" {% if stream.is_paused %}style="display:flex;"{% endif %}>
+      <div class="pause-icon-badge">
+        <i class="fas fa-pause"></i>
+      </div>
+      <h3 style="font-size:1.35rem;font-weight:800;letter-spacing:-0.3px;">Stream Paused · ስርጭቱ ለጊዜው ቆሟል</h3>
+      <p style="color:rgba(255,255,255,0.75);font-size:.9rem;max-width:400px;text-align:center;">
+        The host has momentarily paused the broadcast and will be back in a moment.
+      </p>
+      {% if is_host %}
+      <button class="cam-btn cam-resume" onclick="togglePauseStream()" style="margin-top:8px;padding:10px 24px;">
+        <i class="fas fa-play"></i> Resume Broadcast · ስርጭቱን ቀጥል
+      </button>
+      {% endif %}
+    </div>
+
+    <!-- HUD top -->
+    <div class="hud-top">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="live-pill {% if stream.is_paused %}paused{% endif %}" id="live-status-pill">
+          <span class="live-dot" id="live-dot"></span>
+          <span id="live-status-text">{% if stream.is_paused %}PAUSED{% else %}LIVE{% endif %}</span>
+        </span>
+        <span class="pill"><i class="fas fa-eye"></i><span id="viewer-count">{{ stream.live_viewers|default:stream.total_views }}</span></span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="pill"><i class="fas fa-heart" style="color:#f87171;"></i><span id="like-count">{{ stream.total_likes }}</span></span>
+        <span class="pill" id="ws-indicator" title="Connection status">⚡</span>
+      </div>
+    </div>
+
+    <!-- Vendor Broadcast Controls in HUD -->
+    {% if is_host and stream.status == 'live' %}
+    <div class="cam-controls" id="cam-controls">
+      <button class="cam-btn cam-go" id="btn-start" onclick="startCamera()"><i class="fas fa-video"></i> Start Camera</button>
+      <button class="cam-btn cam-pause" id="btn-pause" onclick="togglePauseStream()" style="display:none;"><i class="fas fa-pause" id="pause-icon"></i> <span id="pause-text">Pause</span></button>
+      <button class="cam-btn cam-mute" id="btn-mute" onclick="toggleMic()" style="display:none;"><i class="fas fa-microphone" id="mic-icon"></i></button>
+      <button class="cam-btn cam-switch" id="btn-flip" onclick="flipCamera()" style="display:none;" title="Flip Camera"><i class="fas fa-sync-alt"></i></button>
+      <button class="cam-btn cam-stop" id="btn-stop" onclick="stopCamera()" style="display:none;"><i class="fas fa-video-slash"></i> Stop</button>
+    </div>
+    {% endif %}
+
+    <div id="cam-toast"></div>
+
+    <!-- HUD bottom: Host info + Pinned Product -->
+    <div class="hud-bottom">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:36px;height:36px;border-radius:50%;background:#d42e2e;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:.9rem;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.4);">
+          {{ stream.vendor.store_name|first|upper }}
+        </div>
+        <div>
+          <div style="color:#fff;font-weight:800;font-size:.95rem;text-shadow:0 2px 6px rgba(0,0,0,.8);">{{ stream.title }}</div>
+          <div style="color:rgba(255,255,255,.8);font-size:.78rem;"><i class="fas fa-store" style="color:#78e8a4;"></i> {{ stream.vendor.store_name }}</div>
+        </div>
+      </div>
+
+      <div id="pinned-box" {% if not stream.pinned_product %}style="display:none;"{% endif %}>
+        <div class="pinned-product" id="pinned-card" {% if stream.pinned_product %}onclick="location.href='{{ stream.pinned_product.get_absolute_url }}'"{% endif %}>
+          <img id="pinned-img" src="{% if stream.pinned_product and stream.pinned_product.image %}{{ stream.pinned_product.image.url }}{% endif %}" {% if not stream.pinned_product or not stream.pinned_product.image %}style="display:none;"{% endif %} alt=""/>
+          <div>
+            <div class="pp-name" id="pinned-name">{% if stream.pinned_product %}{{ stream.pinned_product.name|truncatechars:32 }}{% endif %}</div>
+            <div class="pp-price" id="pinned-price">{% if stream.pinned_product %}ETB {{ stream.pinned_product.price }}{% endif %}</div>
+          </div>
+          <button class="pp-add" id="pinned-buy" {% if stream.pinned_product %}onclick="event.stopPropagation();location.href='{{ stream.pinned_product.get_absolute_url }}'"{% endif %}>🛒 View / Order</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="reaction-burst"></div>
+
+    <!-- Ended overlay -->
+    <div class="ended-overlay" id="ended-overlay" {% if stream.status != 'ended' %}style="display:none;"{% else %}style="display:flex;"{% endif %}>
+      <i class="fas fa-video-slash" style="font-size:3.5rem;color:rgba(255,255,255,.4);"></i>
+      <h2>Stream Ended · ስርጭቱ ተጠናቋል</h2>
+      <p style="color:rgba(255,255,255,0.7);font-size:.92rem;">Thank you for watching {{ stream.vendor.store_name }} live broadcast!</p>
+      <a href="{% url 'live:home' %}" style="background:#d42e2e;color:#fff;padding:12px 28px;border-radius:60px;font-weight:700;text-decoration:none;margin-top:10px;">Browse Live Streams</a>
+    </div>
+
+  </div><!-- /video-box -->
+
+  <!-- Bottom Interaction Row -->
+  {% if stream.status == 'live' %}
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+    <!-- Reactions -->
+    <div class="reaction-bar" style="flex:1;">
+      <button class="r-btn" onclick="sendReaction('❤️')">❤️</button>
+      <button class="r-btn" onclick="sendReaction('🔥')">🔥</button>
+      <button class="r-btn" onclick="sendReaction('👏')">👏</button>
+      <button class="r-btn" onclick="sendReaction('😍')">😍</button>
+      <button class="r-btn" onclick="sendReaction('🎉')">🎉</button>
+      <button class="r-btn" onclick="sendReaction('😂')">😂</button>
+      <button class="r-btn" onclick="sendReaction('🙌')">🙌</button>
+      <button class="r-btn" onclick="sendReaction('💯')">💯</button>
+    </div>
+
+    {% if not is_host %}
+    <!-- Customer controls -->
+    <div style="display:flex;gap:6px;align-items:center;">
+      <button class="cam-btn cam-mute" id="viewer-audio-btn" onclick="toggleViewerAudio()" title="Mute/Unmute audio">
+        <i class="fas fa-volume-up" id="viewer-audio-icon"></i>
+      </button>
+      <button class="cam-btn cam-mute" id="viewer-video-btn" onclick="toggleViewerVideo()" title="Hide/Show video">
+        <i class="fas fa-eye" id="viewer-video-icon"></i>
+      </button>
+      {% if request.user.is_authenticated %}
+      <button class="hand-btn" id="req-mic-btn" onclick="requestAccess('mic')" title="Request to speak">
+        <i class="fas fa-microphone"></i> <span>Req. Mic</span>
+      </button>
+      <button class="hand-btn" id="req-cam-btn" onclick="requestAccess('camera')" title="Request camera share" style="background:rgba(99,102,241,.15);border-color:rgba(99,102,241,.4);color:#a5b4fc;">
+        <i class="fas fa-video"></i> <span>Req. Cam</span>
+      </button>
+      <button class="hand-btn" id="lower-hand-btn" onclick="lowerHand()" style="display:none;background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.4);color:#fca5a5;">
+        <i class="fas fa-hand-paper"></i> <span>Cancel</span>
+      </button>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+</div><!-- /stream-area -->
+
+<!-- ═══ RIGHT: Chat & Controls Panel ═══ -->
+<div class="right-panel">
+
+  <div class="panel-tabs">
+    <button class="ptab active" id="tab-chat" onclick="switchTab('chat')">
+      <i class="fas fa-comments"></i> Live Chat
+      <span class="badge" id="badge-chat" style="display:none;">0</span>
+    </button>
+    {% if is_host %}
+    <button class="ptab" id="tab-viewers" onclick="switchTab('viewers')">
+      <i class="fas fa-users"></i> Viewers
+      <span class="badge" id="badge-viewers">0</span>
+    </button>
+    <button class="ptab" id="tab-controls" onclick="switchTab('controls')">
+      <i class="fas fa-sliders-h"></i> Studio
+    </button>
+    {% endif %}
+  </div>
+
+  <!-- CHAT TAB -->
+  <div class="tab-pane active" id="pane-chat">
+    <div class="chat-body" id="chat-body">
+      {% if stream.status == 'ended' %}
+      <div class="msg sys"><div class="msg-av sys">🌐</div><div><div class="msg-text">Stream ended. Chat is archived.</div></div></div>
+      {% endif %}
+    </div>
+    {% if stream.status == 'live' %}
+    <div class="chat-input-row">
+      {% if request.user.is_authenticated %}
+      <input type="text" class="chat-in" id="chat-input" placeholder="Chat live or ask a question..." maxlength="300" autocomplete="off"/>
+      <button class="q-btn" onclick="sendQuestion()" title="Ask Question"><i class="fas fa-question"></i></button>
+      <button class="send-btn" onclick="sendChat()" title="Send Message"><i class="fas fa-paper-plane"></i></button>
+      {% else %}
+      <a href="{% url 'accounts:login' %}?next={{ request.path }}" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:40px;padding:8px 16px;color:rgba(255,255,255,.5);font-size:.82rem;text-align:center;text-decoration:none;display:block;">
+        Log in to participate in chat
+      </a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- VIEWERS TAB (Host only) -->
+  {% if is_host %}
+  <div class="tab-pane" id="pane-viewers">
+    <div style="padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;justify-content:space-between;align-items:center;">
+      <span style="color:rgba(255,255,255,.6);font-size:.75rem;font-weight:700;text-transform:uppercase;">Connected Viewers</span>
+      <span class="pill"><i class="fas fa-eye"></i> <span id="vlist-count">0</span></span>
+    </div>
+    <div class="viewer-list" id="viewer-list">
+      <div style="text-align:center;padding:40px 10px;color:rgba(255,255,255,.3);font-size:.85rem;">
+        <i class="fas fa-users" style="font-size:2rem;display:block;margin-bottom:10px;"></i>
+        Viewers joining will appear here
+      </div>
+    </div>
+  </div>
+
+  <!-- STUDIO CONTROLS TAB (Host only) -->
+  <div class="tab-pane" id="pane-controls">
+    <div style="flex:1;overflow-y:auto;padding:14px;">
+
+      <!-- Broadcast Status Card -->
+      <div class="host-panel-card">
+        <div class="host-panel-title">Broadcast Controls</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <button class="cam-btn cam-pause" id="ctrl-pause-btn" onclick="togglePauseStream()" style="width:100%;justify-content:center;padding:10px;">
+            <i class="fas fa-pause"></i> <span>Pause Broadcast</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Pin Product Card -->
+      <div class="host-panel-card">
+        <div class="host-panel-title">📌 Showcase & Pin Product</div>
+        <select class="pin-select" id="product-select">
+          <option value="">— Select product to pin —</option>
+          {% for p in vendor_products %}
+          <option value="{{ p.pk }}">{{ p.name|truncatechars:36 }} — ETB {{ p.price }}</option>
+          {% endfor %}
+        </select>
+        <button class="pin-btn" onclick="pinProduct()"><i class="fas fa-thumbtack"></i> Pin Product on Screen</button>
+      </div>
+
+      <!-- End Stream Form -->
+      <div class="host-panel-card" style="border-color:rgba(239,68,68,0.2);">
+        <div class="host-panel-title" style="color:#fca5a5;">End Broadcast</div>
+        <form method="post" action="{% url 'live:stream_end' stream.stream_id %}">
+          {% csrf_token %}
+          <button type="submit" class="end-btn" onclick="return confirm('End this live stream broadcast for all viewers?')">
+            <i class="fas fa-stop-circle"></i> End Live Stream
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+  {% endif %}
+
+</div><!-- /right-panel -->
+
+</div><!-- /live-page -->
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// ═══════════════════════════════════════════════════════════════════════
+//  Qenagebeya Real-Time Live Stream Engine
+//  Host = Vendor Broadcaster  |  Viewer = Customer
+// ═══════════════════════════════════════════════════════════════════════
+const STREAM_UUID = '{{ stream.stream_id }}';
+const IS_VENDOR   = {% if is_host %}true{% else %}false{% endif %};
+const IS_LIVE     = {% if stream.status == 'live' %}true{% else %}false{% endif %};
+const CSRF        = '{{ csrf_token }}';
+const PIN_URL     = '{% url "live:api_pin" stream.stream_id %}';
+
+// Live state
+let ws = null, wsReady = false;
+let localStream = null;
+let isStreamPaused = {% if stream.is_paused %}true{% else %}false{% endif %};
+let peerConns   = {};
+let remotePeer  = null;
+let micPeer     = null;
+let myMicStream = null;
+let isMuted     = false;
+let facingMode  = 'user';
+let handRaised  = false;
+let reconnTimer = null, toastTimer = null;
+let unreadChat  = 0;
+let viewerAudioMuted = false;
+let viewerVideoHidden = false;
+const viewerMap = {};
+
+const ICE_CFG = {
+  iceServers: [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' },
+    { urls: 'stun:stun.cloudflare.com:3478' },
+  ]
+};
+
+// ── Tab switcher ────────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.ptab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  const tab = document.getElementById('tab-' + name);
+  const pane = document.getElementById('pane-' + name);
+  if (tab) tab.classList.add('active');
+  if (pane) pane.classList.add('active');
+  if (name === 'chat') { unreadChat = 0; updateChatBadge(0); }
+}
+function updateChatBadge(n) {
+  const b = document.getElementById('badge-chat');
+  if (!b) return;
+  b.textContent = n;
+  b.style.display = n > 0 ? '' : 'none';
+}
+
+function setWsStatus(ok) {
+  const el = document.getElementById('ws-indicator');
+  if (!el) return;
+  el.style.color = ok ? '#78e8a4' : '#f87171';
+  el.textContent = ok ? '🟢' : '⚡';
+}
+
+function toast(msg, ms = 3500) {
+  const e = document.getElementById('cam-toast');
+  if (!e) return;
+  e.textContent = msg;
+  e.style.opacity = '1';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { e.style.opacity = '0'; }, ms);
+}
+function esc(s) { const d = document.createElement('div'); d.textContent = String(s || ''); return d.innerHTML; }
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ── WebSocket Connection ────────────────────────────────────────────────
+function connectWS() {
+  if (!IS_LIVE) return;
+  clearTimeout(reconnTimer);
+  const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  ws = new WebSocket(proto + '//' + location.host + '/ws/live/' + STREAM_UUID + '/');
+  
+  ws.onopen = () => {
+    wsReady = true;
+    setWsStatus(true);
+    toast('🟢 Connected to live room', 2000);
+    if (!IS_VENDOR) {
+      setTimeout(() => { wsSend({ type: 'request_offer' }); }, 500);
+    }
+  };
+
+  ws.onmessage = e => {
+    try { handleMsg(JSON.parse(e.data)); } catch (x) { console.error(x); }
+  };
+
+  ws.onclose = e => {
+    wsReady = false;
+    setWsStatus(false);
+    if (e.code !== 4004) reconnTimer = setTimeout(connectWS, 2500);
+  };
+
+  ws.onerror = () => setWsStatus(false);
+}
+
+function wsSend(obj) {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify(obj));
+    return true;
+  }
+  return false;
+}
+
+// ── Dispatch Incoming Messages ──────────────────────────────────────────
+async function handleMsg(data) {
+  switch (data.type) {
+    case 'stream_status':
+      applyPauseState(data.is_paused);
+      break;
+
+    case 'stream_pause_status':
+      applyPauseState(data.is_paused);
+      toast(data.is_paused ? '⏸ Stream paused by host' : '▶ Broadcast resumed live', 3000);
+      break;
+
+    case 'history':
+      (data.messages || []).forEach(renderMsg);
+      break;
+
+    case 'chat':
+    case 'question':
+      renderMsg(data);
+      onNewChat();
+      break;
+
+    case 'viewer_count':
+      updateViewers(data.count);
+      break;
+
+    case 'reaction':
+      burstEmoji(data.emoji);
+      break;
+
+    case 'product_pin':
+      showPinned(data);
+      break;
+
+    case 'stream_ended':
+      onEnded();
+      break;
+
+    case 'viewer_announce':
+      if (IS_VENDOR) addViewerToList(data.channel, data.username);
+      break;
+
+    case 'raise_hand':
+      if (IS_VENDOR) setViewerHand(data.channel, data.username, true, data.req_type || 'mic');
+      break;
+
+    case 'lower_hand':
+      if (IS_VENDOR) setViewerHand(data.channel, data.username, false, '');
+      break;
+
+    case 'mic_granted':
+      await startViewerStream(data.req_type || 'mic', data.host_channel || '');
+      break;
+
+    case 'mic_revoked':
+      stopViewerStream();
+      break;
+
+    case 'mic_answer':
+      if (micPeer) await micPeer.setRemoteDescription({ type: 'answer', sdp: data.sdp });
+      break;
+
+    case 'mic_offer':
+      if (IS_VENDOR) await handleMicOffer(data.sdp, data.from_channel, data.username);
+      break;
+
+    case 'host_camera_ready':
+      if (!IS_VENDOR) {
+        toast('📡 Vendor camera ready — connecting live video...', 2500);
+        await sleep(300);
+        wsSend({ type: 'request_offer' });
+      }
+      break;
+
+    case 'viewer_joined':
+      if (IS_VENDOR && localStream) await sendOffer(data.from_channel);
+      break;
+
+    case 'webrtc_offer':
+      if (!IS_VENDOR) await handleOffer(data.sdp, data.from_channel);
+      break;
+
+    case 'webrtc_answer':
+      if (IS_VENDOR) {
+        const pc = peerConns[data.from_channel];
+        if (pc && pc.signalingState === 'have-local-offer') {
+          await pc.setRemoteDescription({ type: 'answer', sdp: data.sdp });
+        }
+      }
+      break;
+
+    case 'ice_candidate':
+      if (data.candidate) {
+        const c = new RTCIceCandidate(JSON.parse(data.candidate));
+        if (IS_VENDOR) {
+          const p = peerConns[data.from_channel];
+          if (p) p.addIceCandidate(c).catch(() => {});
+        } else {
+          if (remotePeer) remotePeer.addIceCandidate(c).catch(() => {});
+        }
+      }
+      break;
+  }
+}
+
+// ── PAUSE / RESUME LOGIC ────────────────────────────────────────────────
+function togglePauseStream() {
+  if (!IS_VENDOR) return;
+  isStreamPaused = !isStreamPaused;
+  
+  if (localStream) {
+    localStream.getVideoTracks().forEach(t => t.enabled = !isStreamPaused);
+    localStream.getAudioTracks().forEach(t => t.enabled = !isStreamPaused);
+  }
+
+  wsSend({ type: isStreamPaused ? 'pause_stream' : 'resume_stream' });
+  applyPauseState(isStreamPaused);
+}
+
+function applyPauseState(paused) {
+  isStreamPaused = !!paused;
+  const overlay = document.getElementById('pause-overlay');
+  const pill = document.getElementById('live-status-pill');
+  const text = document.getElementById('live-status-text');
+  const btnPause = document.getElementById('btn-pause');
+  const ctrlBtn = document.getElementById('ctrl-pause-btn');
+
+  if (overlay) overlay.style.display = isStreamPaused ? 'flex' : 'none';
+  if (pill) {
+    if (isStreamPaused) { pill.classList.add('paused'); } else { pill.classList.remove('paused'); }
+  }
+  if (text) text.textContent = isStreamPaused ? 'PAUSED' : 'LIVE';
+
+  if (btnPause) {
+    btnPause.className = isStreamPaused ? 'cam-btn cam-resume' : 'cam-btn cam-pause';
+    btnPause.innerHTML = isStreamPaused ? '<i class="fas fa-play"></i> Resume' : '<i class="fas fa-pause"></i> Pause';
+  }
+  if (ctrlBtn) {
+    ctrlBtn.className = isStreamPaused ? 'cam-btn cam-resume' : 'cam-btn cam-pause';
+    ctrlBtn.innerHTML = isStreamPaused ? '<i class="fas fa-play"></i> <span>Resume Broadcast</span>' : '<i class="fas fa-pause"></i> <span>Pause Broadcast</span>';
+  }
+}
+
+// ── VENDOR: Camera & WebRTC ─────────────────────────────────────────────
+async function startCamera() {
+  if (!IS_VENDOR) return;
+  if (localStream) { toast('Camera already active', 2000); return; }
+
+  toast('📷 Starting live camera...', 4000);
+
+  try {
+    localStream = await navigator.mediaDevices.getUserMedia({
+      video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode },
+      audio: true
+    });
+  } catch (err) {
+    console.warn('Direct camera access failed, trying audio fallback or canvas fallback', err);
+    try {
+      localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+    } catch (e2) {
+      toast('Camera blocked/busy — generating test video stream', 4000);
+      localStream = createVirtualStream();
+    }
+  }
+
+  const vid = document.getElementById('local-video');
+  vid.srcObject = localStream;
+  vid.style.display = 'block';
+  document.getElementById('placeholder').style.display = 'none';
+
+  const btnStart = document.getElementById('btn-start');
+  if (btnStart) btnStart.style.display = 'none';
+  ['btn-pause', 'btn-stop', 'btn-mute', 'btn-flip'].forEach(id => {
+    const b = document.getElementById(id);
+    if (b) b.style.display = '';
+  });
+
+  applyPauseState(isStreamPaused);
+  toast('🔴 LIVE! Broadcasting real-time video to viewers', 4000);
+  wsSend({ type: 'webrtc_offer_broadcast' });
+}
+
+async function startScreenShare() {
+  if (!IS_VENDOR) return;
+  try {
+    const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+    localStream = stream;
+    const vid = document.getElementById('local-video');
+    vid.srcObject = localStream;
+    vid.style.display = 'block';
+    document.getElementById('placeholder').style.display = 'none';
+    const btnStart = document.getElementById('btn-start');
+    if (btnStart) btnStart.style.display = 'none';
+    ['btn-pause', 'btn-stop', 'btn-mute'].forEach(id => {
+      const b = document.getElementById(id);
+      if (b) b.style.display = '';
+    });
+    wsSend({ type: 'webrtc_offer_broadcast' });
+    toast('🖥️ Screen Share LIVE!', 4000);
+  } catch(e) {
+    toast('Screen share cancelled', 2000);
+  }
+}
+
+// Fallback virtual stream generator for local multi-tab testing
+function createVirtualStream() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 640; canvas.height = 480;
+  const ctx = canvas.getContext('2d');
+  let angle = 0;
+  setInterval(() => {
+    angle += 0.05;
+    ctx.fillStyle = '#0b1017';
+    ctx.fillRect(0, 0, 640, 480);
+    // Ethiopian flag color gradient
+    const grad = ctx.createLinearGradient(0, 0, 640, 480);
+    grad.addColorStop(0, '#078930');
+    grad.addColorStop(0.5, '#fcd116');
+    grad.addColorStop(1, '#d42e2e');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(320 + Math.sin(angle)*100, 240 + Math.cos(angle)*60, 50, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 24px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🔴 Real-Time Vendor Live Stream', 320, 240);
+    ctx.font = '16px sans-serif';
+    ctx.fillText('Qenagebeya Ethiopian Crafts & Goods', 320, 280);
+  }, 50);
+
+  const stream = canvas.captureStream(30);
+  // Add audio tone
+  try {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const dest = audioCtx.createMediaStreamDestination();
+    stream.addTrack(dest.stream.getAudioTracks()[0]);
+  } catch(e) {}
+  return stream;
+}
+
+async function sendOffer(targetChannel) {
+  if (!localStream) return;
+  if (peerConns[targetChannel]) {
+    peerConns[targetChannel].close();
+    delete peerConns[targetChannel];
+  }
+
+  const pc = new RTCPeerConnection(ICE_CFG);
+  peerConns[targetChannel] = pc;
+  localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+
+  pc.onicecandidate = e => {
+    if (e.candidate) {
+      wsSend({
+        type: 'ice_candidate',
+        candidate: JSON.stringify(e.candidate.toJSON()),
+        target_channel: targetChannel
+      });
+    }
+  };
+
+  pc.onconnectionstatechange = () => {
+    if (pc.connectionState === 'connected') {
+      toast('👁 Viewer joined the live stream', 2000);
+    }
+    if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
+      pc.close();
+      delete peerConns[targetChannel];
+    }
+  };
+
+  try {
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    wsSend({
+      type: 'webrtc_offer',
+      sdp: pc.localDescription.sdp,
+      target_channel: targetChannel
+    });
+  } catch (err) {
+    console.error('Error creating offer:', err);
+  }
+}
+
+function stopCamera() {
+  if (localStream) {
+    localStream.getTracks().forEach(t => t.stop());
+    localStream = null;
+  }
+  Object.values(peerConns).forEach(pc => pc.close());
+  peerConns = {};
+
+  const vid = document.getElementById('local-video');
+  vid.srcObject = null;
+  vid.style.display = 'none';
+  document.getElementById('placeholder').style.display = '';
+  document.getElementById('btn-start').style.display = '';
+  ['btn-pause', 'btn-stop', 'btn-mute', 'btn-flip'].forEach(id => {
+    const b = document.getElementById(id);
+    if (b) b.style.display = 'none';
+  });
+  toast('Camera stopped', 2000);
+}
+
+function toggleMic() {
+  if (!localStream) return;
+  isMuted = !isMuted;
+  localStream.getAudioTracks().forEach(t => t.enabled = !isMuted);
+  const icon = document.getElementById('mic-icon');
+  if (icon) icon.className = isMuted ? 'fas fa-microphone-slash' : 'fas fa-microphone';
+  toast(isMuted ? '🔇 Microphone muted' : '🎤 Microphone on', 2000);
+}
+
+async function flipCamera() {
+  facingMode = facingMode === 'user' ? 'environment' : 'user';
+  stopCamera();
+  await sleep(300);
+  await startCamera();
+}
+
+// ── VIEWER: Watch Live Video ────────────────────────────────────────────
+async function handleOffer(sdp, hostChannel) {
+  toast('📡 Connecting to live stream...');
+  if (remotePeer) { remotePeer.close(); remotePeer = null; }
+
+  const pc = new RTCPeerConnection(ICE_CFG);
+  remotePeer = pc;
+  const vid = document.getElementById('remote-video');
+
+  function showVideo() {
+    if (vid.style.display === 'block') return;
+    vid.style.display = 'block';
+    document.getElementById('placeholder').style.display = 'none';
+    toast('🔴 Watching live video!', 3000);
+    vid.play().catch(() => {
+      // Autoplay handler
+      const playOverlay = document.createElement('div');
+      playOverlay.style.cssText = 'position:absolute;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.65);cursor:pointer;border-radius:20px;';
+      playOverlay.innerHTML = '<button class="cam-btn cam-go" style="padding:14px 28px;font-size:1.05rem;"><i class="fas fa-play"></i> Tap to Play Live Audio & Video</button>';
+      playOverlay.onclick = () => { vid.play(); playOverlay.remove(); };
+      document.getElementById('video-box').appendChild(playOverlay);
+    });
+  }
+
+  vid.onloadedmetadata = showVideo;
+  vid.oncanplay = showVideo;
+
+  pc.ontrack = e => {
+    const stream = (e.streams && e.streams[0]) ? e.streams[0] : new MediaStream([e.track]);
+    vid.srcObject = stream;
+    if (e.track.kind === 'video') showVideo();
+  };
+
+  pc.onicecandidate = e => {
+    if (e.candidate) {
+      wsSend({
+        type: 'ice_candidate',
+        candidate: JSON.stringify(e.candidate.toJSON()),
+        target_channel: hostChannel
+      });
+    }
+  };
+
+  try {
+    await pc.setRemoteDescription({ type: 'offer', sdp });
+    const ans = await pc.createAnswer();
+    await pc.setLocalDescription(ans);
+    wsSend({
+      type: 'webrtc_answer',
+      sdp: pc.localDescription.sdp,
+      target_channel: hostChannel
+    });
+  } catch (err) {
+    console.error('WebRTC Answer error:', err);
+  }
+}
+
+// ── Viewer Audio & Video Toggle ─────────────────────────────────────────
+function toggleViewerAudio() {
+  const vid = document.getElementById('remote-video');
+  if (!vid) return;
+  viewerAudioMuted = !viewerAudioMuted;
+  vid.muted = viewerAudioMuted;
+  const icon = document.getElementById('viewer-audio-icon');
+  if (icon) icon.className = viewerAudioMuted ? 'fas fa-volume-mute' : 'fas fa-volume-up';
+  toast(viewerAudioMuted ? '🔇 Audio muted' : '🔊 Audio unmuted', 2000);
+}
+
+function toggleViewerVideo() {
+  const vid = document.getElementById('remote-video');
+  if (!vid) return;
+  viewerVideoHidden = !viewerVideoHidden;
+  vid.style.visibility = viewerVideoHidden ? 'hidden' : 'visible';
+  const icon = document.getElementById('viewer-video-icon');
+  if (icon) icon.className = viewerVideoHidden ? 'fas fa-eye-slash' : 'fas fa-eye';
+  toast(viewerVideoHidden ? 'Video hidden (Audio still active)' : 'Video visible', 2000);
+}
+
+// ── Viewer Hand Raise / Mic Request ─────────────────────────────────────
+function requestAccess(reqType) {
+  handRaised = true;
+  wsSend({ type: 'raise_hand', req_type: reqType });
+  ['req-mic-btn', 'req-cam-btn'].forEach(id => { const b = document.getElementById(id); if (b) b.style.display = 'none'; });
+  const lb = document.getElementById('lower-hand-btn');
+  if (lb) lb.style.display = '';
+  toast('✋ Request sent to host', 3000);
+}
+
+function lowerHand() {
+  handRaised = false;
+  wsSend({ type: 'lower_hand' });
+  ['req-mic-btn', 'req-cam-btn'].forEach(id => { const b = document.getElementById(id); if (b) b.style.display = ''; });
+  const lb = document.getElementById('lower-hand-btn');
+  if (lb) lb.style.display = 'none';
+  toast('Request cancelled', 1500);
+}
+
+async function startViewerStream(reqType, hostChannel) {
+  toast('Granted! Connecting your audio/video...', 3000);
+  try {
+    const wantA = reqType === 'mic' || reqType === 'both';
+    const wantV = reqType === 'camera' || reqType === 'both';
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: wantA, video: wantV });
+    myMicStream = stream;
+
+    if (micPeer) { micPeer.close(); micPeer = null; }
+    const pc = new RTCPeerConnection(ICE_CFG);
+    micPeer = pc;
+    stream.getTracks().forEach(t => pc.addTrack(t, stream));
+
+    pc.onicecandidate = e => {
+      if (e.candidate) {
+        wsSend({
+          type: 'ice_candidate',
+          candidate: JSON.stringify(e.candidate.toJSON()),
+          target_channel: hostChannel
+        });
+      }
+    };
+
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    wsSend({ type: 'mic_offer', sdp: pc.localDescription.sdp });
+    toast('🎤 You are now broadcasting to the live room!', 4000);
+  } catch (err) {
+    toast('Permission error: ' + err.message, 4000);
+  }
+}
+
+function stopViewerStream() {
+  if (micPeer) { micPeer.close(); micPeer = null; }
+  if (myMicStream) { myMicStream.getTracks().forEach(t => t.stop()); myMicStream = null; }
+  ['req-mic-btn', 'req-cam-btn'].forEach(id => { const b = document.getElementById(id); if (b) b.style.display = ''; });
+  const lb = document.getElementById('lower-hand-btn');
+  if (lb) { lb.style.display = 'none'; lb.onclick = lowerHand; }
+  toast('Viewer broadcast stopped', 2000);
+}
+
+// ── Host Viewer Participant Management ──────────────────────────────────
+function addViewerToList(ch, un) {
+  if (!viewerMap[ch]) viewerMap[ch] = { username: un, hasHand: false, reqType: 'mic' };
+  else viewerMap[ch].username = un;
+  renderViewerList();
+}
+function setViewerHand(ch, un, raised, rt) {
+  if (!viewerMap[ch]) viewerMap[ch] = { username: un, hasHand: false, reqType: 'mic' };
+  viewerMap[ch].hasHand = raised;
+  if (raised && rt) viewerMap[ch].reqType = rt;
+  renderViewerList();
+  if (raised) toast('✋ ' + un + ' requested to speak', 3500);
+}
+function renderViewerList() {
+  const list = document.getElementById('viewer-list');
+  if (!list) return;
+  const entries = Object.entries(viewerMap);
+  const countEl = document.getElementById('vlist-count');
+  if (countEl) countEl.textContent = entries.length;
+  const badgeEl = document.getElementById('badge-viewers');
+  if (badgeEl) badgeEl.textContent = entries.length;
+
+  if (!entries.length) {
+    list.innerHTML = '<div style="text-align:center;padding:40px 10px;color:rgba(255,255,255,.3);font-size:.85rem;"><i class="fas fa-users" style="font-size:2rem;display:block;margin-bottom:10px;"></i>Viewers will appear here</div>';
+    return;
+  }
+
+  list.innerHTML = entries.map(([ch, v]) => {
+    const av = (v.username || '?')[0].toUpperCase();
+    const rt = v.reqType || 'mic';
+    let acts = '';
+    if (v.hasHand) {
+      acts += `<button class="v-btn grant" onclick="grantAccess('${ch}','${esc(v.username)}','${rt}')">Allow ${rt === 'camera' ? '📷 Cam' : '🎤 Mic'}</button>`;
+    }
+    return `
+      <div class="viewer-row">
+        <div class="v-av">${esc(av)}</div>
+        <div class="v-name">${esc(v.username)} ${v.hasHand ? '✋' : ''}</div>
+        <div>${acts}</div>
+      </div>
+    `;
+  }).join('');
+}
+function grantAccess(ch, un, rt) {
+  wsSend({ type: 'grant_mic', target_channel: ch, username: un, req_type: rt });
+  if (viewerMap[ch]) viewerMap[ch].hasHand = false;
+  renderViewerList();
+  toast('Allowed ' + un + ' to join stream', 2500);
+}
+
+// ── Chat & Interaction ──────────────────────────────────────────────────
+function onNewChat() {
+  const pane = document.getElementById('pane-chat');
+  if (!pane || !pane.classList.contains('active')) {
+    unreadChat++;
+    updateChatBadge(unreadChat);
+  }
+}
+function renderMsg(m) {
+  const box = document.getElementById('chat-body');
+  if (!box) return;
+  const isSys = m.msg_type === 'system', isQ = m.msg_type === 'question', isHost = !!m.is_host;
+  const av = m.avatar || (m.username || 'G')[0].toUpperCase();
+  const d = document.createElement('div');
+  d.className = 'msg' + (isSys ? ' sys' : '') + (isQ ? ' q' : '');
+  
+  if (isSys) {
+    d.innerHTML = `<div class="msg-av sys">🌐</div><div><div class="msg-text">${esc(m.text)}</div></div>`;
+  } else {
+    d.innerHTML = `
+      <div class="msg-av ${isHost ? 'host' : ''}">${esc(av)}</div>
+      <div>
+        <div class="msg-name ${isHost ? 'host' : ''}">${esc(m.username)}${isHost ? ' 🏪 (Host)' : ''}</div>
+        <div class="msg-text">${esc(m.text)}</div>
+      </div>
+    `;
+  }
+  box.appendChild(d);
+  box.scrollTop = box.scrollHeight;
+}
+
+function sendChat() {
+  const inp = document.getElementById('chat-input');
+  if (!inp) return;
+  const text = inp.value.trim();
+  if (!text) return;
+  wsSend({ type: 'chat', text });
+  inp.value = '';
+}
+
+function sendQuestion() {
+  const inp = document.getElementById('chat-input');
+  if (!inp) return;
+  const text = inp.value.trim();
+  if (!text) return;
+  wsSend({ type: 'question', text });
+  inp.value = '';
+}
+
+// ── Reactions & Products ────────────────────────────────────────────────
+function sendReaction(emoji) {
+  wsSend({ type: 'reaction', emoji });
+  burstEmoji(emoji);
+}
+function burstEmoji(emoji) {
+  const c = document.getElementById('reaction-burst');
+  if (!c) return;
+  const s = document.createElement('span');
+  s.className = 'burst-emoji';
+  s.textContent = emoji;
+  s.style.right = (Math.random() * 40) + 'px';
+  c.appendChild(s);
+  setTimeout(() => s.remove(), 2500);
+
+  const lc = document.getElementById('like-count');
+  if (lc) lc.textContent = (parseInt(lc.textContent) || 0) + 1;
+}
+
+function updateViewers(n) {
+  const vc = document.getElementById('viewer-count');
+  if (vc) vc.textContent = n;
+}
+
+function showPinned(data) {
+  const box = document.getElementById('pinned-box');
+  if (!box) return;
+  box.style.display = '';
+  const nEl = document.getElementById('pinned-name');
+  const pEl = document.getElementById('pinned-price');
+  const iEl = document.getElementById('pinned-img');
+  const bBtn = document.getElementById('pinned-buy');
+  const card = document.getElementById('pinned-card');
+
+  if (nEl) nEl.textContent = data.product_name;
+  if (pEl) pEl.textContent = 'ETB ' + data.product_price;
+  if (iEl && data.product_img) { iEl.src = data.product_img; iEl.style.display = ''; }
+  if (bBtn) bBtn.onclick = () => location.href = data.product_url;
+  if (card) card.onclick = () => location.href = data.product_url;
+}
+
+function pinProduct() {
+  const sel = document.getElementById('product-select');
+  if (!sel || !sel.value) { toast('Select a product first', 2000); return; }
+  const pid = parseInt(sel.value);
+  wsSend({ type: 'pin_product', product_id: pid });
+  fetch(PIN_URL, {
+    method: 'POST',
+    headers: { 'X-CSRFToken': CSRF, 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: 'product_id=' + pid
+  }).catch(console.error);
+  toast('📌 Product pinned for all viewers', 2500);
+}
+
+function onEnded() {
+  const endOv = document.getElementById('ended-overlay');
+  if (endOv) endOv.style.display = 'flex';
+  if (remotePeer) { remotePeer.close(); remotePeer = null; }
+  if (localStream) stopCamera();
+  if (ws) ws.close();
+  setWsStatus(false);
+}
+
+// ── Initialization ──────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  const inp = document.getElementById('chat-input');
+  if (inp) {
+    inp.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendChat();
+      }
+    });
+  }
+
+  connectWS();
+
+  // If vendor lands on page and it is live, offer quick 1-click start
+  if (IS_VENDOR && IS_LIVE) {
+    setTimeout(() => {
+      toast('👋 Welcome to your Live Broadcast! Click Start Camera to begin', 5000);
+    }, 600);
+  }
+});
+</script>
+{% endblock %}

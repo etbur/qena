@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "Cart" %} · ቅርጫት – Qenagebeya{% endblock %}
+
+{% block extra_css %}
+<style>
+.cart-wrap{padding:28px 32px;display:grid;grid-template-columns:1fr 360px;gap:28px;max-width:1200px;margin:0 auto}
+.cart-table{background:#fff;border-radius:20px;border:1px solid #eef2f6;overflow:hidden}
+.cart-table table{width:100%;border-collapse:collapse;font-size:.88rem}
+.cart-table th{padding:14px 20px;background:#f8fafc;font-weight:600;color:#475569;border-bottom:1px solid #eef2f6;text-align:left}
+.cart-table td{padding:14px 20px;border-bottom:1px solid #f1f4f9;vertical-align:middle}
+.cart-table tr:last-child td{border-bottom:none}
+.cart-img{width:64px;height:64px;object-fit:cover;border-radius:10px;background:#f1f4f9}
+.no-img-sm{width:64px;height:64px;border-radius:10px;background:#f1f4f9;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:1.4rem}
+.qty-form{display:flex;align-items:center;gap:8px}
+.qty-input{width:60px;padding:5px 8px;border:1px solid #eef2f6;border-radius:8px;text-align:center;font-size:.85rem}
+.qty-btn{padding:5px 12px;background:#f1f4f9;border:1px solid #eef2f6;border-radius:8px;cursor:pointer;font-weight:700}
+.remove-btn{color:#b91c1c;background:none;border:none;cursor:pointer;font-size:.8rem;font-weight:600}
+.remove-btn:hover{text-decoration:underline}
+.order-summary{background:#fff;border-radius:20px;border:1px solid #eef2f6;padding:24px;height:fit-content;position:sticky;top:80px}
+.order-summary h3{font-size:1rem;font-weight:700;margin-bottom:16px}
+.summary-row{display:flex;justify-content:space-between;padding:8px 0;font-size:.88rem;border-bottom:1px solid #f1f4f9}
+.summary-total{display:flex;justify-content:space-between;padding:14px 0 0;font-size:1.1rem;font-weight:700;border-top:2px solid #eef2f6;margin-top:8px}
+.checkout-btn{width:100%;padding:13px;background:#078930;color:#fff;border:none;border-radius:60px;font-weight:700;font-size:.95rem;cursor:pointer;margin-top:16px;transition:.2s;text-decoration:none;display:block;text-align:center}
+.checkout-btn:hover{background:#0b2b4a}
+.continue-btn{width:100%;padding:11px;background:#fff;color:#0b2b4a;border:2px solid #0b2b4a;border-radius:60px;font-weight:600;font-size:.88rem;cursor:pointer;margin-top:10px;text-decoration:none;display:block;text-align:center}
+.empty-cart{text-align:center;padding:60px 20px}
+.empty-cart i{font-size:4rem;color:#d1d5db;display:block;margin-bottom:14px}
+@media(max-width:768px){.cart-wrap{grid-template-columns:1fr;padding:16px}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="padding:14px 32px;font-size:.82rem;color:#94a3b8;">
+    <a href="{% url 'store:home' %}" style="color:#475569;">Home · ቤት</a> /
+    <span style="color:#1e293b;font-weight:600;">{% trans "Cart" %} · ቅርጫት · Kaadhimaa</span>
+</div>
+
+{% if cart.items.all %}
+<div class="cart-wrap">
+    <div>
+        <div class="cart-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>{% trans "Products" %}</th>
+                        <th>{% trans "Price" %}</th>
+                        <th>Qty · መጠን</th>
+                        <th>Total · ድምር</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in cart.items.all %}
+                    <tr>
+                        <td>
+                            <div style="display:flex;align-items:center;gap:12px;">
+                                {% if item.product.image %}
+                                    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="cart-img"/>
+                                {% else %}
+                                    <div class="no-img-sm"><i class="fas fa-box"></i></div>
+                                {% endif %}
+                                <div>
+                                    <a href="{{ item.product.get_absolute_url }}" style="font-weight:600;font-size:.88rem;color:#1e293b;">
+                                        {{ item.product.name|truncatechars:45 }}
+                                    </a>
+                                    <div style="font-size:.72rem;color:#94a3b8;">
+                                        <i class="fas fa-store" style="color:#078930;"></i> {{ item.product.vendor.store_name }}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td><strong>ETB {{ item.product.price }}</strong></td>
+                        <td>
+                            <form method="post" action="{% url 'store:cart_update' item.pk %}" class="qty-form">
+                                {% csrf_token %}
+                                <button type="submit" name="quantity" value="{{ item.quantity|add:'-1' }}" class="qty-btn">−</button>
+                                <input type="number" name="quantity" value="{{ item.quantity }}" min="0" max="{{ item.product.stock }}" class="qty-input" onchange="this.form.submit()"/>
+                                <button type="submit" name="quantity" value="{{ item.quantity|add:'1' }}" class="qty-btn">+</button>
+                            </form>
+                        </td>
+                        <td><strong>ETB {{ item.subtotal }}</strong></td>
+                        <td>
+                            <form method="post" action="{% url 'store:cart_remove' item.pk %}">
+                                {% csrf_token %}
+                                <button type="submit" class="remove-btn"><i class="fas fa-trash"></i> Remove · አስወግድ</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="order-summary">
+        <h3>Order Summary · ትዕዛዝ ማጠቃለያ</h3>
+        <div class="summary-row">
+            <span>Subtotal ({{ cart.item_count }} items)</span>
+            <span>ETB {{ cart.total }}</span>
+        </div>
+        <div class="summary-row">
+            <span>{% trans "Shipping" %} · ማጓጓዣ</span>
+            <span>
+                {% if cart.total >= 500 %}
+                    <span style="color:#078930;font-weight:600;">{% trans "Free" %} · ነጻ</span>
+                {% else %}ETB 50{% endif %}
+            </span>
+        </div>
+        {% if cart.total < 500 %}
+        <div style="font-size:.75rem;color:#94a3b8;margin:4px 0 8px;">
+            Add ETB {{ 500|add:"-0" }} more for free shipping · ነጻ ዴሊቨሪ ለማግኘት
+        </div>
+        {% endif %}
+        <div class="summary-total">
+            <span>Total · ድምር</span>
+            <span>ETB {% if cart.total >= 500 %}{{ cart.total }}{% else %}{{ cart.total|floatformat:2 }}{% endif %}</span>
+        </div>
+        <a href="{% url 'orders:checkout' %}" class="checkout-btn">
+            <i class="fas fa-lock"></i> {% trans "Proceed to Checkout" %} · ወደ ክፍያ
+        </a>
+        <a href="{% url 'store:product_list' %}" class="continue-btn">
+            <i class="fas fa-arrow-left"></i> {% trans "Continue Shopping" %} · ግዢ ቀጥሉ
+        </a>
+    </div>
+</div>
+{% else %}
+<div class="empty-cart">
+    <i class="fas fa-shopping-cart"></i>
+    <h3 style="font-size:1.2rem;font-weight:700;margin-bottom:8px;">
+        {% trans "Your cart is empty" %} · ቅርጫቱ ባዶ ነው
+    </h3>
+    <p style="color:#94a3b8;font-size:.88rem;margin-bottom:20px;">
+        Looks like you haven't added anything yet. · ምንም አልጨመሩም።
+    </p>
+    <a href="{% url 'store:product_list' %}" style="background:#078930;color:#fff;padding:12px 36px;border-radius:60px;font-weight:700;font-size:.9rem;text-decoration:none;">
+        {% trans "Start Shopping" %} · ግዢ ጀምር
+    </a>
+</div>
+{% endif %}
+{% endblock %}

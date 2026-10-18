@@ -1,0 +1,126 @@
+{% extends 'vendors/base_vendor.html' %}
+{% block title %}Makerspace Settings · Vendor Portal{% endblock %}
+{% block breadcrumb %}Makerspace / Settings{% endblock %}
+
+{% block vendor_content %}
+<div class="page-header">
+    <h2>⚙️ Makerspace Settings · ቅንብሮች</h2>
+    <a href="{% url 'makerspace:vendor_dashboard' %}" class="btn-back">
+        <i class="fas fa-arrow-left"></i> Back
+    </a>
+</div>
+
+<form method="post" style="max-width:820px;">
+    {% csrf_token %}
+
+    <!-- Active toggle -->
+    <div class="form-card" style="margin-bottom:20px;">
+        <h3>Status · ሁኔታ</h3>
+        <div style="display:flex;align-items:center;gap:14px;padding:10px 0;">
+            <label class="form-check-label" style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:.9rem;font-weight:600;">
+                {{ form.is_active }}
+                <span>Accept makerspace orders · ትዕዛዞች ይቀበሉ</span>
+            </label>
+        </div>
+        <div class="form-group">
+            <label>Store description · መግለጫ</label>
+            {{ form.description }}
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:4px;">
+            <span style="background:#e8f5e9;color:#1f7b3a;padding:6px 14px;border-radius:40px;font-size:.78rem;font-weight:600;">
+                <i class="fas fa-clock"></i>
+                Lead time: {{ form.min_lead_time_days.value }}–{{ form.max_lead_time_days.value }} days
+            </span>
+        </div>
+    </div>
+
+    <!-- 3D Printing pricing -->
+    <div class="form-card" style="margin-bottom:20px;">
+        <h3><i class="fas fa-cube" style="color:#078930;margin-right:8px;"></i>3D Printing Pricing (ETB per gram)</h3>
+        <p style="font-size:.82rem;color:#64748b;margin-bottom:16px;">
+            Price per gram of filament/resin used. The system multiplies this by the file's weight at the chosen infill %.
+        </p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div class="form-group">
+                <label>PLA — Standard plastic</label>
+                <div style="position:relative;">
+                    <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:.82rem;font-weight:700;color:#94a3b8;">ETB</span>
+                    <div style="padding-left:40px;">{{ form.price_pla_per_gram }}</div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>PETG — Durable/flexible</label>
+                <div style="position:relative;">
+                    <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:.82rem;font-weight:700;color:#94a3b8;">ETB</span>
+                    <div style="padding-left:40px;">{{ form.price_petg_per_gram }}</div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>ABS — Heat-resistant</label>
+                <div style="position:relative;">
+                    <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:.82rem;font-weight:700;color:#94a3b8;">ETB</span>
+                    <div style="padding-left:40px;">{{ form.price_abs_per_gram }}</div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Resin — High detail</label>
+                <div style="position:relative;">
+                    <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:.82rem;font-weight:700;color:#94a3b8;">ETB</span>
+                    <div style="padding-left:40px;">{{ form.price_resin_per_gram }}</div>
+                </div>
+            </div>
+        </div>
+        <!-- Pricing example -->
+        <div style="background:#f0fff4;border-radius:10px;padding:12px 16px;border:1px solid #c8e6c9;font-size:.8rem;color:#1f7b3a;margin-top:8px;">
+            <i class="fas fa-lightbulb"></i>
+            <strong>Example:</strong> A 50g PLA print at 30% infill × qty 2 =
+            <strong>ETB {{ form.price_pla_per_gram.value|default:"2.50" }} × 50 × 2 = ETB {{ form.price_pla_per_gram.value|default:"2.50"|floatformat:0 }}×100</strong>.
+            The system calculates weight automatically from your STL file.
+        </div>
+    </div>
+
+    <!-- Laser / CNC pricing -->
+    <div class="form-card" style="margin-bottom:20px;">
+        <h3><i class="fas fa-cut" style="color:#1a4b8a;margin-right:8px;"></i>Laser & CNC Pricing (ETB per cm²)</h3>
+        <p style="font-size:.82rem;color:#64748b;margin-bottom:16px;">
+            Price per square centimetre of cutting/engraving area, extracted from DXF/SVG file dimensions.
+        </p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div class="form-group">
+                <label>Laser Cutting/Engraving (ETB/cm²)</label>
+                {{ form.price_laser_per_cm2 }}
+            </div>
+            <div class="form-group">
+                <label>CNC Machining (ETB/cm²)</label>
+                {{ form.price_cnc_per_cm2 }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Design service + lead time -->
+    <div class="form-card" style="margin-bottom:20px;">
+        <h3><i class="fas fa-drafting-compass" style="color:#b85a1a;margin-right:8px;"></i>Design Service & Lead Time</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+            <div class="form-group">
+                <label>Design Service Flat Fee (ETB)</label>
+                {{ form.price_design_service }}
+            </div>
+            <div class="form-group">
+                <label>Min Lead Time (days)</label>
+                {{ form.min_lead_time_days }}
+            </div>
+            <div class="form-group">
+                <label>Max Lead Time (days)</label>
+                {{ form.max_lead_time_days }}
+            </div>
+        </div>
+    </div>
+
+    <div style="display:flex;gap:12px;">
+        <button type="submit" class="btn-save">
+            <i class="fas fa-save"></i> Save Settings · አስቀምጥ
+        </button>
+        <a href="{% url 'makerspace:vendor_dashboard' %}" class="btn-back">Cancel</a>
+    </div>
+</form>
+{% endblock %}

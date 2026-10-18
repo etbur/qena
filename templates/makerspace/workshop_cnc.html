@@ -1,0 +1,496 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}CNC Machining & CAM Studio · Makerspace — Qenagebeya 🇪🇹{% endblock %}
+
+{% block extra_css %}
+<style>
+.cnc-container {
+    max-width: 1400px;
+    margin: 20px auto 40px;
+    padding: 0 20px;
+}
+
+.cnc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 20px;
+    background: #fff;
+    padding: 18px 24px;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0,0,0,.04);
+}
+
+.cnc-grid {
+    display: grid;
+    grid-template-columns: 320px 1fr 320px;
+    gap: 20px;
+}
+
+@media (max-width: 1100px) {
+    .cnc-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.cnc-panel {
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    padding: 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.op-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.83rem;
+    font-weight: 600;
+}
+
+.op-btn-add {
+    padding: 8px 12px;
+    border: 1px dashed #cbd5e1;
+    background: #f8fafc;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #475569;
+    cursor: pointer;
+    transition: .15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.op-btn-add:hover {
+    background: #e6f0fa;
+    border-color: #1a4b8a;
+    color: #1a4b8a;
+}
+
+/* 3D Canvas / Simulator */
+.cam-wrapper {
+    background: #0f172a;
+    border-radius: 16px;
+    border: 1px solid #1e293b;
+    position: relative;
+    min-height: 560px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.cam-toolbar {
+    background: rgba(15, 23, 42, 0.95);
+    padding: 10px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #334155;
+    z-index: 10;
+}
+
+#cnc-canvas {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.gcode-preview-box {
+    background: #0b1329;
+    color: #38bdf8;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.72rem;
+    padding: 10px;
+    border-radius: 8px;
+    height: 100px;
+    overflow-y: auto;
+    border: 1px solid #1e293b;
+    line-height: 1.5;
+}
+
+.quote-box-cnc {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 14px;
+}
+
+.total-price-cnc {
+    background: linear-gradient(135deg, #78350f, #b45309);
+    color: #fff;
+    padding: 16px;
+    border-radius: 12px;
+    text-align: center;
+    margin-top: 8px;
+}
+
+.total-price-cnc .price {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #FCDD09;
+}
+
+.order-btn-cnc {
+    width: 100%;
+    padding: 12px;
+    background: #b45309;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.95rem;
+    border-radius: 40px;
+    border: none;
+    cursor: pointer;
+    transition: .2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none;
+}
+
+.order-btn-cnc:hover {
+    background: #78350f;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(180, 83, 9, 0.3);
+}
+</style>
+<!-- Three.js for 3D CAM View -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="cnc-container">
+    <!-- Header -->
+    <div class="cnc-header">
+        <div>
+            <h1 style="font-size:1.4rem;font-weight:800;color:#0b2b4a;margin:0;display:flex;align-items:center;gap:10px;">
+                <i class="fas fa-tools" style="color:#b45309;"></i> CNC Machining & CAM Studio · ሲኤንሲ ስራቤት
+            </h1>
+            <p style="font-size:0.85rem;color:#64748b;margin:4px 0 0;">
+                Configure stock billet dimensions, add milling pockets & drill arrays, simulate toolpaths, and estimate Ethiopian machining costs.
+            </p>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;">
+            <a href="{% url 'makerspace:landing' %}" class="op-btn-add" style="border:none;background:#f1f5f9;">
+                <i class="fas fa-arrow-left"></i> Makerspace Hub
+            </a>
+            <button id="btn-download-gcode" class="op-btn-add" style="background:#0b2b4a;color:#fff;border:none;">
+                <i class="fas fa-code"></i> Export G-Code
+            </button>
+        </div>
+    </div>
+
+    <!-- Studio Grid -->
+    <div class="cnc-grid">
+        <!-- LEFT: Stock Billet & Operations -->
+        <div class="cnc-panel">
+            <div style="font-size:0.95rem;font-weight:700;color:#0b2b4a;border-bottom:1px solid #f1f5f9;padding-bottom:8px;">
+                <i class="fas fa-cube"></i> Stock Billet Dimensions
+            </div>
+
+            <div class="form-group">
+                <label style="font-size:0.8rem;font-weight:700;color:#475569;">Stock Material</label>
+                <select id="sel-cnc-mat" class="form-select" style="width:100%;padding:8px;border-radius:8px;border:1px solid #cbd5e1;font-size:0.83rem;">
+                    <option value="cnc_aluminum" data-rpm="12000" data-feed="800" data-rate="2.40">Aluminum 6061-T6 (Aerospace Grade)</option>
+                    <option value="cnc_wood" data-rpm="18000" data-feed="1800" data-rate="1.20">Ethiopian Hardwood (Wanza / Kosso)</option>
+                    <option value="cnc_brass" data-rpm="10000" data-feed="600" data-rate="3.20">Brass C360 (High Precision)</option>
+                    <option value="cnc_delrin" data-rpm="15000" data-feed="1400" data-rate="1.80">Delrin / POM Engineering Plastic</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label style="font-size:0.8rem;font-weight:700;color:#475569;">Billet Length (X): <span id="lbl-cnc-x">120 mm</span></label>
+                <input type="range" id="rng-cnc-x" class="range-slider" min="40" max="300" value="120" style="width:100%;accent-color:#b45309;">
+            </div>
+
+            <div class="form-group">
+                <label style="font-size:0.8rem;font-weight:700;color:#475569;">Billet Width (Y): <span id="lbl-cnc-y">80 mm</span></label>
+                <input type="range" id="rng-cnc-y" class="range-slider" min="30" max="200" value="80" style="width:100%;accent-color:#b45309;">
+            </div>
+
+            <div class="form-group">
+                <label style="font-size:0.8rem;font-weight:700;color:#475569;">Billet Thickness (Z): <span id="lbl-cnc-z">25 mm</span></label>
+                <input type="range" id="rng-cnc-z" class="range-slider" min="10" max="80" value="25" style="width:100%;accent-color:#b45309;">
+            </div>
+
+            <!-- Operations Stack -->
+            <div style="font-size:0.95rem;font-weight:700;color:#0b2b4a;margin-top:6px;border-bottom:1px solid #f1f5f9;padding-bottom:8px;">
+                <i class="fas fa-list-ol"></i> Toolpath Operations
+            </div>
+
+            <div id="op-list" style="display:flex;flex-direction:column;gap:8px;">
+                <div class="op-card">
+                    <span><i class="fas fa-arrows-alt-v" style="color:#0284c7;"></i> 1. Face Milling (-1.0mm)</span>
+                    <span style="font-size:0.75rem;color:#64748b;">Flat Endmill</span>
+                </div>
+                <div class="op-card">
+                    <span><i class="fas fa-vector-square" style="color:#16a34a;"></i> 2. Center Pocket (-10.0mm)</span>
+                    <span style="font-size:0.75rem;color:#64748b;">Adaptive 2D</span>
+                </div>
+                <div class="op-card">
+                    <span><i class="fas fa-dot-circle" style="color:#dc2626;"></i> 3. 4x M5 Bolt Holes</span>
+                    <span style="font-size:0.75rem;color:#64748b;">Drill Ø5mm</span>
+                </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                <button class="op-btn-add" id="btn-add-pocket"><i class="fas fa-plus"></i> Add Pocket</button>
+                <button class="op-btn-add" id="btn-add-holes"><i class="fas fa-plus"></i> Add Holes</button>
+            </div>
+        </div>
+
+        <!-- CENTER: 3D Toolpath Simulator -->
+        <div class="cam-wrapper">
+            <div class="cam-toolbar">
+                <div style="color:#cbd5e1;font-size:0.8rem;display:flex;align-items:center;gap:12px;">
+                    <span>Spindle: <strong id="lbl-spindle-rpm" style="color:#38bdf8;">12,000 RPM</strong></span>
+                    <span>Feed: <strong id="lbl-feed-rate" style="color:#4ade80;">800 mm/min</strong></span>
+                    <span>Tool: <strong>Ø6.0mm Flat Endmill</strong></span>
+                </div>
+                <button id="btn-sim-run" class="op-btn-add" style="background:#078930;color:#fff;border:none;padding:4px 12px;">
+                    <i class="fas fa-play"></i> Simulate CAM
+                </button>
+            </div>
+
+            <div id="cnc-3d-view" style="width:100%;height:100%;flex:1;position:relative;">
+                <canvas id="cnc-canvas"></canvas>
+            </div>
+
+            <!-- G-Code Terminal Overlay -->
+            <div style="background:rgba(15,23,42,0.98);padding:10px 16px;border-top:1px solid #334155;">
+                <div style="font-size:0.75rem;font-weight:700;color:#cbd5e1;margin-bottom:4px;display:flex;justify-content:space-between;">
+                    <span><i class="fas fa-terminal"></i> Generated G-Code Stream (ISO/GRBL)</span>
+                    <span style="color:#38bdf8;">FANUC / Mach3 Ready</span>
+                </div>
+                <pre class="gcode-preview-box" id="gcode-box">
+%
+O0001 (QENAGEBEYA CNC PART)
+(STOCK: 120.0 x 80.0 x 25.0 MM)
+G90 G94 G17 G21
+G28 G91 Z0.
+G90
+T1 M06 (6.0MM FLAT ENDMILL)
+S12000 M03
+G00 X0. Y0. Z15.
+G01 Z-1.0 F800
+(FACING PASS)
+G01 X120.0 Y0. F800
+G01 Y80.0
+G01 X0.
+G00 Z15.
+(POCKET OPERATION)
+G00 X30.0 Y20.0
+G01 Z-10.0 F400
+G01 X90.0 Y20.0 F800
+G01 X90.0 Y60.0
+G01 X30.0 Y60.0
+G01 X30.0 Y20.0
+M05
+G28 G91 Z0.
+M30
+%</pre>
+            </div>
+        </div>
+
+        <!-- RIGHT: Cycle Time & Instant Quotation -->
+        <div class="cnc-panel">
+            <div style="font-size:0.95rem;font-weight:700;color:#0b2b4a;border-bottom:1px solid #f1f5f9;padding-bottom:8px;">
+                <i class="fas fa-calculator"></i> Machining Estimation
+            </div>
+
+            <div class="quote-box-cnc">
+                <div class="stat-item" style="display:flex;justify-content:space-between;font-size:0.82rem;color:#64748b;margin-bottom:8px;">
+                    <span>Billet Stock Volume:</span>
+                    <strong id="stat-cnc-vol" style="color:#0f172a;">240.0 cm³</strong>
+                </div>
+                <div class="stat-item" style="display:flex;justify-content:space-between;font-size:0.82rem;color:#64748b;margin-bottom:8px;">
+                    <span>Material Removal Rate:</span>
+                    <strong id="stat-mrr" style="color:#0f172a;">35.2 cm³ (14.6%)</strong>
+                </div>
+                <div class="stat-item" style="display:flex;justify-content:space-between;font-size:0.82rem;color:#64748b;margin-bottom:8px;">
+                    <span>Estimated Cycle Time:</span>
+                    <strong id="stat-cnc-time" style="color:#16a34a;font-weight:800;">~18 mins</strong>
+                </div>
+                <div class="stat-item" style="display:flex;justify-content:space-between;font-size:0.82rem;color:#64748b;margin-bottom:8px;">
+                    <span>Tolerance Capability:</span>
+                    <strong style="color:#0f172a;">± 0.05 mm</strong>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label style="font-size:0.8rem;font-weight:700;color:#475569;">Batch Quantity</label>
+                <input type="number" id="inp-cnc-qty" class="form-control" min="1" max="500" value="1" style="padding:8px;border:1px solid #cbd5e1;border-radius:8px;">
+            </div>
+
+            <div class="total-price-cnc">
+                <div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:1px;opacity:0.85;">Total CNC Machining Quote</div>
+                <div class="price" id="stat-cnc-total">ETB 450.00</div>
+                <div style="font-size:0.72rem;opacity:0.8;margin-top:2px;">Includes stock raw metal + CAM programming</div>
+            </div>
+
+            <button id="btn-submit-cnc-order" class="order-btn-cnc" style="margin-top:auto;">
+                <i class="fas fa-paper-plane"></i> Order CNC Machining · ወደ ትዕዛዝ ላክ
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    const container = document.getElementById('cnc-3d-view');
+    const canvas = document.getElementById('cnc-canvas');
+    let scene, camera, renderer, controls;
+    let stockMesh = null, toolpathLine = null;
+
+    function initCNC() {
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0f172a);
+
+        camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 1, 2000);
+        camera.position.set(160, 140, 180);
+
+        renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+
+        if (typeof THREE.OrbitControls !== 'undefined') {
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+        }
+
+        const amb = new THREE.AmbientLight(0xffffff, 0.7);
+        scene.add(amb);
+
+        const dir = new THREE.DirectionalLight(0xffffff, 0.8);
+        dir.position.set(100, 200, 100);
+        scene.add(dir);
+
+        // Vise / Table Grid
+        const grid = new THREE.GridHelper(300, 30, 0xb45309, 0x334155);
+        scene.add(grid);
+
+        window.addEventListener('resize', () => {
+            if (!container || !renderer) return;
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        });
+
+        updateCNCScene();
+        animate();
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        if (controls) controls.update();
+        renderer.render(scene, camera);
+    }
+
+    function updateCNCScene() {
+        if (stockMesh) scene.remove(stockMesh);
+        if (toolpathLine) scene.remove(toolpathLine);
+
+        const x = parseFloat(document.getElementById('rng-cnc-x').value);
+        const y = parseFloat(document.getElementById('rng-cnc-y').value);
+        const z = parseFloat(document.getElementById('rng-cnc-z').value);
+
+        // Stock Box
+        const geom = new THREE.BoxGeometry(x, z, y);
+        const mat = new THREE.MeshStandardMaterial({
+            color: 0x94a3b8,
+            metalness: 0.7,
+            roughness: 0.3
+        });
+        stockMesh = new THREE.Mesh(geom, mat);
+        stockMesh.position.y = z / 2;
+        scene.add(stockMesh);
+
+        // Simulated Cyan Toolpath Overlay
+        const points = [];
+        points.push(new THREE.Vector3(-x/2 + 10, z + 5, -y/2 + 10));
+        points.push(new THREE.Vector3(x/2 - 10, z + 5, -y/2 + 10));
+        points.push(new THREE.Vector3(x/2 - 10, z + 5, y/2 - 10));
+        points.push(new THREE.Vector3(-x/2 + 10, z + 5, y/2 - 10));
+        points.push(new THREE.Vector3(-x/2 + 10, z + 5, -y/2 + 10));
+
+        const lineGeom = new THREE.BufferGeometry().setFromPoints(points);
+        const lineMat = new THREE.LineBasicMaterial({ color: 0x38bdf8, linewidth: 2 });
+        toolpathLine = new THREE.Line(lineGeom, lineMat);
+        scene.add(toolpathLine);
+
+        updateCNCStats();
+    }
+
+    function updateCNCStats() {
+        const x = parseFloat(document.getElementById('rng-cnc-x').value);
+        const y = parseFloat(document.getElementById('rng-cnc-y').value);
+        const z = parseFloat(document.getElementById('rng-cnc-z').value);
+        const qty = parseInt(document.getElementById('inp-cnc-qty').value) || 1;
+
+        const selMat = document.getElementById('sel-cnc-mat');
+        const rate = parseFloat(selMat.options[selMat.selectedIndex].getAttribute('data-rate')) || 2.40;
+        const rpm = selMat.options[selMat.selectedIndex].getAttribute('data-rpm');
+        const feed = selMat.options[selMat.selectedIndex].getAttribute('data-feed');
+
+        document.getElementById('lbl-cnc-x').textContent = `${x} mm`;
+        document.getElementById('lbl-cnc-y').textContent = `${y} mm`;
+        document.getElementById('lbl-cnc-z').textContent = `${z} mm`;
+        document.getElementById('lbl-spindle-rpm').textContent = `${rpm} RPM`;
+        document.getElementById('lbl-feed-rate').textContent = `${feed} mm/min`;
+
+        const volCm3 = (x * y * z) / 1000.0;
+        const baseCost = 250.0; // Setup & Stock prep
+        const unitCost = Math.max(300.0, baseCost + (volCm3 * rate * 0.4));
+        const total = unitCost * qty;
+
+        document.getElementById('stat-cnc-vol').textContent = `${volCm3.toFixed(1)} cm³`;
+        document.getElementById('stat-cnc-total').textContent = `ETB ${total.toFixed(2)}`;
+    }
+
+    ['rng-cnc-x', 'rng-cnc-y', 'rng-cnc-z', 'sel-cnc-mat', 'inp-cnc-qty'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', () => { updateCNCScene(); });
+    });
+
+    // Bridge to Order
+    document.getElementById('btn-submit-cnc-order').addEventListener('click', () => {
+        const mat = document.getElementById('sel-cnc-mat').value;
+        const qty = document.getElementById('inp-cnc-qty').value;
+        const x = document.getElementById('rng-cnc-x').value;
+        const y = document.getElementById('rng-cnc-y').value;
+        const z = document.getElementById('rng-cnc-z').value;
+        const notes = `CNC Machining Billet: ${x}x${y}x${z}mm Stock, Material: ${mat}, Qty: ${qty}.`;
+        const url = `{% url 'makerspace:submit_order' %}?service_type=cnc&material=${mat}&quantity=${qty}&notes=${encodeURIComponent(notes)}`;
+        window.location.href = url;
+    });
+
+    // G-Code Download
+    document.getElementById('btn-download-gcode').addEventListener('click', () => {
+        const gcode = document.getElementById('gcode-box').textContent;
+        const blob = new Blob([gcode], { type: 'text/plain' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'qena_cnc_part.nc';
+        a.click();
+    });
+
+    window.addEventListener('DOMContentLoaded', initCNC);
+})();
+</script>
+{% endblock %}

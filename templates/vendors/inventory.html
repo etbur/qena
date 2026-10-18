@@ -1,0 +1,454 @@
+{% extends 'vendors/base_vendor.html' %}
+{% block title %}Inventory · {{ vendor.store_name }}{% endblock %}
+{% block breadcrumb %}Inventory{% endblock %}
+
+{% block extra_css %}
+<style>
+.inv-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.inv-stat{background:#fff;border-radius:12px;padding:14px 18px;border:1px solid #eef2f6;display:flex;align-items:center;gap:12px;cursor:pointer;transition:.2s;text-decoration:none;color:inherit;}
+.inv-stat:hover,.inv-stat.active{box-shadow:0 4px 16px rgba(0,0,0,.08);transform:translateY(-1px);}
+.inv-stat.active{border-color:#d42e2e;}
+.inv-stat-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
+.si-all{background:#e6f0fa;color:#1a4b8a;}
+.si-ok{background:#e6f7e6;color:#1f7b3a;}
+.si-low{background:#fff4e6;color:#b85a1a;}
+.si-out{background:#fef3f3;color:#b91c1c;}
+.inv-stat-info .v{font-size:1.4rem;font-weight:800;color:#0b2b4a;line-height:1;}
+.inv-stat-info .l{font-size:.7rem;color:#94a3b8;font-weight:600;text-transform:uppercase;margin-top:2px;}
+
+.toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+.toolbar .search-box{flex:1;min-width:200px;position:relative;}
+.toolbar .search-box input{width:100%;padding:9px 14px 9px 36px;border:1px solid #eef2f6;border-radius:9px;font-size:.83rem;outline:none;background:#fff;}
+.toolbar .search-box input:focus{border-color:#d42e2e;}
+.toolbar .search-box i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:.85rem;}
+.toolbar select{padding:9px 12px;border:1px solid #eef2f6;border-radius:9px;font-size:.83rem;background:#fff;outline:none;cursor:pointer;}
+.toolbar select:focus{border-color:#d42e2e;}
+
+.inv-table{width:100%;border-collapse:collapse;font-size:.82rem;}
+.inv-table th{text-align:left;padding:10px 14px;background:#f8fafc;font-weight:600;color:#64748b;font-size:.7rem;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;border-bottom:1px solid #eef2f6;}
+.inv-table td{padding:10px 14px;border-bottom:1px solid #f1f4f9;vertical-align:middle;}
+.inv-table tr:hover td{background:#fafbfc;}
+.inv-table tr:last-child td{border-bottom:none;}
+
+.stock-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:40px;font-size:.7rem;font-weight:700;}
+.sb-ok{background:#e6f7e6;color:#1f7b3a;}
+.sb-low{background:#fff4e6;color:#b85a1a;}
+.sb-out{background:#fef3f3;color:#b91c1c;}
+
+.qty-form{display:flex;align-items:center;gap:6px;}
+.qty-input{width:64px;padding:5px 8px;border:1px solid #eef2f6;border-radius:7px;font-size:.82rem;text-align:center;}
+.qty-input:focus{border-color:#d42e2e;outline:none;}
+
+.adj-btn{background:none;border:1px solid #eef2f6;border-radius:7px;padding:4px 9px;font-size:.72rem;cursor:pointer;color:#475569;transition:.15s;white-space:nowrap;}
+.adj-btn:hover{background:#f1f4f9;}
+.adj-btn.in{border-color:#b7e5c1;color:#1f7b3a;background:#f0fff4;}
+.adj-btn.in:hover{background:#e6f7e6;}
+.adj-btn.out{border-color:#fecaca;color:#b91c1c;background:#fef3f3;}
+.adj-btn.out:hover{background:#fde8e8;}
+
+.section-tabs{display:flex;gap:0;border-bottom:2px solid #eef2f6;margin-bottom:20px;}
+.stab{padding:9px 20px;font-size:.83rem;font-weight:600;color:#94a3b8;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;background:none;border-top:none;border-left:none;border-right:none;transition:.15s;}
+.stab.active,.stab:hover{color:#d42e2e;border-bottom-color:#d42e2e;}
+
+.sub-panel{display:none;}
+.sub-panel.active{display:block;}
+
+.mini-form{background:#f8fafc;border-radius:12px;padding:16px;border:1px solid #eef2f6;margin-bottom:16px;}
+.mini-form h4{font-size:.85rem;font-weight:700;margin-bottom:12px;}
+.mini-form-row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;}
+.mini-form-row .fg{display:flex;flex-direction:column;gap:4px;min-width:140px;flex:1;}
+.mini-form-row label{font-size:.72rem;font-weight:600;color:#64748b;}
+.mini-form-row input,.mini-form-row select{padding:7px 10px;border:1px solid #eef2f6;border-radius:8px;font-size:.82rem;outline:none;}
+.mini-form-row input:focus,.mini-form-row select:focus{border-color:#d42e2e;}
+
+.movement-row{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid #f1f4f9;}
+.movement-row:last-child{border-bottom:none;}
+.mv-icon{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;flex-shrink:0;}
+.mv-in{background:#e6f7e6;color:#1f7b3a;}
+.mv-out{background:#fef3f3;color:#b91c1c;}
+.mv-adjust{background:#e6f0fa;color:#1a4b8a;}
+.mv-return{background:#f3e8ff;color:#7c3aed;}
+.mv-info{flex:1;}
+.mv-info strong{font-size:.8rem;color:#1e293b;display:block;}
+.mv-info span{font-size:.72rem;color:#94a3b8;}
+.mv-qty{font-weight:700;font-size:.85rem;}
+.mv-qty.pos{color:#1f7b3a;}
+.mv-qty.neg{color:#b91c1c;}
+
+.po-card{background:#fff;border-radius:12px;padding:14px 16px;border:1px solid #eef2f6;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;}
+.po-card .po-num{font-weight:700;font-size:.85rem;color:#0b2b4a;}
+.po-card .po-supplier{font-size:.75rem;color:#64748b;}
+.po-status{padding:2px 10px;border-radius:40px;font-size:.68rem;font-weight:700;}
+.po-draft{background:#f1f4f9;color:#64748b;}
+.po-ordered{background:#e6f0fa;color:#1a4b8a;}
+.po-received{background:#e6f7e6;color:#1f7b3a;}
+.po-cancelled{background:#fef3f3;color:#b91c1c;}
+
+.value-badge{background:linear-gradient(135deg,#0b2b4a,#1a4b8a);color:#fff;border-radius:10px;padding:10px 16px;display:inline-flex;align-items:center;gap:8px;font-weight:700;}
+
+@media(max-width:1100px){.inv-stats{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:768px){
+  .inv-stats{grid-template-columns:1fr 1fr;gap:8px;}
+  .toolbar{flex-direction:column;align-items:stretch;}
+  .toolbar .search-box{min-width:unset;}
+  .inv-table th:nth-child(5),.inv-table td:nth-child(5),
+  .inv-table th:nth-child(6),.inv-table td:nth-child(6){display:none;}
+}
+@media(max-width:480px){
+  .inv-stats{grid-template-columns:1fr 1fr;}
+  .inv-table th:nth-child(3),.inv-table td:nth-child(3),
+  .inv-table th:nth-child(4),.inv-table td:nth-child(4){display:none;}
+}
+</style>
+{% endblock %}
+
+{% block vendor_content %}
+
+<!-- Header -->
+<div class="page-header">
+  <div>
+    <h2>📦 Inventory Management</h2>
+    <div style="font-size:.8rem;color:#94a3b8;margin-top:3px;">Private stock control for {{ vendor.store_name }}</div>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+    <span class="value-badge"><i class="fas fa-coins"></i> ETB {{ total_value|floatformat:2 }} Total Value</span>
+    <a href="{% url 'vendors:inventory_add' %}" class="btn-save"><i class="fas fa-plus"></i> Add Item</a>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="inv-stats">
+  <a href="?filter=all" class="inv-stat {% if stock_filter == 'all' %}active{% endif %}">
+    <div class="inv-stat-icon si-all"><i class="fas fa-boxes"></i></div>
+    <div class="inv-stat-info"><div class="v">{{ total_count }}</div><div class="l">Total Items</div></div>
+  </a>
+  <a href="?filter=ok" class="inv-stat {% if stock_filter == 'ok' %}active{% endif %}">
+    <div class="inv-stat-icon si-ok"><i class="fas fa-check-circle"></i></div>
+    <div class="inv-stat-info"><div class="v">{{ in_stock_count }}</div><div class="l">In Stock</div></div>
+  </a>
+  <a href="?filter=low" class="inv-stat {% if stock_filter == 'low' %}active{% endif %}">
+    <div class="inv-stat-icon si-low"><i class="fas fa-exclamation-triangle"></i></div>
+    <div class="inv-stat-info"><div class="v">{{ low_stock_count }}</div><div class="l">Low Stock</div></div>
+  </a>
+  <a href="?filter=out" class="inv-stat {% if stock_filter == 'out' %}active{% endif %}">
+    <div class="inv-stat-icon si-out"><i class="fas fa-times-circle"></i></div>
+    <div class="inv-stat-info"><div class="v">{{ out_stock_count }}</div><div class="l">Out of Stock</div></div>
+  </a>
+</div>
+
+<!-- Section tabs -->
+<div class="section-tabs">
+  <button class="stab active" onclick="showTab('inv')">📋 Stock Items</button>
+  <button class="stab" onclick="showTab('movements')">🔄 Movements</button>
+  <button class="stab" onclick="showTab('po')">🛒 Purchase Orders</button>
+  <button class="stab" onclick="showTab('wh')">🏭 Warehouses</button>
+  <button class="stab" onclick="showTab('sup')">🤝 Suppliers</button>
+</div>
+
+<!-- ─── TAB: Stock Items ─── -->
+<div class="sub-panel active" id="tab-inv">
+  <div class="table-wrap">
+    <!-- Toolbar -->
+    <div style="padding:12px 16px;border-bottom:1px solid #eef2f6;">
+      <form method="get" class="toolbar">
+        <div class="search-box">
+          <i class="fas fa-search"></i>
+          <input type="text" name="q" value="{{ q }}" placeholder="Search items, SKU, barcode…"/>
+        </div>
+        <select name="cat" onchange="this.form.submit()">
+          <option value="">All Categories</option>
+          {% for c in categories %}<option value="{{ c }}" {% if cat_filter == c %}selected{% endif %}>{{ c }}</option>{% endfor %}
+        </select>
+        <input type="hidden" name="filter" value="{{ stock_filter }}"/>
+        <button type="submit" class="btn-save" style="padding:9px 16px;"><i class="fas fa-search"></i></button>
+        {% if q or cat_filter %}<a href="{% url 'vendors:inventory' %}" class="btn-back" style="padding:9px 14px;">Clear</a>{% endif %}
+      </form>
+    </div>
+
+    <div style="overflow-x:auto;">
+      <table class="inv-table">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>SKU / Barcode</th>
+            <th>Category</th>
+            <th>Cost / Price</th>
+            <th>Qty</th>
+            <th>Status</th>
+            <th>Warehouse</th>
+            <th>Supplier</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in items %}
+          <tr>
+            <td>
+              <div style="display:flex;align-items:center;gap:9px;">
+                {% if item.image %}
+                  <img src="{{ item.image.url }}" style="width:36px;height:36px;border-radius:8px;object-fit:cover;" alt=""/>
+                {% else %}
+                  <div style="width:36px;height:36px;border-radius:8px;background:#f1f4f9;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:.9rem;flex-shrink:0;"><i class="fas fa-box"></i></div>
+                {% endif %}
+                <div>
+                  <div style="font-weight:600;font-size:.82rem;">{{ item.item_name|truncatechars:28 }}</div>
+                  {% if item.expiry_date %}<div style="font-size:.68rem;color:#b85a1a;"><i class="fas fa-calendar-times"></i> Exp: {{ item.expiry_date|date:"M d, Y" }}</div>{% endif %}
+                </div>
+              </div>
+            </td>
+            <td style="font-size:.75rem;color:#64748b;">
+              {% if item.sku %}<div>{{ item.sku }}</div>{% endif %}
+              {% if item.barcode %}<div style="color:#94a3b8;">📊 {{ item.barcode }}</div>{% endif %}
+              {% if not item.sku and not item.barcode %}<span style="color:#e2e8f0;">—</span>{% endif %}
+            </td>
+            <td style="color:#64748b;font-size:.78rem;">{{ item.category|default:"—" }}</td>
+            <td>
+              <div style="font-size:.8rem;">Cost: <strong>ETB {{ item.unit_cost }}</strong></div>
+              {% if item.selling_price %}<div style="font-size:.75rem;color:#22a65e;">Price: ETB {{ item.selling_price }}</div>{% endif %}
+            </td>
+            <td>
+              <!-- Quick adjust form -->
+              <form method="post" action="{% url 'vendors:inventory_adjust' item.pk %}" style="display:flex;align-items:center;gap:4px;">
+                {% csrf_token %}
+                <input type="hidden" name="move_type" value="adjust"/>
+                <input type="number" name="quantity" value="{{ item.quantity }}" min="0" class="qty-input" title="Set new quantity"/>
+                <button type="submit" class="adj-btn" title="Set quantity"><i class="fas fa-check"></i></button>
+              </form>
+            </td>
+            <td>
+              {% if item.stock_status == 'ok' %}
+                <span class="stock-badge sb-ok"><i class="fas fa-circle" style="font-size:.5rem;"></i> OK</span>
+              {% elif item.stock_status == 'low' %}
+                <span class="stock-badge sb-low"><i class="fas fa-exclamation-triangle" style="font-size:.6rem;"></i> Low</span>
+              {% else %}
+                <span class="stock-badge sb-out"><i class="fas fa-times-circle" style="font-size:.6rem;"></i> Out</span>
+              {% endif %}
+              <div style="font-size:.68rem;color:#94a3b8;margin-top:2px;">Reorder: {{ item.reorder_level }}</div>
+            </td>
+            <td style="font-size:.75rem;color:#64748b;">{{ item.warehouse.name|default:"—" }}</td>
+            <td style="font-size:.75rem;color:#64748b;">{{ item.supplier.name|default:"—" }}</td>
+            <td>
+              <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                <!-- Stock in -->
+                <button onclick="openAdj({{ item.pk }},'in')" class="adj-btn in" title="Add stock"><i class="fas fa-plus"></i></button>
+                <!-- Stock out -->
+                <button onclick="openAdj({{ item.pk }},'out')" class="adj-btn out" title="Remove stock"><i class="fas fa-minus"></i></button>
+                <a href="{% url 'vendors:inventory_edit' item.pk %}" class="btn-sm-edit"><i class="fas fa-edit"></i></a>
+                <form method="post" action="{% url 'vendors:inventory_delete' item.pk %}" onsubmit="return confirm('Delete this item?');" style="display:inline;">
+                  {% csrf_token %}<button type="submit" class="btn-sm-danger"><i class="fas fa-trash"></i></button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="9" style="text-align:center;padding:40px;color:#94a3b8;">
+              <i class="fas fa-box-open" style="font-size:2.5rem;display:block;margin-bottom:10px;opacity:.4;"></i>
+              No inventory items found.
+              <a href="{% url 'vendors:inventory_add' %}" style="color:#d42e2e;font-weight:600;">Add your first item</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ─── TAB: Movements ─── -->
+<div class="sub-panel" id="tab-movements">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+    <h3 style="font-size:1rem;font-weight:700;">🔄 Recent Stock Movements</h3>
+    <a href="{% url 'vendors:stock_movements' %}" class="btn-back">View All <i class="fas fa-arrow-right"></i></a>
+  </div>
+  <div class="dash-card">
+    <div class="dash-card-body" style="padding:8px 16px;">
+      {% for mv in recent_movements %}
+      <div class="movement-row">
+        <div class="mv-icon mv-{{ mv.move_type }}">
+          {% if mv.move_type == 'in' %}<i class="fas fa-arrow-down"></i>
+          {% elif mv.move_type == 'out' %}<i class="fas fa-arrow-up"></i>
+          {% elif mv.move_type == 'return' %}<i class="fas fa-undo"></i>
+          {% else %}<i class="fas fa-sliders-h"></i>{% endif %}
+        </div>
+        <div class="mv-info">
+          <strong>{{ mv.item.item_name|truncatechars:35 }}</strong>
+          <span>{{ mv.get_move_type_display }} · {{ mv.created_at|date:"M d, Y H:i" }}{% if mv.note %} · {{ mv.note|truncatechars:40 }}{% endif %}</span>
+        </div>
+        <div class="mv-qty {% if mv.quantity > 0 %}pos{% else %}neg{% endif %}">
+          {% if mv.quantity > 0 %}+{% endif %}{{ mv.quantity }}
+        </div>
+        <div style="font-size:.72rem;color:#94a3b8;white-space:nowrap;">{{ mv.before_qty }} → {{ mv.after_qty }}</div>
+      </div>
+      {% empty %}
+      <div style="text-align:center;padding:30px;color:#94a3b8;font-size:.83rem;">No movements recorded yet.</div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- ─── TAB: Purchase Orders ─── -->
+<div class="sub-panel" id="tab-po">
+  <div class="mini-form">
+    <h4>➕ New Purchase Order</h4>
+    <form method="post" action="{% url 'vendors:purchase_orders' %}">
+      {% csrf_token %}
+      <div class="mini-form-row">
+        <div class="fg">
+          <label>Supplier</label>
+          <select name="supplier_id">
+            <option value="">— Select Supplier —</option>
+            {% for s in suppliers %}<option value="{{ s.pk }}">{{ s.name }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="fg">
+          <label>Expected Date</label>
+          <input type="date" name="expected_date"/>
+        </div>
+        <div class="fg" style="flex:2;">
+          <label>Note</label>
+          <input type="text" name="note" placeholder="Optional note…"/>
+        </div>
+        <button type="submit" class="btn-save"><i class="fas fa-plus"></i> Create PO</button>
+      </div>
+    </form>
+  </div>
+
+  {% for po in pending_pos %}
+  <div class="po-card">
+    <div>
+      <div class="po-num">PO-{{ po.po_number }}</div>
+      <div class="po-supplier"><i class="fas fa-truck" style="color:#94a3b8;margin-right:4px;"></i>{{ po.supplier.name|default:"No supplier" }}</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <span class="po-status po-{{ po.status }}">{{ po.get_status_display }}</span>
+      {% if po.expected_date %}<span style="font-size:.72rem;color:#94a3b8;"><i class="fas fa-calendar"></i> {{ po.expected_date|date:"M d, Y" }}</span>{% endif %}
+      <span style="font-size:.8rem;font-weight:700;">ETB {{ po.total_cost }}</span>
+    </div>
+  </div>
+  {% empty %}
+  <div style="text-align:center;padding:30px;color:#94a3b8;font-size:.83rem;">No pending purchase orders.</div>
+  {% endfor %}
+  <div style="margin-top:10px;"><a href="{% url 'vendors:purchase_orders' %}" class="btn-back">View All Purchase Orders <i class="fas fa-arrow-right"></i></a></div>
+</div>
+
+<!-- ─── TAB: Warehouses ─── -->
+<div class="sub-panel" id="tab-wh">
+  <div class="mini-form">
+    <h4>🏭 Add Warehouse</h4>
+    <form method="post" action="{% url 'vendors:warehouses' %}">
+      {% csrf_token %}
+      <div class="mini-form-row">
+        <div class="fg"><label>Name *</label><input type="text" name="name" placeholder="Main Warehouse" required/></div>
+        <div class="fg"><label>City</label><input type="text" name="city" placeholder="Addis Ababa"/></div>
+        <div class="fg"><label>Phone</label><input type="text" name="phone"/></div>
+        <div class="fg" style="flex:2;"><label>Address</label><input type="text" name="address"/></div>
+        <button type="submit" class="btn-save"><i class="fas fa-plus"></i> Add</button>
+      </div>
+    </form>
+  </div>
+  {% for wh in warehouses %}
+  <div class="po-card">
+    <div>
+      <div class="po-num"><i class="fas fa-warehouse" style="color:#1a4b8a;margin-right:6px;"></i>{{ wh.name }}</div>
+      <div class="po-supplier">{{ wh.city }}{% if wh.address %} · {{ wh.address|truncatechars:40 }}{% endif %}</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      {% if wh.is_default %}<span class="stock-badge sb-ok">Default</span>{% endif %}
+      {% if wh.phone %}<span style="font-size:.75rem;color:#64748b;"><i class="fas fa-phone" style="margin-right:3px;"></i>{{ wh.phone }}</span>{% endif %}
+      <span style="font-size:.75rem;color:#94a3b8;">{{ wh.items.count }} items</span>
+    </div>
+  </div>
+  {% empty %}
+  <div style="text-align:center;padding:30px;color:#94a3b8;font-size:.83rem;">No warehouses added yet.</div>
+  {% endfor %}
+</div>
+
+<!-- ─── TAB: Suppliers ─── -->
+<div class="sub-panel" id="tab-sup">
+  <div class="mini-form">
+    <h4>🤝 Add Supplier</h4>
+    <form method="post" action="{% url 'vendors:suppliers' %}">
+      {% csrf_token %}
+      <div class="mini-form-row">
+        <div class="fg"><label>Name *</label><input type="text" name="name" required/></div>
+        <div class="fg"><label>Contact Person</label><input type="text" name="contact_person"/></div>
+        <div class="fg"><label>Phone</label><input type="text" name="phone"/></div>
+        <div class="fg"><label>Email</label><input type="email" name="email"/></div>
+        <button type="submit" class="btn-save"><i class="fas fa-plus"></i> Add</button>
+      </div>
+    </form>
+  </div>
+  {% for s in suppliers %}
+  <div class="po-card">
+    <div>
+      <div class="po-num"><i class="fas fa-handshake" style="color:#078930;margin-right:6px;"></i>{{ s.name }}</div>
+      <div class="po-supplier">{% if s.contact_person %}{{ s.contact_person }}{% endif %}{% if s.phone %} · {{ s.phone }}{% endif %}{% if s.email %} · {{ s.email }}{% endif %}</div>
+    </div>
+    <div style="font-size:.75rem;color:#94a3b8;">{{ s.items.count }} items</div>
+  </div>
+  {% empty %}
+  <div style="text-align:center;padding:30px;color:#94a3b8;font-size:.83rem;">No suppliers added yet.</div>
+  {% endfor %}
+</div>
+
+<!-- Adjust Stock Modal -->
+<div id="adj-modal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.45);align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:16px;padding:28px;max-width:400px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.2);">
+    <h3 style="font-size:1rem;font-weight:700;margin-bottom:16px;" id="adj-title">Adjust Stock</h3>
+    <form method="post" id="adj-form">
+      {% csrf_token %}
+      <input type="hidden" name="move_type" id="adj-move-type"/>
+      <div class="form-group">
+        <label>Quantity</label>
+        <input type="number" name="quantity" min="1" value="1" class="form-control" id="adj-qty" required/>
+      </div>
+      <div class="form-group">
+        <label>Note (optional)</label>
+        <input type="text" name="note" class="form-control" placeholder="Reason for adjustment…"/>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:16px;">
+        <button type="submit" class="btn-save" id="adj-submit-btn">Confirm</button>
+        <button type="button" class="btn-back" onclick="closeAdj()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showTab(name){
+  document.querySelectorAll('.sub-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.stab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function openAdj(pk, type){
+  const modal = document.getElementById('adj-modal');
+  const form  = document.getElementById('adj-form');
+  const title = document.getElementById('adj-title');
+  const btn   = document.getElementById('adj-submit-btn');
+  form.action = '/vendor/inventory/'+pk+'/adjust/';
+  document.getElementById('adj-move-type').value = type;
+  if(type==='in'){
+    title.textContent = '➕ Add Stock';
+    btn.style.background = '#1f7b3a';
+  } else {
+    title.textContent = '➖ Remove Stock';
+    btn.style.background = '#d42e2e';
+  }
+  modal.style.display = 'flex';
+  document.getElementById('adj-qty').focus();
+}
+function closeAdj(){
+  document.getElementById('adj-modal').style.display = 'none';
+}
+document.getElementById('adj-modal').addEventListener('click', function(e){
+  if(e.target === this) closeAdj();
+});
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeAdj(); });
+</script>
+{% endblock %}

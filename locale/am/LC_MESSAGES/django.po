@@ -1,0 +1,255 @@
+# Amharic translations for Qenagebeya
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: am\n"
+
+msgid "English"
+msgstr "English"
+
+msgid "Amharic"
+msgstr "አማርኛ"
+
+msgid "Oromiffa"
+msgstr "Afaan Oromoo"
+
+msgid "Search"
+msgstr "ፈልግ"
+
+msgid "Search products, rent (house, car...), services, digital, jobs..."
+msgstr "ምርቶችን፣ ኪራይ (ቤት፣ መኪና...)፣ አገልግሎት፣ ዲጂታል፣ ስራዎች..."
+
+msgid "Deliver to · Choose area"
+msgstr "ወደ · አካባቢ ይምረጡ"
+
+msgid "Free delivery over"
+msgstr "ከዚህ በላይ ነጻ ዴሊቨሪ"
+
+msgid "Express 60 · Addis Ababa"
+msgstr "ኤክስፕረስ 60 · አዲስ አበባ"
+
+msgid "Flash Deals"
+msgstr "ፍላሽ ቅናሾች"
+
+msgid "Sell on Qenagebeya"
+msgstr "በቀናጌቤያ ሽጥ"
+
+msgid "All Departments"
+msgstr "ሁሉም ክፍሎች"
+
+msgid "Account & Orders"
+msgstr "መለያ እና ትዕዛዞች"
+
+msgid "Wishlist"
+msgstr "የምፈልጋቸው"
+
+msgid "Cart"
+msgstr "ቅርጫት"
+
+msgid "Login"
+msgstr "ግባ"
+
+msgid "Register"
+msgstr "ተመዝገብ"
+
+msgid "Logout"
+msgstr "ውጣ"
+
+msgid "My Store"
+msgstr "ሱቄ"
+
+msgid "Agent"
+msgstr "ወኪል"
+
+msgid "Admin"
+msgstr "አስተዳዳሪ"
+
+msgid "My Orders"
+msgstr "ትዕዛዞቼ"
+
+msgid "Best sellers"
+msgstr "ምርጥ ሻጮች"
+
+msgid "Flash Deals tonight"
+msgstr "የዛሬ ምሽት ፍላሽ ቅናሾች"
+
+msgid "Trending now"
+msgstr "አሁን ታዋቂ"
+
+msgid "Bundle & save"
+msgstr "በጥቅል ቆጥብ"
+
+msgid "View all"
+msgstr "ሁሉንም ይመልከቱ"
+
+msgid "Add to Cart"
+msgstr "ወደ ቅርጫት ጨምር"
+
+msgid "Shop now"
+msgstr "አሁን ግዙ"
+
+msgid "Buyer protection"
+msgstr "የገዥ ጥበቃ"
+
+msgid "30-day free returns"
+msgstr "30-ቀን ነጻ መመለሻ"
+
+msgid "100% genuine"
+msgstr "100% ዋናው ነው"
+
+msgid "Cash on delivery"
+msgstr "ሲደርስ ክፈሉ"
+
+msgid "Official Stores"
+msgstr "ኦፊሴላዊ ሱቆች"
+
+msgid "Express 60"
+msgstr "ኤክስፕረስ 60"
+
+msgid "Order within"
+msgstr "በ ውስጥ ያዝዙ"
+
+msgid "Products"
+msgstr "ምርቶች"
+
+msgid "Dashboard"
+msgstr "ዳሽቦርድ"
+
+msgid "Orders"
+msgstr "ትዕዛዞች"
+
+msgid "Customers"
+msgstr "ደንበኞች"
+
+msgid "Analytics"
+msgstr "ትንታኔ"
+
+msgid "Settings"
+msgstr "ቅንብሮች"
+
+msgid "Profile"
+msgstr "መገለጫ"
+
+msgid "Store Settings"
+msgstr "የሱቅ ቅንብሮች"
+
+msgid "Clients"
+msgstr "ደንበኞች"
+
+msgid "Deals"
+msgstr "ስምምነቶች"
+
+msgid "Inquiries"
+msgstr "ጥያቄዎች"
+
+msgid "Performance"
+msgstr "አፈጻጸም"
+
+msgid "Add Product"
+msgstr "ምርት ጨምር"
+
+msgid "Save"
+msgstr "አስቀምጥ"
+
+msgid "Cancel"
+msgstr "ሰርዝ"
+
+msgid "Submit"
+msgstr "ላክ"
+
+msgid "Welcome back"
+msgstr "እንኳን ደህና መጡ"
+
+msgid "Welcome to Qenagebeya"
+msgstr "ወደ ቀናጌቤያ እንኳን ደህና መጡ"
+
+msgid "Checkout"
+msgstr "ክፈሉ"
+
+msgid "Place Order"
+msgstr "ትዕዛዝ ላክ"
+
+msgid "Order placed successfully"
+msgstr "ትዕዛዝ በተሳካ ሁኔታ ተልኳል"
+
+msgid "Out of Stock"
+msgstr "አልቋል"
+
+msgid "In Stock"
+msgstr "አለ"
+
+msgid "Price"
+msgstr "ዋጋ"
+
+msgid "Category"
+msgstr "ምድብ"
+
+msgid "Shipping"
+msgstr "ማጓጓዣ"
+
+msgid "Total"
+msgstr "ድምር"
+
+msgid "Free"
+msgstr "ነጻ"
+
+msgid "Payment Method"
+msgstr "የክፍያ ዘዴ"
+
+msgid "Delivery Information"
+msgstr "የዴሊቨሪ መረጃ"
+
+msgid "Write a Review"
+msgstr "ግምገማ ጻፍ"
+
+msgid "Submit Review"
+msgstr "ግምገማ ላክ"
+
+msgid "You May Also Like"
+msgstr "ሌሎችም ሊወዱ ይችላሉ"
+
+msgid "Shop by Category"
+msgstr "በምድብ ግዙ"
+
+msgid "Your cart is empty"
+msgstr "ቅርጫቱ ባዶ ነው"
+
+msgid "Start Shopping"
+msgstr "ግዢ ጀምር"
+
+msgid "Proceed to Checkout"
+msgstr "ወደ ክፍያ ቀጥሉ"
+
+msgid "Continue Shopping"
+msgstr "ግዢ ቀጥሉ"
+
+msgid "No reviews yet"
+msgstr "ገና ምንም ግምገማ የለም"
+
+msgid "Be the first"
+msgstr "የመጀመሪያው ሁኑ"
+
+msgid "Register here"
+msgstr "እዚህ ተመዝገቡ"
+
+msgid "Sign in"
+msgstr "ግቡ"
+
+msgid "Create Account"
+msgstr "መለያ ፍጠሩ"
+
+msgid "I want to join as"
+msgstr "እንደ መቀላቀል እፈልጋለሁ"
+
+msgid "Customer"
+msgstr "ደንበኛ"
+
+msgid "Vendor"
+msgstr "ሻጭ"
+
+msgid "Edit Profile"
+msgstr "መገለጫ አስተካክል"
+
+msgid "Save Changes"
+msgstr "ለውጦችን አስቀምጥ"

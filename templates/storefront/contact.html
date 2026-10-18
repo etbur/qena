@@ -1,0 +1,67 @@
+{% extends 'storefront/base.html' %}
+{% block title %}Contact Us · {{ vendor.store_name }}{% endblock %}
+
+{% block content %}
+<div style="max-width:880px;margin:0 auto;padding:20px 0 40px;">
+  <div style="text-align:center;margin-bottom:32px;">
+    <h1 style="font-size:2rem;font-weight:900;color:var(--primary);margin-bottom:6px;">Get In Touch</h1>
+    <p style="color:#64748b;font-size:.92rem;">Have a question or custom order? Reach out directly to {{ vendor.store_name }}.</p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:32px;">
+    <!-- Contact cards -->
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      {% if vendor.phone %}
+      <a href="tel:{{ vendor.phone }}" style="background:#fff;border-radius:16px;padding:18px;border:1px solid #eef2f6;display:flex;align-items:center;gap:14px;color:inherit;transition:.15s;">
+        <div style="width:44px;height:44px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;flex-shrink:0;"><i class="fas fa-phone"></i></div>
+        <div><div style="font-weight:700;font-size:.88rem;">Call Us</div><div style="font-size:.82rem;color:#64748b;">{{ vendor.phone }}</div></div>
+      </a>
+      {% endif %}
+
+      {% if vendor.email %}
+      <a href="mailto:{{ vendor.email }}" style="background:#fff;border-radius:16px;padding:18px;border:1px solid #eef2f6;display:flex;align-items:center;gap:14px;color:inherit;transition:.15s;">
+        <div style="width:44px;height:44px;border-radius:50%;background:var(--secondary);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;flex-shrink:0;"><i class="fas fa-envelope"></i></div>
+        <div><div style="font-weight:700;font-size:.88rem;">Email Us</div><div style="font-size:.82rem;color:#64748b;">{{ vendor.email }}</div></div>
+      </a>
+      {% endif %}
+
+      {% if vendor.whatsapp %}
+      <a href="https://wa.me/{{ vendor.whatsapp }}?text=Hi%20{{ vendor.store_name }},%20I%20have%20an%20inquiry" target="_blank" style="background:#25d366;border-radius:16px;padding:18px;display:flex;align-items:center;gap:14px;color:#fff;text-decoration:none;">
+        <div style="font-size:1.6rem;"><i class="fab fa-whatsapp"></i></div>
+        <div><div style="font-weight:800;font-size:.9rem;">Instant WhatsApp Chat</div><div style="font-size:.82rem;opacity:.9;">Chat with {{ vendor.store_name }} directly</div></div>
+      </a>
+      {% endif %}
+
+      {% if vendor.address %}
+      <div style="background:#fff;border-radius:16px;padding:18px;border:1px solid #eef2f6;display:flex;align-items:center;gap:14px;">
+        <div style="width:44px;height:44px;border-radius:50%;background:#f1f4f9;display:flex;align-items:center;justify-content:center;color:#64748b;font-size:1.1rem;flex-shrink:0;"><i class="fas fa-map-marker-alt"></i></div>
+        <div><div style="font-weight:700;font-size:.88rem;">Store Address</div><div style="font-size:.82rem;color:#64748b;">{{ vendor.address }}{% if vendor.city %}, {{ vendor.city }}{% endif %}{% if vendor.country %}, {{ vendor.country }}{% endif %}</div></div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Message Form -->
+    <div style="background:#fff;border-radius:20px;padding:28px;border:1px solid #eef2f6;">
+      <h3 style="font-size:1.1rem;font-weight:800;margin-bottom:14px;color:var(--primary);">Send a Message</h3>
+      <form method="post">
+        {% csrf_token %}
+        <div style="margin-bottom:12px;">
+          <label style="display:block;font-size:.78rem;font-weight:700;color:#475569;margin-bottom:4px;">Your Name *</label>
+          <input type="text" name="name" required placeholder="Abebe Kebede" style="width:100%;padding:10px 14px;border:1px solid #e2e8f0;border-radius:10px;font-size:.85rem;outline:none;"/>
+        </div>
+        <div style="margin-bottom:12px;">
+          <label style="display:block;font-size:.78rem;font-weight:700;color:#475569;margin-bottom:4px;">Email / Phone *</label>
+          <input type="text" name="contact" required placeholder="abebe@example.com or +251..." style="width:100%;padding:10px 14px;border:1px solid #e2e8f0;border-radius:10px;font-size:.85rem;outline:none;"/>
+        </div>
+        <div style="margin-bottom:16px;">
+          <label style="display:block;font-size:.78rem;font-weight:700;color:#475569;margin-bottom:4px;">Message *</label>
+          <textarea name="message" required rows="4" placeholder="Tell us what you're looking for or your questions..." style="width:100%;padding:10px 14px;border:1px solid #e2e8f0;border-radius:10px;font-size:.85rem;outline:none;resize:vertical;"></textarea>
+        </div>
+        <button type="submit" style="width:100%;padding:12px;background:var(--primary);color:#fff;border:none;border-radius:60px;font-weight:700;font-size:.9rem;cursor:pointer;transition:.2s;">
+          <i class="fas fa-paper-plane"></i> Send Message
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

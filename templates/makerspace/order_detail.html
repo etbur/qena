@@ -1,0 +1,213 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}Order {{ order.order_number }} · Makerspace{% endblock %}
+
+{% block extra_css %}
+<style>
+.mk-wrap{max-width:900px;margin:0 auto;padding:28px 32px;}
+.mk-card{background:#fff;border-radius:20px;border:1px solid #eef2f6;padding:24px;margin-bottom:20px;box-shadow:0 2px 6px rgba(0,0,0,.02);}
+.mk-card h3{font-size:.9rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#94a3b8;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.status-badge{padding:6px 20px;border-radius:40px;font-size:.85rem;font-weight:700;display:inline-block;}
+.st-quote_pending{background:#fef3f3;color:#b91c1c;}
+.st-quoted{background:#fff4e6;color:#b85a1a;}
+.st-accepted{background:#e6f0fa;color:#1a4b8a;}
+.st-in_production{background:#f0fff4;color:#078930;}
+.st-ready{background:#e8f5e9;color:#1f7b3a;}
+.st-delivered{background:#e6f7e6;color:#1f7b3a;}
+.st-rejected{background:#f1f4f9;color:#64748b;}
+.st-cancelled{background:#f1f4f9;color:#64748b;}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.info-item{padding:10px 0;border-bottom:1px solid #f1f4f9;}
+.info-item:last-child{border-bottom:none;}
+.info-item .ilabel{font-size:.78rem;color:#94a3b8;font-weight:600;margin-bottom:3px;}
+.info-item .ivalue{font-size:.9rem;font-weight:600;color:#1e293b;}
+.analysis-box{background:linear-gradient(135deg,#f0fff4,#e3f2fd);border-radius:14px;padding:16px 20px;border:1px solid #c8e6c9;display:flex;flex-wrap:wrap;gap:16px;}
+.an-item strong{display:block;font-size:1.2rem;font-weight:800;color:#0b2b4a;}
+.an-item span{font-size:.75rem;color:#64748b;}
+.price-block{text-align:center;padding:20px;background:#f8fafc;border-radius:16px;border:2px solid #078930;}
+.price-block .p-amount{font-size:2.4rem;font-weight:800;color:#078930;}
+.price-block .p-label{font-size:.8rem;color:#64748b;margin-top:4px;}
+.vendor-note-box{background:#fffdf0;border:1px solid #f5d7b0;border-radius:12px;padding:14px 18px;font-size:.88rem;color:#475569;line-height:1.6;}
+/* Timeline */
+.timeline{list-style:none;padding:0;}
+.timeline li{display:flex;gap:14px;padding:10px 0;border-left:2px solid #eef2f6;margin-left:12px;padding-left:20px;position:relative;}
+.timeline li::before{content:'';width:10px;height:10px;border-radius:50%;background:#eef2f6;position:absolute;left:-6px;top:15px;}
+.timeline li.tl-done::before{background:#078930;}
+.timeline li.tl-current::before{background:#0b2b4a;box-shadow:0 0 0 3px rgba(11,43,74,.2);}
+.tl-time{font-size:.75rem;color:#94a3b8;min-width:80px;flex-shrink:0;padding-top:2px;}
+.tl-body .tl-title{font-weight:600;font-size:.88rem;}
+.tl-body .tl-note{font-size:.8rem;color:#64748b;margin-top:2px;}
+.action-btns{display:flex;gap:12px;flex-wrap:wrap;margin-top:20px;}
+.mk-btn{padding:11px 28px;border-radius:60px;font-weight:700;font-size:.88rem;border:none;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:.2s;}
+.mk-btn-success{background:#078930;color:#fff;}
+.mk-btn-success:hover{background:#0b2b4a;}
+.mk-btn-danger{background:#fef3f3;color:#b91c1c;border:2px solid #fecaca;}
+.mk-btn-danger:hover{background:#d42e2e;color:#fff;border-color:#d42e2e;}
+.file-download{display:inline-flex;align-items:center;gap:8px;background:#f1f4f9;padding:8px 18px;border-radius:40px;font-size:.82rem;font-weight:600;color:#0b2b4a;text-decoration:none;transition:.2s;}
+.file-download:hover{background:#0b2b4a;color:#fff;}
+@media(max-width:768px){.info-grid{grid-template-columns:1fr;}.mk-wrap{padding:16px;}}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mk-wrap">
+    <div style="font-size:.82rem;color:#94a3b8;margin-bottom:16px;">
+        <a href="{% url 'store:home' %}" style="color:#475569;">Home</a> /
+        <a href="{% url 'makerspace:my_orders' %}" style="color:#475569;">My Orders</a> /
+        <span style="color:#1e293b;font-weight:600;">{{ order.order_number }}</span>
+    </div>
+
+    <!-- Header -->
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:24px;">
+        <div>
+            <h1 style="font-size:1.5rem;font-weight:800;">{{ order.order_number }}</h1>
+            <div style="font-size:.82rem;color:#94a3b8;margin-top:4px;">
+                {{ order.get_service_type_display }} ·
+                Submitted {{ order.created_at|date:"M j, Y · g:i A" }}
+            </div>
+        </div>
+        <span class="status-badge st-{{ order.status }}">{{ order.get_status_display }}</span>
+    </div>
+
+    <!-- File Analysis & Price -->
+    {% if order.estimated_grams > 0 or order.estimated_area_cm2 > 0 or order.estimated_volume_cm3 > 0 %}
+    <div class="mk-card">
+        <h3><i class="fas fa-calculator" style="color:#078930;"></i> Auto-Calculated Analysis · ትንታኔ</h3>
+        <div class="analysis-box">
+            {% if order.estimated_volume_cm3 > 0 %}
+            <div class="an-item">
+                <strong>{{ order.estimated_volume_cm3 }} cm³</strong>
+                <span>Volume</span>
+            </div>
+            {% endif %}
+            {% if order.estimated_grams > 0 %}
+            <div class="an-item">
+                <strong>{{ order.estimated_grams }} g</strong>
+                <span>Estimated weight (at {{ order.infill }}% infill)</span>
+            </div>
+            {% endif %}
+            {% if order.estimated_area_cm2 > 0 %}
+            <div class="an-item">
+                <strong>{{ order.estimated_area_cm2 }} cm²</strong>
+                <span>Cutting area</span>
+            </div>
+            {% endif %}
+            <div class="an-item">
+                <strong>{{ order.file_type|upper }}</strong>
+                <span>File format</span>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Price & Actions -->
+    <div class="mk-card">
+        <h3><i class="fas fa-tag" style="color:#078930;"></i> Pricing · ዋጋ</h3>
+        <div style="display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center;flex-wrap:wrap;">
+            <div class="price-block">
+                <div class="p-amount">ETB {{ order.final_price }}</div>
+                <div class="p-label">
+                    {% if order.vendor_price %}Final quoted price{% else %}System estimate{% endif %}
+                    · {{ order.quantity }} unit{% if order.quantity != 1 %}s{% endif %}
+                </div>
+            </div>
+            <div>
+                {% if order.vendor_note %}
+                <div class="vendor-note-box">
+                    <strong><i class="fas fa-comment" style="color:#078930;"></i> Vendor note:</strong><br/>
+                    {{ order.vendor_note }}
+                </div>
+                {% endif %}
+                {% if order.rejection_reason %}
+                <div class="vendor-note-box" style="background:#fef3f3;border-color:#f5b8b8;">
+                    <strong><i class="fas fa-times-circle" style="color:#b91c1c;"></i> Rejection reason:</strong><br/>
+                    {{ order.rejection_reason }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="action-btns">
+            {% if order.can_accept %}
+            <form method="post" action="{% url 'makerspace:accept_quote' order.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="mk-btn mk-btn-success"
+                        onclick="return confirm('Accept this quote for ETB {{ order.final_price }}?')">
+                    <i class="fas fa-check"></i> Accept Quote · ተቀበሉ
+                </button>
+            </form>
+            {% endif %}
+            {% if order.can_cancel %}
+            <a href="{% url 'makerspace:cancel_order' order.pk %}" class="mk-btn mk-btn-danger">
+                <i class="fas fa-times"></i> Cancel Order · ሰርዝ
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Order Info -->
+    <div class="mk-card">
+        <h3><i class="fas fa-info-circle" style="color:#078930;"></i> Order Details</h3>
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="ilabel">Service</div>
+                <div class="ivalue">{{ order.get_service_type_display }}</div>
+            </div>
+            <div class="info-item">
+                <div class="ilabel">Material</div>
+                <div class="ivalue">{{ order.get_material_display }}</div>
+            </div>
+            <div class="info-item">
+                <div class="ilabel">Infill</div>
+                <div class="ivalue">{{ order.infill }}%</div>
+            </div>
+            <div class="info-item">
+                <div class="ilabel">Quantity</div>
+                <div class="ivalue">{{ order.quantity }}</div>
+            </div>
+            <div class="info-item">
+                <div class="ilabel">Color</div>
+                <div class="ivalue">{{ order.color|default:"Not specified" }}</div>
+            </div>
+            <div class="info-item">
+                <div class="ilabel">Makerspace</div>
+                <div class="ivalue">{{ order.vendor.store_name }}</div>
+            </div>
+            <div class="info-item" style="grid-column:1/-1;">
+                <div class="ilabel">Design File · ፋይል</div>
+                <div class="ivalue">
+                    <a href="{{ order.design_file.url }}" class="file-download" download>
+                        <i class="fas fa-download"></i>
+                        {{ order.file_name }}
+                    </a>
+                </div>
+            </div>
+            {% if order.notes %}
+            <div class="info-item" style="grid-column:1/-1;">
+                <div class="ilabel">Your Notes</div>
+                <div class="ivalue" style="font-weight:400;color:#475569;">{{ order.notes }}</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Status Timeline -->
+    {% if logs %}
+    <div class="mk-card">
+        <h3><i class="fas fa-history" style="color:#078930;"></i> Status History · ታሪክ</h3>
+        <ul class="timeline">
+            {% for log in logs %}
+            <li class="tl-done">
+                <div class="tl-time">{{ log.changed_at|date:"M j H:i" }}</div>
+                <div class="tl-body">
+                    <div class="tl-title">{{ log.get_new_status_display|default:log.new_status }}</div>
+                    {% if log.note %}<div class="tl-note">{{ log.note }}</div>{% endif %}
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

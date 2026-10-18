@@ -1,0 +1,75 @@
+{% extends 'vendors/base_vendor.html' %}
+{% block title %}Makerspace Orders · Vendor Portal{% endblock %}
+{% block breadcrumb %}Makerspace / Orders{% endblock %}
+
+{% block vendor_content %}
+<div class="page-header">
+    <h2>📥 Makerspace Orders <span class="sub">({{ orders.count }})</span></h2>
+</div>
+
+<form method="get" class="search-row">
+    <select name="status" class="form-control" style="width:220px;padding:8px 12px;">
+        <option value="">All Statuses</option>
+        {% for val, label in status_choices %}
+        <option value="{{ val }}" {% if status_filter == val %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit" class="btn-save" style="padding:9px 20px;">
+        <i class="fas fa-filter"></i> Filter
+    </button>
+    {% if status_filter %}<a href="{% url 'makerspace:vendor_orders' %}" class="btn-back" style="padding:9px 16px;">Clear</a>{% endif %}
+</form>
+
+<div class="table-wrap">
+    <table>
+        <thead>
+            <tr>
+                <th>Order</th>
+                <th>Customer</th>
+                <th>Service · Material</th>
+                <th>File</th>
+                <th>Analysis</th>
+                <th>Price</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td>
+                    <strong>{{ order.order_number }}</strong>
+                    <div style="font-size:.72rem;color:#94a3b8;">{{ order.created_at|date:"M j, Y" }}</div>
+                </td>
+                <td>{{ order.customer.get_full_name|default:order.customer.username }}</td>
+                <td>
+                    <div style="font-weight:600;font-size:.82rem;">{{ order.get_service_type_display }}</div>
+                    <div style="font-size:.72rem;color:#94a3b8;">{{ order.get_material_display }} · {{ order.infill }}%</div>
+                </td>
+                <td>
+                    <a href="{{ order.design_file.url }}" target="_blank"
+                       style="display:inline-flex;align-items:center;gap:4px;background:#e8f5e9;padding:4px 10px;border-radius:40px;font-size:.72rem;font-weight:700;color:#078930;text-decoration:none;">
+                        <i class="fas fa-download"></i> {{ order.file_type|upper|default:"FILE" }}
+                    </a>
+                </td>
+                <td style="font-size:.78rem;color:#475569;">
+                    {% if order.estimated_grams > 0 %}{{ order.estimated_grams }}g {% endif %}
+                    {% if order.estimated_volume_cm3 > 0 %}{{ order.estimated_volume_cm3|floatformat:1 }}cm³ {% endif %}
+                    {% if order.estimated_area_cm2 > 0 %}{{ order.estimated_area_cm2|floatformat:1 }}cm² {% endif %}
+                    {% if not order.estimated_grams and not order.estimated_area_cm2 %}—{% endif %}
+                </td>
+                <td><strong>ETB {{ order.final_price }}</strong></td>
+                <td><span class="status {{ order.status_color }}">{{ order.get_status_display }}</span></td>
+                <td>
+                    <a href="{% url 'makerspace:vendor_order_detail' order.pk %}" class="btn-sm-edit">
+                        <i class="fas fa-eye"></i> Review
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="8" style="text-align:center;padding:32px;color:#94a3b8;">No orders yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
